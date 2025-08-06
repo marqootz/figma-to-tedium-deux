@@ -53,8 +53,8 @@ function convertGradientToCSS(gradient: any, nodeOpacity: number): string {
         // The angle is determined by the direction vector [a, d]
         if (Math.abs(a) > 0.001 || Math.abs(d) > 0.001) {
           // Calculate angle from the transformation matrix
-          // Subtract 90 degrees to correct the rotation offset
-          const angle = Math.atan2(d, a) * 180 / Math.PI - 90;
+          // Subtract 270 degrees to correct the rotation offset
+          const angle = Math.atan2(d, a) * 180 / Math.PI - 270;
           direction = `${angle}deg`;
         }
       }
