@@ -30,14 +30,20 @@ export function generateReactionAttributes(node: FigmaNode): Record<string, stri
     if (firstReaction) {
       attributes['data-has-reactions'] = 'true';
       attributes['data-reaction-count'] = String(reactions.length);
-      attributes['data-reaction-trigger'] = escapeHtmlAttribute(JSON.stringify(firstReaction.trigger));
-      attributes['data-reaction-action-type'] = firstReaction.action.type;
       
-      if (firstReaction.action.destinationId) {
-        attributes['data-reaction-destination'] = firstReaction.action.destinationId;
+      if (firstReaction.trigger) {
+        attributes['data-reaction-trigger'] = escapeHtmlAttribute(JSON.stringify(firstReaction.trigger));
       }
       
-      if (firstReaction.transition) {
+      if (firstReaction.action && firstReaction.action.type) {
+        attributes['data-reaction-action-type'] = firstReaction.action.type;
+        
+        if (firstReaction.action.destinationId) {
+          attributes['data-reaction-destination'] = firstReaction.action.destinationId;
+        }
+      }
+      
+      if (firstReaction.transition && firstReaction.transition.type) {
         attributes['data-reaction-transition-type'] = firstReaction.transition.type;
         if (firstReaction.transition.duration) {
           attributes['data-reaction-transition-duration'] = String(firstReaction.transition.duration);
