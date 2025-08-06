@@ -4,6 +4,23 @@ import { generateReactionAttributes, generateVariantAttributes } from './events'
 import { applyOverrides } from '../processing/nodes';
 import { convertVectorToSVG, convertRectangleToSVG, convertEllipseToSVG } from '../processing/svg';
 
+// Image conversion function
+export function convertImageToHTML(node: FigmaNode): string {
+  const width = safeToString(node.width || 0);
+  const height = safeToString(node.height || 0);
+  const alt = escapeHtmlAttribute(safeToString(node.name || 'Image'));
+  
+  // Check if we have image hash for actual image data
+  if ((node as any).imageHash) {
+    // In a real implementation, you would use figma.getImageByHash() to get the actual image
+    // For now, we'll create a placeholder that indicates an image should be here
+    return `<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0i${width}IiBoZWlnaHQ9Ii${height}IiB2aWV3Qm94PSIwIDAg${width}IC${height}IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmMGYwZjAiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2U8L3RleHQ+PC9zdmc+" width="${width}" height="${height}" alt="${alt}" style="object-fit: cover;" data-image-hash="${(node as any).imageHash}" />`;
+  }
+  
+  // Fallback for nodes without image hash
+  return `<div style="width: ${width}px; height: ${height}px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 1px dashed #ccc; color: #999; font-family: Arial, sans-serif; font-size: 12px;" data-figma-type="image-placeholder">Image Placeholder</div>`;
+}
+
 // Utility functions
 function safeHasProperty(obj: any, prop: string): boolean {
   return obj && typeof obj === 'object' && prop in obj;
@@ -32,6 +49,8 @@ export function getTagName(node: FigmaNode): string {
     case 'RECTANGLE':
     case 'ELLIPSE':
       return 'svg';
+    case 'IMAGE':
+      return 'img';
     default:
       return 'div';
   }
@@ -160,6 +179,11 @@ export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: 
   
   if (processedNode.type === 'ELLIPSE') {
     return convertEllipseToSVG(processedNode);
+  }
+  
+  // Handle image nodes
+  if (processedNode.type === 'IMAGE') {
+    return convertImageToHTML(processedNode);
   }
   
   // Compute styles for non-SVG nodes

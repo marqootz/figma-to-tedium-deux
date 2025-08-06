@@ -30,6 +30,9 @@ export interface FigmaNode {
   strokeWeight?: number;
   effects?: any[];
   vectorPaths?: any[];
+  // Image-specific properties
+  imageHash?: string;
+  imageTransform?: number[][];
   [key: string]: any;
 }
 
