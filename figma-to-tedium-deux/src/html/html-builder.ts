@@ -55,18 +55,9 @@ export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: 
     ...Object.entries(variantAttributes).map(([key, value]) => `${key}="${value}"`)
   ];
   
-  // Convert styles to CSS string and handle pseudo-elements
+  // Convert styles to CSS string
   console.log(`[DEBUG] Computed styles for node ${processedNode.name}:`, computedStyles);
-  
-  // Extract pseudo-element CSS if present
-  let pseudoElementCSS = '';
-  const cleanStyles = { ...computedStyles };
-  if ((cleanStyles as any).pseudoElementCSS) {
-    pseudoElementCSS = (cleanStyles as any).pseudoElementCSS;
-    delete (cleanStyles as any).pseudoElementCSS;
-  }
-  
-  const styleString = Object.entries(cleanStyles)
+  const styleString = Object.entries(computedStyles)
     .filter(([property, value]) => value !== undefined && value !== null && value !== '')
     .map(([property, value]) => `${property}: ${value}`)
     .join('; ');
@@ -134,15 +125,6 @@ export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: 
   const tagName = getTagName(processedNode);
   const openTag = `<${tagName} ${allAttributes.join(' ')} style="${styleString}">`;
   const closeTag = `</${tagName}>`;
-  
-  // Add pseudo-element CSS if present
-  if (pseudoElementCSS) {
-    // Create a style tag with the pseudo-element CSS
-    const styleTag = `<style>
-      [data-figma-id="${processedNode.id}"] ${pseudoElementCSS}
-    </style>`;
-    return `${styleTag}${openTag}${content}${childrenHTML}${closeTag}`;
-  }
   
   return `${openTag}${content}${childrenHTML}${closeTag}`;
 } 

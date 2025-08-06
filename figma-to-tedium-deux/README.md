@@ -83,28 +83,26 @@ npm run build:css     # Build CSS assets
 
 ## Gradient Border Support
 
-The plugin now supports gradient borders using the proper CSS technique with pseudo-elements:
+The plugin now supports gradient borders using the multiple background layers technique:
 
 ```css
-.gradient-box {
-  position: relative;
-  background-clip: padding-box;
-  border: 5px solid transparent;
-  border-radius: 1em;
-}
-
-.gradient-box::before {
-  content: '';
-  position: absolute;
-  top: 0; right: 0; bottom: 0; left: 0;
-  z-index: -1;
-  margin: -5px;
-  border-radius: inherit;
-  background: linear-gradient(to right, red, orange);
+.gradient-border-box {
+  border: double 4px transparent;
+  border-radius: 15px;
+  background-image: linear-gradient(white, white), 
+                    linear-gradient(to right, red, blue, green);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
 }
 ```
 
-This technique ensures proper gradient border rendering across all browsers and maintains the border radius correctly.
+This technique uses multiple background layers:
+- **Inner layer**: Matches the element's background color
+- **Outer layer**: The gradient border
+- **background-origin**: border-box starts from the border edge
+- **background-clip**: padding-box clips inner background, border-box clips gradient
+
+This ensures proper gradient border rendering across all browsers and maintains the border radius correctly.
 
 ## File Size Improvements
 

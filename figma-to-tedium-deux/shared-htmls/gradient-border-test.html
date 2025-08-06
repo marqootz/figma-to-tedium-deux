@@ -17,90 +17,74 @@
       justify-content: center;
     }
     
-    /* Test gradient border element */
+    /* Test gradient border element using multiple background layers */
     .gradient-border-test {
       width: 200px;
       height: 100px;
-      position: relative;
-      background-clip: padding-box;
-      border: 5px solid transparent;
+      border: double 5px transparent;
       border-radius: 10px;
+      background-image: linear-gradient(white, white), 
+                        linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #333;
       font-family: Arial, sans-serif;
       font-weight: bold;
-    }
-    
-    .gradient-border-test::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      z-index: -1;
-      margin: -5px;
-      border-radius: inherit;
-      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
     }
     
     /* Multiple gradient border examples */
     .gradient-border-red-orange {
       width: 150px;
       height: 80px;
-      position: relative;
-      background-clip: padding-box;
-      border: 3px solid transparent;
+      border: double 3px transparent;
       border-radius: 8px;
+      background-image: linear-gradient(white, white), 
+                        linear-gradient(to right, red, orange);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #333;
       font-family: Arial, sans-serif;
       margin: 20px;
-    }
-    
-    .gradient-border-red-orange::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      z-index: -1;
-      margin: -3px;
-      border-radius: inherit;
-      background: linear-gradient(to right, red, orange);
     }
     
     .gradient-border-purple-pink {
       width: 150px;
       height: 80px;
-      position: relative;
-      background-clip: padding-box;
-      border: 4px solid transparent;
+      border: double 4px transparent;
       border-radius: 12px;
+      background-image: linear-gradient(white, white), 
+                        linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #333;
       font-family: Arial, sans-serif;
       margin: 20px;
     }
     
-    .gradient-border-purple-pink::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      z-index: -1;
-      margin: -4px;
-      border-radius: inherit;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .gradient-border-with-fill {
+      width: 150px;
+      height: 80px;
+      border: double 4px transparent;
+      border-radius: 12px;
+      background-image: linear-gradient(#e0e0e0, #e0e0e0), 
+                        linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      font-family: Arial, sans-serif;
+      margin: 20px;
     }
     
     .container {
@@ -113,8 +97,8 @@
 </head>
 <body>
   <div class="container">
-    <h1>Gradient Border Test</h1>
-    <p>Testing the new gradient border functionality</p>
+    <h1>Gradient Border Test - Multiple Background Layers</h1>
+    <p>Testing the new gradient border functionality using multiple background layers</p>
     
     <div class="gradient-border-test">
       Multi-Color Gradient
@@ -126,6 +110,10 @@
     
     <div class="gradient-border-purple-pink">
       Purple to Pink
+    </div>
+    
+    <div class="gradient-border-with-fill">
+      With Fill Color
     </div>
   </div>
 </body>

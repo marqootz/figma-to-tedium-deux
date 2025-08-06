@@ -16,34 +16,28 @@ export function computeBorderStyles(node: FigmaNode, nodeOpacity: number): Compu
       const strokeWeight = node.strokeWeight || 1;
       borderStyles.border = `${strokeWeight}px solid ${strokeColor}`;
     } else if (stroke.type === 'GRADIENT_LINEAR' || stroke.type === 'GRADIENT_RADIAL') {
-      // Handle gradient strokes using pseudo-element technique
+      // Handle gradient strokes using multiple background layers technique
       const gradientCSS = convertGradientToCSS(stroke, nodeOpacity);
       if (gradientCSS) {
         const strokeWeight = node.strokeWeight || 1;
         
-        // Set up the container for gradient border
-        borderStyles.position = 'relative';
-        borderStyles['background-clip'] = 'padding-box';
-        borderStyles.border = `${strokeWeight}px solid transparent`;
-        
-        // Add the gradient as a pseudo-element
-        const pseudoElementCSS = `
-          &::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            z-index: -1;
-            margin: -${strokeWeight}px;
-            border-radius: inherit;
-            background: ${gradientCSS};
+        // Determine the background color for the inner layer
+        let innerBackground = 'transparent';
+        if ((node as any).fills && Array.isArray((node as any).fills) && (node as any).fills.length > 0) {
+          const fill = (node as any).fills[0];
+          if (fill.type === 'SOLID' && fill.color) {
+            const { r, g, b, a = 1 } = fill.color;
+            const fillOpacity = fill.opacity !== undefined ? fill.opacity : 1;
+            const finalAlpha = a * fillOpacity * nodeOpacity;
+            innerBackground = `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${finalAlpha})`;
           }
-        `;
+        }
         
-        // Store the pseudo-element CSS for later injection
-        (borderStyles as any).pseudoElementCSS = pseudoElementCSS;
+        // Set up the multiple background layers for gradient border
+        borderStyles.border = `double ${strokeWeight}px transparent`;
+        borderStyles['background-image'] = `${innerBackground}, ${gradientCSS}`;
+        borderStyles['background-origin'] = 'border-box';
+        borderStyles['background-clip'] = 'padding-box, border-box';
       }
     }
   }
