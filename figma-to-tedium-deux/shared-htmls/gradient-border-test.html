@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    html, body { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      width: 100vw; 
+      height: 100vh; 
+      overflow: hidden; 
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Test gradient border element */
+    .gradient-border-test {
+      width: 200px;
+      height: 100px;
+      position: relative;
+      background-clip: padding-box;
+      border: 5px solid transparent;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+    }
+    
+    .gradient-border-test::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: -1;
+      margin: -5px;
+      border-radius: inherit;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+    }
+    
+    /* Multiple gradient border examples */
+    .gradient-border-red-orange {
+      width: 150px;
+      height: 80px;
+      position: relative;
+      background-clip: padding-box;
+      border: 3px solid transparent;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    
+    .gradient-border-red-orange::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: -1;
+      margin: -3px;
+      border-radius: inherit;
+      background: linear-gradient(to right, red, orange);
+    }
+    
+    .gradient-border-purple-pink {
+      width: 150px;
+      height: 80px;
+      position: relative;
+      background-clip: padding-box;
+      border: 4px solid transparent;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    
+    .gradient-border-purple-pink::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: -1;
+      margin: -4px;
+      border-radius: inherit;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gradient Border Test</h1>
+    <p>Testing the new gradient border functionality</p>
+    
+    <div class="gradient-border-test">
+      Multi-Color Gradient
+    </div>
+    
+    <div class="gradient-border-red-orange">
+      Red to Orange
+    </div>
+    
+    <div class="gradient-border-purple-pink">
+      Purple to Pink
+    </div>
+  </div>
+</body>
+</html> 

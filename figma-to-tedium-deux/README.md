@@ -81,6 +81,31 @@ npm run build:css     # Build CSS assets
 - **Interface Segregation**: Modules expose only what's needed
 - **Open/Closed Principle**: Easy to extend without modifying existing code
 
+## Gradient Border Support
+
+The plugin now supports gradient borders using the proper CSS technique with pseudo-elements:
+
+```css
+.gradient-box {
+  position: relative;
+  background-clip: padding-box;
+  border: 5px solid transparent;
+  border-radius: 1em;
+}
+
+.gradient-box::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  z-index: -1;
+  margin: -5px;
+  border-radius: inherit;
+  background: linear-gradient(to right, red, orange);
+}
+```
+
+This technique ensures proper gradient border rendering across all browsers and maintains the border radius correctly.
+
 ## File Size Improvements
 
 ### Before Refactoring
