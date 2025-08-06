@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    
+    /* iOS-compatible font declarations - using consistent font-family names */
+    
+    /* TrueType fonts - "CircularXX TT" family with font-weight and font-style variations */
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Thin.ttf") format("truetype");
+      font-weight: 100;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-ThinItalic.ttf") format("truetype");
+      font-weight: 100;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Light.ttf") format("truetype");
+      font-weight: 300;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-LightItalic.ttf") format("truetype");
+      font-weight: 300;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Italic.ttf") format("truetype");
+      font-weight: 400;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Book.ttf") format("truetype");
+      font-weight: 450;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-BookItalic.ttf") format("truetype");
+      font-weight: 450;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Medium.ttf") format("truetype");
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-MediumItalic.ttf") format("truetype");
+      font-weight: 500;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-BoldItalic.ttf") format("truetype");
+      font-weight: 700;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Black.ttf") format("truetype");
+      font-weight: 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-BlackItalic.ttf") format("truetype");
+      font-weight: 900;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-ExtraBlack.ttf") format("truetype");
+      font-weight: 950;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-ExtraBlackItalic.ttf") format("truetype");
+      font-weight: 950;
+      font-style: italic;
+      font-display: swap;
+    }
+  
+    html, body { box-sizing: border-box; margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; }
+    p { margin: 0; }
+    /* Component set sizing - only apply 100% if not explicitly set to fixed dimensions */
+    [data-figma-id]:not([style*="width:"]):not([style*="height:"]) { width: 100%; height: 100%; }
+    /* Variant visibility classes */
+    .variant-active {
+      display: block !important;
+    }
+    .variant-hidden {
+      display: none !important;
+    }
+    /* Dissolve transition overrides */
+    .dissolve-source, .dissolve-target {
+      display: block !important;
+    }
+    .dissolve-source {
+      opacity: 1;
+    }
+    .dissolve-target {
+      opacity: 0;
+    }
+    /* Smart animate transition overrides */
+    .smart-animate-source, .smart-animate-target {
+      display: block !important;
+    }
+    .smart-animate-source {
+      opacity: 1;
+    }
+    .smart-animate-target {
+      opacity: 1;
+    }
+    /* iOS font loading optimization */
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
+</head>
+<body>
+<div data-figma-id="5533:1626" data-figma-name="Property 1=info-bar-enroute-start" data-figma-type="COMPONENT" data-variant-id="5533:1626" data-original-x="7872.5" data-original-y="0" data-original-width="1920.125" data-original-height="390" data-original-opacity="1" data-original-border-radius="0" data-original-layout-mode="VERTICAL" data-original-primary-axis-align="MAX" data-original-counter-axis-align="CENTER" data-original-background-color="rgba(21, 21, 21, 1)" data-has-reactions="true" data-reaction-count="1" data-reaction-trigger="{&quot;type&quot;:&quot;AFTER_TIMEOUT&quot;,&quot;timeout&quot;:5}" data-reaction-action-type="NODE" data-reaction-destination="5533:1656" data-variant-property-1="info-bar-enroute-start" style="background-color: rgba(21, 21, 21, 1); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 100%; height: 100%; left: 7872.5px; top: 0px; border-radius: 0px"><div data-figma-id="7027:2940" data-figma-name="info-bar/enroute" data-figma-type="FRAME" data-original-x="0" data-original-y="0" data-original-width="1920.125" data-original-height="390" data-original-opacity="1" data-original-border-radius="0" data-original-layout-mode="VERTICAL" data-original-primary-axis-align="MAX" data-original-counter-axis-align="MAX" style="display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: 0px"><div data-figma-id="7027:2941" data-figma-name="Frame 1307" data-figma-type="FRAME" data-original-x="0" data-original-y="0" data-original-width="1920.125" data-original-height="390" data-original-opacity="1" data-original-border-radius="0" data-original-layout-mode="VERTICAL" data-original-primary-axis-align="MAX" data-original-counter-axis-align="CENTER" data-original-background-color="rgba(0, 0, 0, 1)" style="background-color: rgba(0, 0, 0, 1); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: 0px; padding-left: 32px; padding-right: 32px; padding-top: 32px; padding-bottom: 32px"><div data-figma-id="7027:2942" data-figma-name="Frame 1250" data-figma-type="FRAME" data-original-x="32" data-original-y="54" data-original-width="1856.125" data-original-height="220" data-original-opacity="1" data-original-border-radius="0" data-original-layout-mode="HORIZONTAL" data-original-primary-axis-align="MAX" data-original-counter-axis-align="MIN" style="display: flex; flex-direction: row; justify-content: flex-end; align-items: flex-start; width: 100%; height: 220px; left: 32px; top: 54px; border-radius: 0px"><p data-figma-id="7027:2943" data-figma-name="12:23" data-figma-type="TEXT" data-original-x="0" data-original-y="0" data-original-width="268" data-original-height="121" data-original-opacity="1" data-original-background-color="rgba(255, 255, 255, 0.5)" data-original-color="rgba(255, 255, 255, 0.5)" data-original-font-size="110" data-original-font-weight="400" data-original-text-align="left" style="color: rgba(255, 255, 255, 0.5); width: 268px; height: 121px; left: 0px; top: 0px; font-size: 110px; font-family: CircularXX TT, sans-serif; font-weight: 400; text-align: left; letter-spacing: 4%; line-height: 110.00000238418579%">12:23</p>
+<div data-figma-id="7027:2944" data-figma-name="Frame 1305" data-figma-type="FRAME" data-original-x="268" data-original-y="0" data-original-width="1588.125" data-original-height="220" data-original-opacity="1" data-original-border-radius="0" data-original-layout-mode="VERTICAL" data-original-primary-axis-align="CENTER" data-original-counter-axis-align="MAX" style="display: flex; flex-direction: column; justify-content: center; align-items: flex-end; width: 100%; height: 220px; left: 268px; top: 0px; border-radius: 0px"><p data-figma-id="7027:2945" data-figma-name="Economy Lot 1" data-figma-type="TEXT" data-original-x="690.125" data-original-y="0" data-original-width="898" data-original-height="136" data-original-opacity="1" data-original-background-color="rgba(255, 255, 255, 1)" data-original-color="rgba(255, 255, 255, 1)" data-original-font-size="130" data-original-font-weight="400" data-original-text-align="right" style="color: rgba(255, 255, 255, 1); width: 898px; height: 136px; left: 690.125px; top: 0px; font-size: 130px; font-family: CircularXX TT, sans-serif; font-weight: 400; text-align: right; letter-spacing: 4%; line-height: 104.99999523162842%">Economy Lot 1</p>
+<p data-figma-id="7027:2946" data-figma-name="in 4m" data-figma-type="TEXT" data-original-x="1377.125" data-original-y="136" data-original-width="211" data-original-height="84" data-original-opacity="1" data-original-background-color="rgba(255, 255, 255, 0.5)" data-original-color="rgba(255, 255, 255, 0.5)" data-original-font-size="80" data-original-font-weight="400" data-original-text-align="right" style="color: rgba(255, 255, 255, 0.5); width: 211px; height: 84px; left: 1377.125px; top: 136px; font-size: 80px; font-family: CircularXX TT, sans-serif; font-weight: 400; text-align: right; letter-spacing: 4%; line-height: 104.99999523162842%">in 4m</p></div></div>
+<div data-figma-id="7027:2947" data-figma-name="glydcar/info-bar/ride-progress" data-figma-type="INSTANCE" data-original-x="32" data-original-y="274" data-original-width="1856.125" data-original-height="84" data-original-opacity="1" data-original-border-radius="0" data-original-layout-mode="VERTICAL" data-original-primary-axis-align="CENTER" data-original-counter-axis-align="CENTER" data-has-reactions="true" data-reaction-count="1" data-reaction-trigger="{&quot;type&quot;:&quot;AFTER_TIMEOUT&quot;,&quot;timeout&quot;:0.8}" data-reaction-action-type="NODE" data-reaction-destination="5829:3368" data-variant-property-1="start" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 84px; left: 32px; top: 274px; border-radius: 0px"><div data-figma-id="I7027:2947;6461:694" data-figma-name="Frame 1308" data-figma-type="FRAME" data-original-x="0" data-original-y="0" data-original-width="1856.125" data-original-height="84" data-original-opacity="1" data-original-border-radius="1000" data-original-layout-mode="HORIZONTAL" data-original-primary-axis-align="MIN" data-original-counter-axis-align="CENTER" data-original-background-color="rgba(79, 79, 79, 1)" style="background-color: rgba(79, 79, 79, 1); display: flex; flex-direction: row; justify-content: flex-start; align-items: center; gap: 10px; width: 100%; height: 84px; left: 0px; top: 0px; border-radius: 1000px"><div data-figma-id="I7027:2947;6461:695" data-figma-name="Frame 1307" data-figma-type="FRAME" data-original-x="0" data-original-y="0" data-original-width="84" data-original-height="84" data-original-opacity="1" data-original-border-radius="1000" data-original-layout-mode="NONE" data-original-primary-axis-align="CENTER" data-original-counter-axis-align="CENTER" data-original-background-color="rgba(44, 129, 165, 1)" style="background-color: rgba(44, 129, 165, 1); display: flex; justify-content: center; align-items: center; gap: 10px; width: 84px; height: 84px; left: 0px; top: 0px; border-radius: 1000px"></div></div></div></div></div></div>
+<script>
+
+    // Event handling for interactive elements
+    document.addEventListener('DOMContentLoaded', function() {
+      // Handle variant switching
+      const variantButtons = document.querySelectorAll('[data-variant]');
+      variantButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const variant = this.getAttribute('data-variant');
+          const targetId = this.getAttribute('data-target');
+          
+          if (targetId) {
+            const target = document.querySelector(`[data-figma-id="${targetId}"]`);
+            if (target) {
+              // Hide all variants
+              target.querySelectorAll('[data-variant]').forEach(el => {
+                el.classList.add('variant-hidden');
+                el.classList.remove('variant-active');
+              });
+              
+              // Show selected variant
+              const selectedVariant = target.querySelector(`[data-variant="${variant}"]`);
+              if (selectedVariant) {
+                selectedVariant.classList.add('variant-active');
+                selectedVariant.classList.remove('variant-hidden');
+              }
+            }
+          }
+        });
+      });
+      
+      // Handle reactions
+      const reactionElements = document.querySelectorAll('[data-has-reactions="true"]');
+      reactionElements.forEach(element => {
+        element.addEventListener('click', function() {
+          const trigger = JSON.parse(this.getAttribute('data-reaction-trigger') || '{}');
+          const actionType = this.getAttribute('data-reaction-action-type');
+          const destinationId = this.getAttribute('data-reaction-destination');
+          const transitionType = this.getAttribute('data-reaction-transition-type');
+          const transitionDuration = this.getAttribute('data-reaction-transition-duration');
+          
+          if (destinationId) {
+            const destination = document.querySelector(`[data-figma-id="${destinationId}"]`);
+            if (destination) {
+              // Handle transition
+              if (transitionType === 'DISSOLVE') {
+                this.style.opacity = '0';
+                setTimeout(() => {
+                  destination.style.opacity = '1';
+                }, parseFloat(transitionDuration || '300'));
+              }
+            }
+          }
+        });
+      });
+    });
+  
+</script>
+</body>
+</html>

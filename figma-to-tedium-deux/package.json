@@ -1,0 +1,24 @@
+{
+  "name": "figma-to-tedium-deux",
+  "version": "1.0.0",
+  "description": "Refactored Figma to HTML/Tedium plugin with modular architecture",
+  "main": "dist/code.js",
+  "scripts": {
+    "build": "webpack --mode=production",
+    "build:refactored": "webpack --config webpack-refactored.config.js --mode=production",
+    "dev": "webpack --mode=development --watch",
+    "dev:refactored": "webpack --config webpack-refactored.config.js --mode=development --watch",
+    "build:css": "node scripts/build-css.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["figma", "plugin", "html", "tedium", "refactored"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.82.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^5.1.4"
+  }
+}

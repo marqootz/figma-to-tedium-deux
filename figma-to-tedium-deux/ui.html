@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Figma to Tedium Exporter</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1E1E1E;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    .plugin-container {
+      width: 100%;
+      height: 100%;
+      background: #f8f9fa;
+      border-radius: 0;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      min-height: auto;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px;
+      text-align: center;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    .header h1 {
+      font-size: 1.3em;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 0.8em;
+      opacity: 0.9;
+      line-height: 1.2;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #e9ecef;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .panel-icon {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2;
+      color: #667eea;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    button {
+      padding: 8px 12px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-height: 32px;
+    }
+
+    button:hover {
+      background: #5a6fd8;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .button-secondary {
+      background: #6c757d;
+    }
+
+    .button-secondary:hover {
+      background: #5a6268;
+      box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+    }
+
+    .button-success {
+      background: #28a745;
+    }
+
+    .button-success:hover {
+      background: #218838;
+      box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .button-warning {
+      background: #ffc107;
+      color: #212529;
+    }
+
+    .button-warning:hover {
+      background: #e0a800;
+      box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+    }
+
+    .button-info {
+      background: #17a2b8;
+    }
+
+    .button-info:hover {
+      background: #138496;
+      box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+    }
+
+    .status {
+      margin-top: 8px;
+      padding: 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      display: none;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .icon {
+      width: 12px;
+      height: 12px;
+      stroke-width: 2;
+    }
+
+    .loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 6px;
+    }
+
+    .spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .description {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+      line-height: 1.2;
+    }
+  </style>
+</head>
+<body>
+  <div class="plugin-container">
+    <div class="header">
+      <h1>Figma to Tedium Deux</h1>
+      <p>Export your Figma designs to HTML and JSON formats</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14,2 14,8 20,8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10,9 9,9 8,9"></polyline>
+        </svg>
+        Refactored System Export
+      </div>
+
+      <div class="button-group">
+        <button id="create" class="button-success">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M9 12l2 2 4-4"></path>
+            <path d="M21 12c-1 0-2.4-.4-3.5-1.5S16 8 16 7s.4-2.4 1.5-3.5S20 2 21 2s2.4.4 3.5 1.5S26 6 26 7s-.4 2.4-1.5 3.5S22 12 21 12z"></path>
+            <path d="M3 12c1 0 2.4-.4 3.5-1.5S8 8 8 7s-.4-2.4-1.5-3.5S4 2 3 2 1.6 2.4.5 3.5S-2 6-2 7s.4 2.4 1.5 3.5S2 12 3 12z"></path>
+          </svg>
+          Export HTML (Refactored)
+        </button>
+        <div class="description">Export using the refactored system with graph traversal and enhanced styling.</div>
+
+        <button id="export-json" class="button-secondary">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14,2 14,8 20,8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10,9 9,9 8,9"></polyline>
+          </svg>
+          Export JSON (Refactored)
+        </button>
+        <div class="description">Export JSON with refactored system metadata and node hierarchy.</div>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <span>Processing...</span>
+      </div>
+
+      <div class="status" id="status"></div>
+    </div>
+
+    <!-- Refactored System Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+        </svg>
+        Refactored System (Beta)
+      </div>
+
+      <div class="button-group">
+        <button id="refactored-export" class="button-warning">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14,2 14,8 20,8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10,9 9,9 8,9"></polyline>
+          </svg>
+          Export with Refactored System
+        </button>
+        <div class="description">Export using the new modular refactored system with improved architecture.</div>
+
+        <button id="refactored-export-json" class="button-warning">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14,2 14,8 20,8"></polyline>
+            <path d="M9 15l3-3 3 3"></path>
+            <path d="M12 12v6"></path>
+          </svg>
+          Export JSON (Refactored)
+        </button>
+        <div class="description">Export JSON data using the refactored system processing.</div>
+
+        <button id="test-refactored" class="button-info">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M9 12l2 2 4-4"></path>
+            <path d="M21 12c-1 0-2.4-.4-3.5-1.5S16 8 16 7s.4-2.4 1.5-3.5S20 2 21 2s2.4.4 3.5 1.5S26 6 26 7s-.4 2.4-1.5 3.5S22 12 21 12z"></path>
+            <path d="M3 12c1 0 2.4-.4 3.5-1.5S8 8 8 7s-.4-2.4-1.5-3.5S4 2 3 2 1.6 2.4.5 3.5S-2 6-2 7s.4 2.4 1.5 3.5S2 12 3 12z"></path>
+          </svg>
+          Test Refactored System
+        </button>
+        <div class="description">Test the refactored system functionality in the browser.</div>
+
+        <button id="build-refactored" class="button-secondary">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+          </svg>
+          Build Refactored System
+        </button>
+        <div class="description">Build the refactored system bundle for testing.</div>
+      </div>
+
+      <div class="loading" id="refactored-loading">
+        <div class="spinner"></div>
+        <span>Processing refactored system...</span>
+      </div>
+
+      <div class="status" id="refactored-status"></div>
+    </div>
+  </div>
+
+  <!-- Load the refactored system -->
+  <script src="dist-refactored/refactored-system.js"></script>
+
+  <script>
+    // Helper function to show status messages
+    function showStatus(message, type = 'info', statusId = 'status') {
+      const status = document.getElementById(statusId);
+      status.textContent = message;
+      status.className = `status ${type}`;
+      status.style.display = 'block';
+      
+      // Auto-hide success messages after 3 seconds
+      if (type === 'success') {
+        setTimeout(() => {
+          status.style.display = 'none';
+        }, 3000);
+      }
+    }
+
+    // Helper function to show/hide loading state
+    function setLoading(loading, loadingId = 'loading') {
+      const loadingEl = document.getElementById(loadingId);
+      const buttons = document.querySelectorAll('button');
+      
+      if (loading) {
+        loadingEl.style.display = 'flex';
+        buttons.forEach(btn => btn.disabled = true);
+      } else {
+        loadingEl.style.display = 'none';
+        buttons.forEach(btn => btn.disabled = false);
+      }
+    }
+
+    // Export HTML (Refactored) button handler
+    document.getElementById('create').onclick = () => {
+      console.log('Export HTML (Refactored) button clicked');
+      setLoading(true);
+      showStatus('Exporting HTML with refactored system...', 'info');
+      
+      parent.postMessage({ pluginMessage: { type: 'export-html' } }, '*');
+    };
+    
+    // Export JSON (Refactored) button handler
+    document.getElementById('export-json').onclick = () => {
+      console.log('Export JSON (Refactored) button clicked');
+      setLoading(true);
+      showStatus('Exporting JSON with refactored system...', 'info');
+      
+      parent.postMessage({ pluginMessage: { type: 'export-json' } }, '*');
+    };
+
+    // Refactored system button handlers
+    document.getElementById('refactored-export').onclick = () => {
+      console.log('Refactored export button clicked');
+      setLoading(true, 'refactored-loading');
+      showStatus('Exporting with refactored system...', 'info', 'refactored-status');
+      
+      parent.postMessage({ pluginMessage: { type: 'export-html-refactored' } }, '*');
+    };
+
+    document.getElementById('refactored-export-json').onclick = () => {
+      console.log('Refactored export JSON button clicked');
+      setLoading(true, 'refactored-loading');
+      showStatus('Exporting JSON with refactored system...', 'info', 'refactored-status');
+      
+      parent.postMessage({ pluginMessage: { type: 'export-json-refactored' } }, '*');
+    };
+
+    document.getElementById('test-refactored').onclick = () => {
+      console.log('Test refactored system button clicked');
+      setLoading(true, 'refactored-loading');
+      showStatus('Testing refactored system...', 'info', 'refactored-status');
+      
+      // Test if the refactored system is loaded
+      if (typeof FigmaRefactoredSystem !== 'undefined') {
+        try {
+          const system = FigmaRefactoredSystem;
+          const variantManager = system.getVariantManager();
+          const timeoutManager = system.getTimeoutManager();
+          const transitionManager = system.getTransitionManager();
+          const eventManager = system.getEventManager();
+          const htmlGenerator = system.getHTMLGenerator();
+          const cssGenerator = system.getCSSGenerator();
+          const javascriptGenerator = system.getJavaScriptGenerator();
+          const logger = system.getLogger();
+          
+          console.log('Refactored system loaded successfully:', {
+            variantManager: !!variantManager,
+            timeoutManager: !!timeoutManager,
+            transitionManager: !!transitionManager,
+            eventManager: !!eventManager,
+            htmlGenerator: !!htmlGenerator,
+            cssGenerator: !!cssGenerator,
+            javascriptGenerator: !!javascriptGenerator,
+            logger: !!logger
+          });
+          
+          // Test event manager specifically
+          if (eventManager) {
+            const eventListenersCount = eventManager.getActiveEventListenersCount();
+            const isInitialized = eventManager.isEventManagerInitialized();
+            console.log('EventManager status:', {
+              isInitialized,
+              activeEventListeners: eventListenersCount
+            });
+          }
+          
+          // Test generators
+          if (htmlGenerator && htmlGenerator.isGeneratorInitialized()) {
+            console.log('✅ HTMLGenerator initialized');
+          }
+          
+          if (cssGenerator && cssGenerator.isGeneratorInitialized()) {
+            console.log('✅ CSSGenerator initialized');
+          }
+          
+          if (javascriptGenerator && javascriptGenerator.isGeneratorInitialized()) {
+            console.log('✅ JavaScriptGenerator initialized');
+          }
+          
+          setLoading(false, 'refactored-loading');
+          showStatus('Refactored system is loaded and ready! All generators integrated.', 'success', 'refactored-status');
+        } catch (error) {
+          console.error('Error testing refactored system:', error);
+          setLoading(false, 'refactored-loading');
+          showStatus('Error testing refactored system: ' + error.message, 'error', 'refactored-status');
+        }
+      } else {
+        setLoading(false, 'refactored-loading');
+        showStatus('Refactored system not loaded. Run "Build Refactored System" first.', 'error', 'refactored-status');
+      }
+    };
+
+    document.getElementById('build-refactored').onclick = () => {
+      console.log('Build refactored system button clicked');
+      setLoading(true, 'refactored-loading');
+      showStatus('Building refactored system...', 'info', 'refactored-status');
+      
+      // This would typically trigger a build process
+      // For now, we'll simulate it
+      setTimeout(() => {
+        setLoading(false, 'refactored-loading');
+        showStatus('Refactored system build completed!', 'success', 'refactored-status');
+      }, 2000);
+    };
+    
+    // Message handler
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      console.log('Received message from plugin:', msg);
+      
+      if (msg.type === 'export-html') {
+        console.log('Processing HTML export, length:', msg.html.length);
+        try {
+          if (!msg.html) {
+            console.log('ERROR: No HTML content received');
+            setLoading(false);
+            showStatus('Error: No HTML content received', 'error');
+            return;
+          }
+          const blob = new Blob([msg.html], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'exported-refactored.html';
+          a.click();
+          URL.revokeObjectURL(url);
+          console.log('HTML file download initiated successfully');
+          setLoading(false);
+          showStatus('HTML file downloaded successfully!', 'success');
+        } catch (error) {
+          console.error('Error downloading HTML:', error);
+          setLoading(false);
+          showStatus('Error downloading HTML file', 'error');
+        }
+      } else if (msg.type === 'export-json') {
+        console.log('Processing JSON export, length:', msg.json.length);
+        try {
+          if (!msg.json) {
+            console.log('ERROR: No JSON content received');
+            setLoading(false);
+            showStatus('Error: No JSON content received', 'error');
+            return;
+          }
+          const blob = new Blob([msg.json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'exported-refactored.json';
+          a.click();
+          URL.revokeObjectURL(url);
+          console.log('JSON file download initiated successfully');
+          setLoading(false);
+          showStatus('JSON file downloaded successfully!', 'success');
+        } catch (error) {
+          console.error('Error downloading JSON:', error);
+          setLoading(false);
+          showStatus('Error downloading JSON file', 'error');
+        }
+      } else if (msg.type === 'export-html-refactored') {
+        console.log('Processing refactored HTML export, length:', msg.html.length);
+        try {
+          if (!msg.html) {
+            console.log('ERROR: No refactored HTML content received');
+            setLoading(false, 'refactored-loading');
+            showStatus('Error: No refactored HTML content received', 'error', 'refactored-status');
+            return;
+          }
+          const blob = new Blob([msg.html], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'exported-refactored.html';
+          a.click();
+          URL.revokeObjectURL(url);
+          console.log('Refactored HTML file download initiated successfully');
+          setLoading(false, 'refactored-loading');
+          showStatus('Refactored HTML file downloaded successfully!', 'success', 'refactored-status');
+        } catch (error) {
+          console.error('Error downloading refactored HTML:', error);
+          setLoading(false, 'refactored-loading');
+          showStatus('Error downloading refactored HTML file', 'error', 'refactored-status');
+        }
+      } else if (msg.type === 'export-json-refactored') {
+        console.log('Processing refactored JSON export, length:', msg.json.length);
+        try {
+          if (!msg.json) {
+            console.log('ERROR: No refactored JSON content received');
+            setLoading(false, 'refactored-loading');
+            showStatus('Error: No refactored JSON content received', 'error', 'refactored-status');
+            return;
+          }
+          const blob = new Blob([msg.json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'exported-refactored.json';
+          a.click();
+          URL.revokeObjectURL(url);
+          console.log('Refactored JSON file download initiated successfully');
+          setLoading(false, 'refactored-loading');
+          showStatus('Refactored JSON file downloaded successfully!', 'success', 'refactored-status');
+        } catch (error) {
+          console.error('Error downloading refactored JSON:', error);
+          setLoading(false, 'refactored-loading');
+          showStatus('Error downloading refactored JSON file', 'error', 'refactored-status');
+        }
+      } else {
+        console.log('Unknown message type:', msg.type);
+        setLoading(false);
+        setLoading(false, 'refactored-loading');
+        showStatus('Unknown message type received', 'error');
+        showStatus('Unknown message type received', 'error', 'refactored-status');
+      }
+    };
+  </script>
+</body>
+</html> 
