@@ -56,7 +56,7 @@ export function figmaNodeToObject(node: any): any {
     'paddingRight', 'paddingTop', 'paddingBottom', 'fontSize',
     'fontName', 'fontFamily', 'fontWeight', 'textAlignHorizontal',
     'letterSpacing', 'lineHeight', 'characters', 'variantProperties',
-    'reactions', 'children'
+    'reactions', 'children', 'clipsContent'
   ];
 
   const result: any = {};

@@ -118,6 +118,11 @@ export function computeNodeStyles(node: FigmaNode): ComputedStyles {
     computedStyles['border-radius'] = `${node.cornerRadius}px`;
   }
   
+  // --- CLIP CONTENT ---
+  if (safeHasProperty(node, 'clipsContent') && (node as any).clipsContent === true) {
+    computedStyles.overflow = 'hidden';
+  }
+  
   // --- PADDING ---
   if (node.paddingLeft) computedStyles['padding-left'] = `${node.paddingLeft}px`;
   if (node.paddingRight) computedStyles['padding-right'] = `${node.paddingRight}px`;

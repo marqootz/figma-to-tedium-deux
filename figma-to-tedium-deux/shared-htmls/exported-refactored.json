@@ -1,81 +1,299 @@
 [
   {
-    "id": "6698:9280",
-    "name": "Frame 1341",
-    "type": "FRAME",
-    "x": 105.00001525878906,
-    "y": 24,
-    "width": 239.99996948242188,
-    "height": 612.18505859375,
+    "id": "5533:7236",
+    "name": "Property 1=no-destination",
+    "type": "COMPONENT",
+    "x": 0,
+    "y": 0,
+    "width": 563.3333129882812,
+    "height": 800,
     "opacity": 1,
-    "fills": [],
+    "fills": [
+      {
+        "type": "SOLID",
+        "visible": true,
+        "opacity": 1,
+        "blendMode": "NORMAL",
+        "color": {
+          "r": 1,
+          "g": 1,
+          "b": 1
+        },
+        "boundVariables": {}
+      }
+    ],
     "strokes": [],
-    "strokeWeight": 3.0838329792022705,
+    "strokeWeight": 1,
     "cornerRadius": 0,
-    "layoutMode": "NONE",
-    "primaryAxisAlignItems": "MIN",
-    "counterAxisAlignItems": "MIN",
-    "itemSpacing": 0,
-    "layoutSizingHorizontal": "FIXED",
-    "layoutSizingVertical": "FIXED",
+    "layoutMode": "HORIZONTAL",
+    "primaryAxisAlignItems": "CENTER",
+    "counterAxisAlignItems": "CENTER",
+    "itemSpacing": 10,
+    "layoutSizingHorizontal": "FILL",
+    "layoutSizingVertical": "FILL",
     "paddingLeft": 0,
     "paddingRight": 0,
     "paddingTop": 0,
     "paddingBottom": 0,
-    "reactions": [],
+    "variantProperties": {
+      "Property 1": "no-destination"
+    },
+    "reactions": [
+      {
+        "action": {
+          "type": "NODE",
+          "destinationId": "5533:7238",
+          "navigation": "CHANGE_TO",
+          "transition": null,
+          "resetVideoPosition": false
+        },
+        "actions": [
+          {
+            "type": "NODE",
+            "destinationId": "5533:7238",
+            "navigation": "CHANGE_TO",
+            "transition": null,
+            "resetVideoPosition": false
+          }
+        ],
+        "trigger": {
+          "type": "ON_CLICK"
+        }
+      }
+    ],
     "children": [
       {
-        "id": "6986:1506",
-        "name": "Frame 1341 1",
-        "type": "RECTANGLE",
-        "x": -1,
-        "y": 81.5,
-        "width": 241,
-        "height": 450,
+        "id": "6695:2441",
+        "name": "control-panel-kiosk-reminder",
+        "type": "FRAME",
+        "x": 41.666656494140625,
+        "y": 0,
+        "width": 480,
+        "height": 800,
         "opacity": 1,
         "fills": [
           {
-            "type": "IMAGE",
+            "type": "SOLID",
             "visible": true,
             "opacity": 1,
             "blendMode": "NORMAL",
-            "scaleMode": "FILL",
-            "imageTransform": [
-              [
-                1,
-                0,
-                0
-              ],
-              [
-                0,
-                1,
-                0
-              ]
-            ],
-            "scalingFactor": 0.5,
-            "rotation": 0,
-            "filters": {
-              "exposure": 0,
-              "contrast": 0,
-              "saturation": 0,
-              "temperature": 0,
-              "tint": 0,
-              "highlights": 0,
-              "shadows": 0
+            "color": {
+              "r": 1,
+              "g": 1,
+              "b": 1
             },
-            "imageHash": "7e049c1511b08269d53fa71b4ad00a436f7ec9d5"
+            "boundVariables": {}
           }
         ],
         "strokes": [],
-        "strokeWeight": 1,
-        "cornerRadius": 0,
+        "strokeWeight": 0.9999999403953552,
+        "cornerRadius": 287.9999694824219,
+        "layoutMode": "VERTICAL",
+        "primaryAxisAlignItems": "CENTER",
+        "counterAxisAlignItems": "CENTER",
+        "itemSpacing": 52,
         "layoutSizingHorizontal": "FIXED",
-        "layoutSizingVertical": "FIXED",
-        "reactions": [],
-        "parentId": "6698:9280",
-        "children": []
+        "layoutSizingVertical": "FILL",
+        "paddingLeft": 15,
+        "paddingRight": 15,
+        "paddingTop": 15,
+        "paddingBottom": 15,
+        "reactions": [
+          {
+            "action": null,
+            "actions": [],
+            "trigger": {
+              "type": "ON_CLICK"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "6695:2442",
+            "name": "Frame 1281",
+            "type": "FRAME",
+            "x": 15,
+            "y": 135.5,
+            "width": 450,
+            "height": 529,
+            "opacity": 1,
+            "fills": [],
+            "strokes": [],
+            "strokeWeight": 1,
+            "cornerRadius": 0,
+            "layoutMode": "VERTICAL",
+            "primaryAxisAlignItems": "CENTER",
+            "counterAxisAlignItems": "CENTER",
+            "itemSpacing": 10,
+            "layoutSizingHorizontal": "FILL",
+            "layoutSizingVertical": "HUG",
+            "paddingLeft": 42,
+            "paddingRight": 42,
+            "paddingTop": 72,
+            "paddingBottom": 10,
+            "reactions": [],
+            "children": [
+              {
+                "id": "6695:2443",
+                "name": "Start your trip at the kiosk.",
+                "type": "TEXT",
+                "x": 42,
+                "y": 72,
+                "width": 366,
+                "height": 110,
+                "opacity": 1,
+                "fills": [
+                  {
+                    "type": "SOLID",
+                    "visible": true,
+                    "opacity": 1,
+                    "blendMode": "NORMAL",
+                    "color": {
+                      "r": 0,
+                      "g": 0,
+                      "b": 0
+                    },
+                    "boundVariables": {}
+                  }
+                ],
+                "strokes": [],
+                "strokeWeight": 0.17451044917106628,
+                "layoutSizingHorizontal": "FIXED",
+                "layoutSizingVertical": "HUG",
+                "fontSize": 48,
+                "fontName": {
+                  "family": "CircularXX TT",
+                  "style": "Bold"
+                },
+                "fontWeight": 700,
+                "textAlignHorizontal": "CENTER",
+                "letterSpacing": {
+                  "unit": "PERCENT",
+                  "value": 4
+                },
+                "lineHeight": {
+                  "unit": "PERCENT",
+                  "value": 114.99999761581421
+                },
+                "characters": "Start your trip at the kiosk.",
+                "reactions": [],
+                "parentId": "6695:2442",
+                "children": []
+              },
+              {
+                "id": "6695:2444",
+                "name": "Frame 1280",
+                "type": "FRAME",
+                "x": 0,
+                "y": 192,
+                "width": 450,
+                "height": 327,
+                "opacity": 1,
+                "fills": [],
+                "strokes": [],
+                "strokeWeight": 1,
+                "cornerRadius": 0,
+                "layoutMode": "VERTICAL",
+                "primaryAxisAlignItems": "MIN",
+                "counterAxisAlignItems": "CENTER",
+                "itemSpacing": 24,
+                "layoutSizingHorizontal": "FIXED",
+                "layoutSizingVertical": "FIXED",
+                "paddingLeft": 0,
+                "paddingRight": 0,
+                "paddingTop": 24,
+                "paddingBottom": 0,
+                "reactions": [],
+                "children": [
+                  {
+                    "id": "6698:9280",
+                    "name": "Frame 1341",
+                    "type": "FRAME",
+                    "x": 105.00001525878906,
+                    "y": 24,
+                    "width": 239.99996948242188,
+                    "height": 612.18505859375,
+                    "opacity": 1,
+                    "fills": [],
+                    "strokes": [],
+                    "strokeWeight": 3.0838329792022705,
+                    "cornerRadius": 0,
+                    "layoutMode": "NONE",
+                    "primaryAxisAlignItems": "MIN",
+                    "counterAxisAlignItems": "MIN",
+                    "itemSpacing": 0,
+                    "layoutSizingHorizontal": "FIXED",
+                    "layoutSizingVertical": "FIXED",
+                    "paddingLeft": 0,
+                    "paddingRight": 0,
+                    "paddingTop": 0,
+                    "paddingBottom": 0,
+                    "reactions": [],
+                    "children": [
+                      {
+                        "id": "6986:1506",
+                        "name": "Frame 1341 1",
+                        "type": "RECTANGLE",
+                        "x": -1,
+                        "y": 81.5,
+                        "width": 241,
+                        "height": 450,
+                        "opacity": 1,
+                        "fills": [
+                          {
+                            "type": "IMAGE",
+                            "visible": true,
+                            "opacity": 1,
+                            "blendMode": "NORMAL",
+                            "scaleMode": "FILL",
+                            "imageTransform": [
+                              [
+                                1,
+                                0,
+                                0
+                              ],
+                              [
+                                0,
+                                1,
+                                0
+                              ]
+                            ],
+                            "scalingFactor": 0.5,
+                            "rotation": 0,
+                            "filters": {
+                              "exposure": 0,
+                              "contrast": 0,
+                              "saturation": 0,
+                              "temperature": 0,
+                              "tint": 0,
+                              "highlights": 0,
+                              "shadows": 0
+                            },
+                            "imageHash": "7e049c1511b08269d53fa71b4ad00a436f7ec9d5"
+                          }
+                        ],
+                        "strokes": [],
+                        "strokeWeight": 1,
+                        "cornerRadius": 0,
+                        "layoutSizingHorizontal": "FIXED",
+                        "layoutSizingVertical": "FIXED",
+                        "reactions": [],
+                        "parentId": "6698:9280",
+                        "children": []
+                      }
+                    ],
+                    "parentId": "6695:2444"
+                  }
+                ],
+                "parentId": "6695:2442"
+              }
+            ],
+            "parentId": "6695:2441"
+          }
+        ],
+        "parentId": "5533:7236"
       }
     ],
-    "parentId": "6695:2444"
+    "parentId": "5533:7237"
   }
 ]

@@ -33,6 +33,8 @@ export interface FigmaNode {
   // Image-specific properties
   imageHash?: string;
   imageTransform?: number[][];
+  // Clipping properties
+  clipsContent?: boolean;
   [key: string]: any;
 }
 
