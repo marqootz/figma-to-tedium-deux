@@ -54,12 +54,29 @@ export interface Fill {
   type: string;
   color?: Color;
   opacity?: number;
+  gradientStops?: GradientStop[];
+  gradientTransform?: number[][];
+  gradientHandlePositions?: Vector[];
+}
+
+export interface Vector {
+  x: number;
+  y: number;
+}
+
+export interface GradientStop {
+  position: number;
+  color: Color;
+  opacity?: number;
 }
 
 export interface Stroke {
   type: string;
   color?: Color;
   weight?: number;
+  gradientStops?: GradientStop[];
+  gradientTransform?: number[][];
+  gradientHandlePositions?: Vector[];
 }
 
 export interface Reaction {
