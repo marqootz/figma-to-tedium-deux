@@ -21,21 +21,10 @@ export function computeBorderStyles(node: FigmaNode, nodeOpacity: number): Compu
       if (gradientCSS) {
         const strokeWeight = node.strokeWeight || 1;
         
-        // Determine the background color for the inner layer
-        let innerBackground = 'transparent';
-        if ((node as any).fills && Array.isArray((node as any).fills) && (node as any).fills.length > 0) {
-          const fill = (node as any).fills[0];
-          if (fill.type === 'SOLID' && fill.color) {
-            const { r, g, b, a = 1 } = fill.color;
-            const fillOpacity = fill.opacity !== undefined ? fill.opacity : 1;
-            const finalAlpha = a * fillOpacity * nodeOpacity;
-            innerBackground = `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${finalAlpha})`;
-          }
-        }
-        
         // Set up the multiple background layers for gradient border
+        // First layer is always linear-gradient(white,white) for gradient borders
         borderStyles.border = `double ${strokeWeight}px transparent`;
-        borderStyles['background-image'] = `${innerBackground}, ${gradientCSS}`;
+        borderStyles['background-image'] = `linear-gradient(white,white),${gradientCSS}`;
         borderStyles['background-origin'] = 'border-box';
         borderStyles['background-clip'] = 'padding-box, border-box';
       }
