@@ -10,11 +10,24 @@ export function convertImageToHTML(node: FigmaNode): string {
   const height = safeToString(node.height || 0);
   const alt = escapeHtmlAttribute(safeToString(node.name || 'Image'));
   
-  // Check if we have image hash for actual image data
-  if ((node as any).imageHash) {
+  // Check if we have image hash in fills array
+  let imageHash = null;
+  if (node.fills && Array.isArray(node.fills) && node.fills.length > 0) {
+    const imageFill = node.fills.find(fill => fill.type === 'IMAGE');
+    if (imageFill && (imageFill as any).imageHash) {
+      imageHash = (imageFill as any).imageHash;
+    }
+  }
+  
+  // Also check direct imageHash property for backward compatibility
+  if (!imageHash && (node as any).imageHash) {
+    imageHash = (node as any).imageHash;
+  }
+  
+  if (imageHash) {
     // In a real implementation, you would use figma.getImageByHash() to get the actual image
     // For now, we'll create a placeholder that indicates an image should be here
-    return `<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0i${width}IiBoZWlnaHQ9Ii${height}IiB2aWV3Qm94PSIwIDAg${width}IC${height}IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmMGYwZjAiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2U8L3RleHQ+PC9zdmc+" width="${width}" height="${height}" alt="${alt}" style="object-fit: cover;" data-image-hash="${(node as any).imageHash}" />`;
+    return `<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0i${width}IiBoZWlnaHQ9Ii${height}IiB2aWV3Qm94PSIwIDAg${width}IC${height}IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmMGYwZjAiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2U8L3RleHQ+PC9zdmc+" width="${width}" height="${height}" alt="${alt}" style="object-fit: cover;" data-image-hash="${imageHash}" />`;
   }
   
   // Fallback for nodes without image hash
@@ -42,6 +55,19 @@ function escapeHtmlAttribute(value: string): string {
 
 // HTML generation functions
 export function getTagName(node: FigmaNode): string {
+  // Check if this is an image node (either IMAGE type or RECTANGLE with IMAGE fill)
+  if (node.type === 'IMAGE') {
+    return 'img';
+  }
+  
+  // Check if RECTANGLE has IMAGE fill
+  if (node.type === 'RECTANGLE' && node.fills && Array.isArray(node.fills)) {
+    const hasImageFill = node.fills.some(fill => fill.type === 'IMAGE');
+    if (hasImageFill) {
+      return 'img';
+    }
+  }
+  
   switch (node.type) {
     case 'TEXT':
       return 'p';
@@ -49,8 +75,6 @@ export function getTagName(node: FigmaNode): string {
     case 'RECTANGLE':
     case 'ELLIPSE':
       return 'svg';
-    case 'IMAGE':
-      return 'img';
     default:
       return 'div';
   }
@@ -173,17 +197,20 @@ export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: 
     return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
   }
   
+  // Handle image nodes (either IMAGE type or RECTANGLE with IMAGE fill)
+  if (processedNode.type === 'IMAGE' || 
+      (processedNode.type === 'RECTANGLE' && processedNode.fills && 
+       Array.isArray(processedNode.fills) && 
+       processedNode.fills.some(fill => fill.type === 'IMAGE'))) {
+    return convertImageToHTML(processedNode);
+  }
+  
   if (processedNode.type === 'RECTANGLE') {
     return convertRectangleToSVG(processedNode);
   }
   
   if (processedNode.type === 'ELLIPSE') {
     return convertEllipseToSVG(processedNode);
-  }
-  
-  // Handle image nodes
-  if (processedNode.type === 'IMAGE') {
-    return convertImageToHTML(processedNode);
   }
   
   // Compute styles for non-SVG nodes
