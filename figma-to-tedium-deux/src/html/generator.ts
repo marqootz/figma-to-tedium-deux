@@ -4,8 +4,11 @@ import { generateReactionAttributes, generateVariantAttributes } from './events'
 import { applyOverrides } from '../processing/nodes';
 import { convertVectorToSVG, convertRectangleToSVG, convertEllipseToSVG } from '../processing/svg';
 
+// Declare global Figma types
+declare const figma: any;
+
 // Image conversion function
-export function convertImageToHTML(node: FigmaNode): string {
+export async function convertImageToHTML(node: FigmaNode): Promise<string> {
   const width = safeToString(node.width || 0);
   const height = safeToString(node.height || 0);
   const alt = escapeHtmlAttribute(safeToString(node.name || 'Image'));
@@ -25,9 +28,70 @@ export function convertImageToHTML(node: FigmaNode): string {
   }
   
   if (imageHash) {
-    // In a real implementation, you would use figma.getImageByHash() to get the actual image
-    // For now, we'll create a placeholder that indicates an image should be here
-    return `<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0i${width}IiBoZWlnaHQ9Ii${height}IiB2aWV3Qm94PSIwIDAg${width}IC${height}IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmMGYwZjAiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2U8L3RleHQ+PC9zdmc+" width="${width}" height="${height}" alt="${alt}" style="object-fit: cover;" data-image-hash="${imageHash}" />`;
+    try {
+      console.log('Attempting to load image with hash:', imageHash);
+      
+      // Check if the image hash is valid
+      if (!imageHash || typeof imageHash !== 'string') {
+        throw new Error('Invalid image hash: ' + imageHash);
+      }
+      
+      // Get the image using the official Figma API
+      const image = figma.getImageByHash(imageHash);
+      console.log('Image object retrieved:', image);
+      
+      if (!image) {
+        throw new Error('Image not found for hash: ' + imageHash);
+      }
+      
+      const bytes = await image.getBytesAsync();
+      console.log('Image bytes retrieved, length:', bytes.length);
+      
+      // Convert to base64 for embedding in HTML
+      const uint8Array = new Uint8Array(bytes);
+      
+      // Custom base64 conversion (btoa might not be available in Figma plugin environment)
+      const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+      let base64Data = '';
+      
+      for (let i = 0; i < uint8Array.length; i += 3) {
+        const byte1 = uint8Array[i] || 0;
+        const byte2 = i + 1 < uint8Array.length ? (uint8Array[i + 1] || 0) : 0;
+        const byte3 = i + 2 < uint8Array.length ? (uint8Array[i + 2] || 0) : 0;
+        
+        const chunk1 = byte1 >> 2;
+        const chunk2 = ((byte1 & 3) << 4) | (byte2 >> 4);
+        const chunk3 = ((byte2 & 15) << 2) | (byte3 >> 6);
+        const chunk4 = byte3 & 63;
+        
+        base64Data += base64Chars[chunk1];
+        base64Data += base64Chars[chunk2];
+        base64Data += i + 1 < uint8Array.length ? base64Chars[chunk3] : '=';
+        base64Data += i + 2 < uint8Array.length ? base64Chars[chunk4] : '=';
+      }
+      
+      console.log('Base64 conversion successful, length:', base64Data.length);
+      
+      // Determine image format (assuming PNG for now)
+      const imageFormat = 'image/png';
+      
+      return `<img src="data:${imageFormat};base64,${base64Data}" width="${width}" height="${height}" alt="${alt}" style="object-fit: cover;" data-image-hash="${imageHash}" />`;
+    } catch (error) {
+      console.error('Failed to load image:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : 'No stack trace',
+        imageHash: imageHash
+      });
+      // Fallback to informative placeholder if image loading fails
+      return `<div style="width: ${width}px; height: ${height}px; background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc; color: #666; font-family: Arial, sans-serif; font-size: 12px; text-align: center;" data-figma-type="image-placeholder" data-image-hash="${imageHash}">
+        <div>
+          <div style="font-weight: bold; margin-bottom: 4px;">📷 Image</div>
+          <div style="font-size: 10px; color: #999;">${width} × ${height}px</div>
+          <div style="font-size: 9px; color: #ccc; margin-top: 4px;">Hash: ${imageHash ? (imageHash as string).substring(0, 8) + '...' : 'N/A'}</div>
+        </div>
+      </div>`;
+    }
   }
   
   // Fallback for nodes without image hash
@@ -202,7 +266,7 @@ export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: 
       (processedNode.type === 'RECTANGLE' && processedNode.fills && 
        Array.isArray(processedNode.fills) && 
        processedNode.fills.some(fill => fill.type === 'IMAGE'))) {
-    return convertImageToHTML(processedNode);
+    return await convertImageToHTML(processedNode);
   }
   
   if (processedNode.type === 'RECTANGLE') {
