@@ -307,14 +307,59 @@ export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: 
   // Generate content
   const content = generateNodeContent(processedNode);
   
-  // Generate children HTML
+  // Generate children HTML with negative margin handling
   let childrenHTML = '';
   if (processedNode.children && processedNode.children.length > 0) {
-    childrenHTML = await Promise.all(
-      processedNode.children.map(async (child: FigmaNode) => {
-        return await buildComponentSetHTMLAsync(child, overrideData);
+    const childrenWithMargins = await Promise.all(
+      processedNode.children.map(async (child: FigmaNode, index: number) => {
+        let childHTML = await buildComponentSetHTMLAsync(child, overrideData);
+        
+        // Handle negative margins for negative gap values
+        if (processedNode.itemSpacing !== undefined && processedNode.itemSpacing < 0) {
+          const negativeMargin = processedNode.itemSpacing / 2; // Split the negative gap
+          const isVertical = processedNode.layoutMode === 'VERTICAL';
+          const isHorizontal = processedNode.layoutMode === 'HORIZONTAL';
+          
+          if (isVertical || isHorizontal) {
+            const isFirst = index === 0;
+            const isLast = index === (processedNode.children?.length || 0) - 1;
+            
+            // Determine which margins to apply based on position
+            let marginStyles = '';
+            
+            if (isVertical) {
+              // Vertical layout: apply margin-top to all except first, margin-bottom to all except last
+              if (!isFirst) {
+                marginStyles += `margin-top: ${negativeMargin}px; `;
+              }
+              if (!isLast) {
+                marginStyles += `margin-bottom: ${negativeMargin}px; `;
+              }
+            } else if (isHorizontal) {
+              // Horizontal layout: apply margin-left to all except first, margin-right to all except last
+              if (!isFirst) {
+                marginStyles += `margin-left: ${negativeMargin}px; `;
+              }
+              if (!isLast) {
+                marginStyles += `margin-right: ${negativeMargin}px; `;
+              }
+            }
+            
+            // Add margins to the child's style
+            if (marginStyles) {
+              childHTML = childHTML.replace(
+                /style="([^"]*)"/,
+                `style="$1; ${marginStyles.trim()}"`
+              );
+            }
+          }
+        }
+        
+        return childHTML;
       })
-    ).then(children => children.join('\n'));
+    );
+    
+    childrenHTML = childrenWithMargins.join('\n');
   }
   
   // Build the HTML

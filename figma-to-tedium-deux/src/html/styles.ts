@@ -179,12 +179,19 @@ export function computeNodeStyles(node: FigmaNode): ComputedStyles {
       }
     }
     
-    // Gap (item spacing) - don't add gap for space layouts that handle spacing internally
-    if (node.itemSpacing && !['SPACE_BETWEEN', 'SPACE_AROUND'].includes(node.primaryAxisAlignItems || '')) {
-      computedStyles.gap = `${node.itemSpacing}px`;
-    } else if (['SPACE_BETWEEN', 'SPACE_AROUND'].includes(node.primaryAxisAlignItems || '')) {
-      // Explicitly set gap to 0 for space layouts that handle spacing internally
-      computedStyles.gap = '0px';
+    // Gap (item spacing) - handle negative gaps with margins
+    if (node.itemSpacing !== undefined) {
+      if (['SPACE_BETWEEN', 'SPACE_AROUND'].includes(node.primaryAxisAlignItems || '')) {
+        // Explicitly set gap to 0 for space layouts that handle spacing internally
+        computedStyles.gap = '0px';
+      } else if (node.itemSpacing < 0) {
+        // Negative gap: use negative margins instead
+        // This will be handled in the parent container's child processing
+        computedStyles.gap = '0px';
+      } else {
+        // Positive gap: use normal gap
+        computedStyles.gap = `${node.itemSpacing}px`;
+      }
     }
   }
   
