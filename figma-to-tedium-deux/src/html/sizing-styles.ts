@@ -39,16 +39,12 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
   // Layout sizing
   if (node.layoutSizingHorizontal === 'FILL') {
     sizingStyles.width = '100%';
-    // Add flex-grow for flex children
-    sizingStyles['flex-grow'] = '1';
   } else if (node.layoutSizingHorizontal === 'HUG') {
     sizingStyles.width = 'fit-content';
   }
   
   if (node.layoutSizingVertical === 'FILL') {
     sizingStyles.height = '100%';
-    // Add flex-grow for flex children
-    sizingStyles['flex-grow'] = '1';
   } else if (node.layoutSizingVertical === 'HUG') {
     sizingStyles.height = 'fit-content';
   }
