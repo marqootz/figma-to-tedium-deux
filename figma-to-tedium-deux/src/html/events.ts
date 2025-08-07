@@ -94,8 +94,9 @@ export function generateEventHandlingJavaScript(): string {
           if (targetId) {
             const target = document.querySelector(\`[data-figma-id="\${targetId}"]\`);
             if (target) {
-              // Hide all variants
+              // Reset opacity for all variants to ensure clean state
               target.querySelectorAll('[data-variant], [data-variant-property-1]').forEach(el => {
+                el.style.opacity = '1'; // Reset opacity to 1 for all variants
                 el.classList.add('variant-hidden');
                 el.classList.remove('variant-active');
               });
@@ -103,6 +104,7 @@ export function generateEventHandlingJavaScript(): string {
               // Show selected variant
               const selectedVariant = target.querySelector(\`[data-variant="\${variant}"], [data-variant-property-1="\${variant}"]\`);
               if (selectedVariant) {
+                selectedVariant.style.opacity = '1'; // Ensure selected variant has opacity 1
                 selectedVariant.classList.add('variant-active');
                 selectedVariant.classList.remove('variant-hidden');
               }
@@ -314,6 +316,7 @@ export function generateEventHandlingJavaScript(): string {
               setTimeout(() => {
                 sourceElement.classList.add('variant-hidden');
                 sourceElement.classList.remove('variant-active');
+                sourceElement.style.opacity = '1'; // Reset source element opacity for next cycle
                 destination.classList.add('variant-active');
                 destination.classList.remove('variant-hidden');
                 destination.style.opacity = '1';
@@ -507,9 +510,10 @@ export function generateEventHandlingJavaScript(): string {
                   element.removeAttribute('data-needs-recalculation');
                 });
                 
-                // Hide source variant
+                // Hide source variant and reset its opacity for next cycle
                 sourceElement.classList.add('variant-hidden');
                 sourceElement.classList.remove('variant-active');
+                sourceElement.style.opacity = '1'; // Reset source element opacity for next cycle
                 
                 console.log('DEBUG: SMART_ANIMATE transition completed');
                 
@@ -521,8 +525,10 @@ export function generateEventHandlingJavaScript(): string {
               // Default transition - simple show/hide using CSS classes
               sourceElement.classList.add('variant-hidden');
               sourceElement.classList.remove('variant-active');
+              sourceElement.style.opacity = '1'; // Reset source element opacity for next cycle
               destination.classList.add('variant-active');
               destination.classList.remove('variant-hidden');
+              destination.style.opacity = '1'; // Ensure destination has opacity 1
               
               // Start timeout reactions for the newly active destination variant
               startTimeoutReactionsForActiveVariants();
@@ -537,6 +543,10 @@ export function generateEventHandlingJavaScript(): string {
         const variants = componentSet.querySelectorAll('[data-variant-property-1]');
         if (variants.length > 1) {
           console.log('Initializing component set with', variants.length, 'variants');
+          // Reset opacity for all variants to ensure clean initial state
+          variants.forEach(variant => {
+            variant.style.opacity = '1'; // Ensure all variants start with opacity 1
+          });
           // The first variant should already have variant-active class
           // All others should have variant-hidden class
           variants.forEach((variant, index) => {
