@@ -446,7 +446,9 @@
                     const elementRect = element.getBoundingClientRect();
                     
                     if (containerRect.width > 0 && elementRect.width > 0) {
-                      const calculatedEndPosition = containerRect.width - elementRect.width - 10;
+                      // For flex-end positioning, the element should be flush against the right edge
+                      // The gap is for spacing between elements, not from the edge
+                      const calculatedEndPosition = containerRect.width - elementRect.width;
                       changes.positionX.targetValue = calculatedEndPosition;
                       // Store the calculated value for cleanup
                       element.setAttribute('data-calculated-end-position', calculatedEndPosition.toString());
