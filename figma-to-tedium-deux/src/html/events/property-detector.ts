@@ -120,12 +120,16 @@ export function createPropertyDetector(): string {
             console.log('DEBUG: Position Y change detected:', sourceTop, '->', targetTop);
           }
 
-          // Check style changes
-          if (sourceStyle.backgroundColor !== targetStyle.backgroundColor) {
+          // Check style changes - use more specific comparison
+          const sourceBg = sourceStyle.backgroundColor || 'rgba(0, 0, 0, 0)';
+          const targetBg = targetStyle.backgroundColor || 'rgba(0, 0, 0, 0)';
+          
+          if (sourceBg !== targetBg) {
             changes.backgroundColor.changed = true;
-            changes.backgroundColor.sourceValue = sourceStyle.backgroundColor;
-            changes.backgroundColor.targetValue = targetStyle.backgroundColor;
+            changes.backgroundColor.sourceValue = sourceBg;
+            changes.backgroundColor.targetValue = targetBg;
             changes.hasChanges = true;
+            console.log('DEBUG: Background color change detected:', sourceBg, '->', targetBg);
           }
           
           if (sourceStyle.color !== targetStyle.color) {

@@ -1,6 +1,30 @@
 // Transition handling logic
 export function createSmartAnimateHandler(): string {
   return `
+      // Helper function to ensure tap targets are visible after variant transitions
+      function ensureTapTargetsVisible(variant) {
+        console.log('DEBUG: Ensuring tap targets are visible in variant:', variant.getAttribute('data-figma-id'));
+        
+        // Find all tap targets (elements with reactions) in the variant
+        const tapTargets = variant.querySelectorAll('[data-has-reactions="true"]');
+        tapTargets.forEach(target => {
+          const computedStyle = window.getComputedStyle(target);
+          console.log('DEBUG: Tap target visibility check:', target.getAttribute('data-figma-id'), 'display:', computedStyle.display, 'visibility:', computedStyle.visibility);
+          
+          // Ensure tap targets are visible and clickable
+          if (computedStyle.display === 'none') {
+            // The issue is that the parent variant has variant-hidden class
+            // We need to force the display with !important to override the inherited display: none
+            target.style.setProperty('display', 'flex', 'important');
+            console.log('DEBUG: Restored tap target display to flex with !important:', target.getAttribute('data-figma-id'));
+          }
+          if (computedStyle.visibility === 'hidden') {
+            target.style.setProperty('visibility', 'visible', 'important');
+            console.log('DEBUG: Restored tap target visibility with !important:', target.getAttribute('data-figma-id'));
+          }
+        });
+      }
+
       // Helper function to handle reaction transitions
       function handleReaction(sourceElement, destinationId, transitionType, transitionDuration) {
         if (destinationId) {
@@ -17,6 +41,9 @@ export function createSmartAnimateHandler(): string {
                 destination.classList.add('variant-active');
                 destination.classList.remove('variant-hidden');
                 destination.style.opacity = '1';
+                
+                // Ensure tap targets are visible in the destination variant
+                ensureTapTargetsVisible(destination);
                 
                 // Start timeout reactions for the newly active destination variant
                 startTimeoutReactionsForActiveVariants();
@@ -44,8 +71,18 @@ export function createSmartAnimateHandler(): string {
               destination.style.height = '100%';
               destination.style.opacity = '1';
               
+              // Force a reflow to ensure the destination is properly rendered before analysis
+              destination.offsetHeight;
+              
+              // Immediately ensure tap targets are visible in the destination variant
+              // This prevents the brief invisible moment during the first transition
+              ensureTapTargetsVisible(destination);
+              
               // Force a reflow to ensure the destination is properly rendered
               destination.offsetHeight;
+              
+              // Double-check tap targets are visible after reflow
+              ensureTapTargetsVisible(destination);
               
               // Hide source element during animation to prevent visual conflicts
               sourceElement.style.opacity = '0';
@@ -53,6 +90,77 @@ export function createSmartAnimateHandler(): string {
               // Find elements with property changes
               const elementsToAnimate = findElementsWithPropertyChanges(destination, sourceElement);
               console.log('DEBUG: Found', elementsToAnimate.length, 'elements to animate');
+              
+              // If no elements found, try a different approach - look for background color changes
+              if (elementsToAnimate.length === 0) {
+                console.log('DEBUG: No elements found for animation, checking for background color changes');
+                const sourceFrames = sourceElement.querySelectorAll('[data-figma-type="FRAME"]');
+                const targetFrames = destination.querySelectorAll('[data-figma-type="FRAME"]');
+                
+                sourceFrames.forEach((sourceFrame, index) => {
+                  if (targetFrames[index]) {
+                    const sourceStyle = window.getComputedStyle(sourceFrame);
+                    const targetStyle = window.getComputedStyle(targetFrames[index]);
+                    
+                    if (sourceStyle.backgroundColor !== targetStyle.backgroundColor) {
+                      console.log('DEBUG: Found background color change:', sourceStyle.backgroundColor, '->', targetStyle.backgroundColor);
+                      elementsToAnimate.push({
+                        element: targetFrames[index],
+                        sourceElement: sourceFrame,
+                        changes: {
+                          hasChanges: true,
+                          positionX: { changed: false, sourceValue: null, targetValue: null },
+                          positionY: { changed: false, sourceValue: null, targetValue: null },
+                          backgroundColor: {
+                            changed: true,
+                            sourceValue: sourceStyle.backgroundColor,
+                            targetValue: targetStyle.backgroundColor
+                          },
+                          color: { changed: false, sourceValue: null, targetValue: null },
+                          justifyContent: { changed: false, sourceValue: null, targetValue: null },
+                          alignItems: { changed: false, sourceValue: null, targetValue: null }
+                        }
+                      });
+                    }
+                  }
+                });
+              }
+              
+              // If still no elements found, create a simple fade transition
+              if (elementsToAnimate.length === 0) {
+                console.log('DEBUG: No specific elements found, creating fade transition');
+                // Hide source immediately
+                sourceElement.style.opacity = '0';
+                
+                // Show destination with fade in
+                destination.style.opacity = '0';
+                destination.style.transition = \`opacity \${transitionDuration || 0.3}s ease-out\`;
+                
+                // Immediately ensure tap targets are visible in the destination variant
+                ensureTapTargetsVisible(destination);
+                
+                setTimeout(() => {
+                  destination.style.opacity = '1';
+                }, 10);
+                
+                // Cleanup after animation
+                setTimeout(() => {
+                  destination.style.transition = '';
+                  sourceElement.classList.add('variant-hidden');
+                  sourceElement.classList.remove('variant-active');
+                  sourceElement.style.opacity = '1';
+                  destination.classList.add('variant-active');
+                  destination.classList.remove('variant-hidden');
+                  destination.style.opacity = '1';
+                  
+                  // Ensure tap targets are visible in the destination variant
+                  ensureTapTargetsVisible(destination);
+                  
+                  startTimeoutReactionsForActiveVariants();
+                }, parseFloat(transitionDuration || '300') * 1000 + 100);
+                
+                return; // Exit early for fade transition
+              }
               
               // Setup each element for animation
               elementsToAnimate.forEach(function(item) {
@@ -84,34 +192,34 @@ export function createSmartAnimateHandler(): string {
                 }));
                 
                 // Store calculated end position if we recalculated it
-                if (changes.positionX.changed && changes.positionX.targetValue > 1000) {
+                if (changes.positionX && changes.positionX.changed && changes.positionX.targetValue > 1000) {
                   // We'll store the calculated value after we recalculate it
                   element.setAttribute('data-needs-recalculation', 'true');
                 }
                 
                 // Set target elements to starting element values (source element's visual state)
-                if (changes.positionX.changed || changes.positionY.changed) {
+                if ((changes.positionX && changes.positionX.changed) || (changes.positionY && changes.positionY.changed)) {
                   element.style.position = 'absolute';
                   
                   // Use the computed style values directly
-                  if (changes.positionX.changed) {
+                  if (changes.positionX && changes.positionX.changed) {
                     element.style.left = changes.positionX.sourceValue + 'px';
                     console.log('DEBUG: Setting initial left position:', changes.positionX.sourceValue + 'px');
                   }
                   
-                  if (changes.positionY.changed) {
+                  if (changes.positionY && changes.positionY.changed) {
                     element.style.top = changes.positionY.sourceValue + 'px';
                     console.log('DEBUG: Setting initial top position:', changes.positionY.sourceValue + 'px');
                   }
                 }
                 
                 // For visual changes, start with source element's visual properties
-                if (changes.color.changed) {
+                if (changes.color && changes.color.changed) {
                   element.style.color = changes.color.sourceValue;
                   console.log('DEBUG: Setting initial color:', changes.color.sourceValue);
                 }
                 
-                if (changes.backgroundColor.changed) {
+                if (changes.backgroundColor && changes.backgroundColor.changed) {
                   element.style.backgroundColor = changes.backgroundColor.sourceValue;
                   console.log('DEBUG: Setting initial background color:', changes.backgroundColor.sourceValue);
                 }
@@ -132,7 +240,7 @@ export function createSmartAnimateHandler(): string {
                 }
                 
                 // Calculate correct end position for elements moving to the right (off-screen positions)
-                if (changes.positionX.changed && changes.positionX.targetValue > 1000) {
+                if (changes.positionX && changes.positionX.changed && changes.positionX.targetValue > 1000) {
                   const container = element.closest('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
                   if (container) {
                     const containerRect = container.getBoundingClientRect();
@@ -150,19 +258,19 @@ export function createSmartAnimateHandler(): string {
                   }
                 }
                 
-                if (changes.backgroundColor.changed) {
+                if (changes.backgroundColor && changes.backgroundColor.changed) {
                   element.style.backgroundColor = changes.backgroundColor.sourceValue;
                 }
                 
-                if (changes.color.changed) {
+                if (changes.color && changes.color.changed) {
                   element.style.color = changes.color.sourceValue;
                 }
                 
-                if (changes.justifyContent.changed) {
+                if (changes.justifyContent && changes.justifyContent.changed) {
                   element.style.justifyContent = changes.justifyContent.sourceValue;
                 }
                 
-                if (changes.alignItems.changed) {
+                if (changes.alignItems && changes.alignItems.changed) {
                   element.style.alignItems = changes.alignItems.sourceValue;
                 }
                 
@@ -183,9 +291,9 @@ export function createSmartAnimateHandler(): string {
                   
                   console.log('DEBUG: Executing animation for element:', element.getAttribute('data-figma-id'));
                   
-                  if (changes.positionX.changed || changes.positionY.changed) {
+                  if ((changes.positionX && changes.positionX.changed) || (changes.positionY && changes.positionY.changed)) {
                     // Use the computed style values directly
-                    if (changes.positionX.changed) {
+                    if (changes.positionX && changes.positionX.changed) {
                       const startLeft = parseFloat(window.getComputedStyle(element).left) || 0;
                       const endLeft = changes.positionX.targetValue;
                       
@@ -198,27 +306,27 @@ export function createSmartAnimateHandler(): string {
                       console.log('DEBUG: Animating to left position:', endLeft + 'px');
                     }
                     
-                    if (changes.positionY.changed) {
+                    if (changes.positionY && changes.positionY.changed) {
                       element.style.top = changes.positionY.targetValue + 'px';
                       console.log('DEBUG: Animating to top position:', changes.positionY.targetValue + 'px');
                     }
                   }
                   
-                  if (changes.backgroundColor.changed) {
+                  if (changes.backgroundColor && changes.backgroundColor.changed) {
                     element.style.backgroundColor = changes.backgroundColor.targetValue;
                     console.log('DEBUG: Animating background color to:', changes.backgroundColor.targetValue);
                   }
                   
-                  if (changes.color.changed) {
+                  if (changes.color && changes.color.changed) {
                     element.style.color = changes.color.targetValue;
                     console.log('DEBUG: Animating color to:', changes.color.targetValue);
                   }
                   
-                  if (changes.justifyContent.changed) {
+                  if (changes.justifyContent && changes.justifyContent.changed) {
                     element.style.justifyContent = changes.justifyContent.targetValue;
                   }
                   
-                  if (changes.alignItems.changed) {
+                  if (changes.alignItems && changes.alignItems.changed) {
                     element.style.alignItems = changes.alignItems.targetValue;
                   }
                 });
@@ -277,6 +385,9 @@ export function createSmartAnimateHandler(): string {
                 // Ensure destination is fully visible
                 destination.style.opacity = '1';
                 
+                // Ensure tap targets are visible in the destination variant
+                ensureTapTargetsVisible(destination);
+                
                 console.log('DEBUG: SMART_ANIMATE transition completed');
                 
                 // Start timeout reactions for the newly active destination variant
@@ -291,6 +402,9 @@ export function createSmartAnimateHandler(): string {
               destination.classList.add('variant-active');
               destination.classList.remove('variant-hidden');
               destination.style.opacity = '1'; // Ensure destination has opacity 1
+              
+              // Ensure tap targets are visible in the destination variant
+              ensureTapTargetsVisible(destination);
               
               // Start timeout reactions for the newly active destination variant
               startTimeoutReactionsForActiveVariants();
