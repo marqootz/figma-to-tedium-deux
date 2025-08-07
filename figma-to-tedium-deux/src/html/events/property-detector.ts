@@ -47,6 +47,7 @@ export function createPropertyDetector(): string {
           positionX: { changed: false, sourceValue: null, targetValue: null },
           positionY: { changed: false, sourceValue: null, targetValue: null },
           backgroundColor: { changed: false, sourceValue: null, targetValue: null },
+          color: { changed: false, sourceValue: null, targetValue: null },
           justifyContent: { changed: false, sourceValue: null, targetValue: null },
           alignItems: { changed: false, sourceValue: null, targetValue: null }
         };
@@ -125,6 +126,14 @@ export function createPropertyDetector(): string {
             changes.backgroundColor.sourceValue = sourceStyle.backgroundColor;
             changes.backgroundColor.targetValue = targetStyle.backgroundColor;
             changes.hasChanges = true;
+          }
+          
+          if (sourceStyle.color !== targetStyle.color) {
+            changes.color.changed = true;
+            changes.color.sourceValue = sourceStyle.color;
+            changes.color.targetValue = targetStyle.color;
+            changes.hasChanges = true;
+            console.log('DEBUG: Color change detected:', sourceStyle.color, '->', targetStyle.color);
           }
           
           if (sourceStyle.justifyContent !== targetStyle.justifyContent) {
