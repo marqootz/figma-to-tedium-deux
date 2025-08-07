@@ -193,6 +193,39 @@ export function generateEventHandlingJavaScript(): string {
         const sourceLeft = parseFloat(sourceStyle.left) || 0;
         const targetLeft = parseFloat(targetStyle.left) || 0;
         
+        // Log detailed information about the elements
+        const sourceName = sourceElement.getAttribute('data-figma-name');
+        const targetName = targetElement.getAttribute('data-figma-name');
+        const sourceId = sourceElement.getAttribute('data-figma-id');
+        const targetId = targetElement.getAttribute('data-figma-id');
+        
+        console.log('DEBUG: Analyzing elements:');
+        console.log('  Source:', sourceName, 'ID:', sourceId, 'Left:', sourceLeft);
+        console.log('  Target:', targetName, 'ID:', targetId, 'Left:', targetLeft);
+        
+        // Log parent container dimensions
+        const sourceContainer = sourceElement.closest('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
+        const targetContainer = targetElement.closest('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
+        
+        if (sourceContainer) {
+          const sourceContainerRect = sourceContainer.getBoundingClientRect();
+          console.log('  Source container dimensions:', sourceContainerRect.width, 'x', sourceContainerRect.height);
+        }
+        
+        if (targetContainer) {
+          const targetContainerRect = targetContainer.getBoundingClientRect();
+          console.log('  Target container dimensions:', targetContainerRect.width, 'x', targetContainerRect.height);
+        }
+        
+        // Log viewport dimensions
+        console.log('  Viewport dimensions:', window.innerWidth, 'x', window.innerHeight);
+        
+        // Log element dimensions
+        const sourceRect = sourceElement.getBoundingClientRect();
+        const targetRect = targetElement.getBoundingClientRect();
+        console.log('  Source element dimensions:', sourceRect.width, 'x', sourceRect.height);
+        console.log('  Target element dimensions:', targetRect.width, 'x', targetRect.height);
+        
         if (Math.abs(sourceLeft - targetLeft) > 1) {
           changes.positionX.changed = true;
           changes.positionX.sourceValue = sourceLeft;
@@ -282,6 +315,14 @@ export function generateEventHandlingJavaScript(): string {
                 console.log('DEBUG: Setting up element for animation:', element.getAttribute('data-figma-id'));
                 console.log('DEBUG: Changes detected:', changes);
                 
+                // Log current element state
+                const elementRect = element.getBoundingClientRect();
+                const elementStyle = window.getComputedStyle(element);
+                console.log('DEBUG: Element current state:');
+                console.log('  Position:', elementStyle.left, elementStyle.top);
+                console.log('  Dimensions:', elementRect.width, 'x', elementRect.height);
+                console.log('  Container dimensions:', element.closest('[data-figma-type="COMPONENT_SET"]').getBoundingClientRect());
+                
                 // Store original styles
                 element.setAttribute('data-original-styles', JSON.stringify({
                   position: element.style.position,
@@ -292,6 +333,12 @@ export function generateEventHandlingJavaScript(): string {
                   justifyContent: element.style.justifyContent,
                   alignItems: element.style.alignItems
                 }));
+                
+                // Store calculated end position if we recalculated it
+                if (changes.positionX.changed && changes.positionX.targetValue > 1000) {
+                  // We'll store the calculated value after we recalculate it
+                  element.setAttribute('data-needs-recalculation', 'true');
+                }
                 
                 // Set target elements to starting element values
                 if (changes.positionX.changed || changes.positionY.changed) {
@@ -306,6 +353,23 @@ export function generateEventHandlingJavaScript(): string {
                   if (changes.positionY.changed) {
                     element.style.top = changes.positionY.sourceValue + 'px';
                     console.log('DEBUG: Setting initial top position:', changes.positionY.sourceValue + 'px');
+                  }
+                }
+                
+                // Calculate correct end position for elements moving to the right (off-screen positions)
+                if (changes.positionX.changed && changes.positionX.targetValue > 1000) {
+                  const container = element.closest('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
+                  if (container) {
+                    const containerRect = container.getBoundingClientRect();
+                    const elementRect = element.getBoundingClientRect();
+                    
+                    if (containerRect.width > 0 && elementRect.width > 0) {
+                      const calculatedEndPosition = containerRect.width - elementRect.width - 10;
+                      changes.positionX.targetValue = calculatedEndPosition;
+                      // Store the calculated value for cleanup
+                      element.setAttribute('data-calculated-end-position', calculatedEndPosition.toString());
+                      console.log('DEBUG: Recalculated end position:', calculatedEndPosition, 'container width:', containerRect.width, 'element width:', elementRect.width);
+                    }
                   }
                 }
                 
@@ -336,8 +400,16 @@ export function generateEventHandlingJavaScript(): string {
                   if (changes.positionX.changed || changes.positionY.changed) {
                     // Use the computed style values directly
                     if (changes.positionX.changed) {
-                      element.style.left = changes.positionX.targetValue + 'px';
-                      console.log('DEBUG: Animating to left position:', changes.positionX.targetValue + 'px');
+                      const startLeft = parseFloat(window.getComputedStyle(element).left) || 0;
+                      const endLeft = changes.positionX.targetValue;
+                      
+                      console.log('DEBUG: Animation movement:');
+                      console.log('  Starting left position:', startLeft);
+                      console.log('  Target left position:', endLeft);
+                      console.log('  Movement distance:', endLeft - startLeft);
+                      
+                      element.style.left = endLeft + 'px';
+                      console.log('DEBUG: Animating to left position:', endLeft + 'px');
                     }
                     
                     if (changes.positionY.changed) {
@@ -371,9 +443,22 @@ export function generateEventHandlingJavaScript(): string {
                   // Remove transition
                   element.style.transition = '';
                   
-                  // Restore original values
+                  // Restore original values, but use calculated end position if available
                   if (originalStyles.position) element.style.position = originalStyles.position;
-                  if (originalStyles.left) element.style.left = originalStyles.left;
+                  
+                  // Check if we have a calculated end position to use instead of original
+                  const calculatedEndPosition = element.getAttribute('data-calculated-end-position');
+                  if (calculatedEndPosition) {
+                    // For elements that were recalculated, we need to restore the proper layout
+                    // Remove absolute positioning and let the parent's flexbox handle positioning
+                    element.style.position = '';
+                    element.style.left = '';
+                    element.style.top = '';
+                    console.log('DEBUG: Restored flexbox layout for element with calculated position');
+                  } else if (originalStyles.left) {
+                    element.style.left = originalStyles.left;
+                  }
+                  
                   if (originalStyles.top) element.style.top = originalStyles.top;
                   if (originalStyles.transform) element.style.transform = originalStyles.transform;
                   if (originalStyles.backgroundColor) element.style.backgroundColor = originalStyles.backgroundColor;
@@ -382,6 +467,8 @@ export function generateEventHandlingJavaScript(): string {
                   
                   // Remove stored data
                   element.removeAttribute('data-original-styles');
+                  element.removeAttribute('data-calculated-end-position');
+                  element.removeAttribute('data-needs-recalculation');
                 });
                 
                 // Hide source variant

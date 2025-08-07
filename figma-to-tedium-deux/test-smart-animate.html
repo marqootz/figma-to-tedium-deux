@@ -231,28 +231,37 @@
           alignItems: { changed: false, sourceValue: null, targetValue: null }
         };
 
-        // Check position changes
-        const sourceRect = sourceElement.getBoundingClientRect();
-        const targetRect = targetElement.getBoundingClientRect();
+        // Check position changes using CSS positioning instead of getBoundingClientRect
+        const sourceStyle = window.getComputedStyle(sourceElement);
+        const targetStyle = window.getComputedStyle(targetElement);
         
-        if (Math.abs(sourceRect.left - targetRect.left) > 1) {
+        // Compare position using CSS properties rather than absolute coordinates
+        const sourcePosition = sourceStyle.position;
+        const targetPosition = targetStyle.position;
+        const sourceLeft = sourceStyle.left;
+        const targetLeft = targetStyle.left;
+        const sourceRight = sourceStyle.right;
+        const targetRight = targetStyle.right;
+        
+        // Check if position properties have changed
+        if (sourceLeft !== targetLeft || sourceRight !== targetRight || sourcePosition !== targetPosition) {
           changes.positionX.changed = true;
-          changes.positionX.sourceValue = sourceRect.left;
-          changes.positionX.targetValue = targetRect.left;
+          changes.positionX.sourceValue = { left: sourceLeft, right: sourceRight, position: sourcePosition };
+          changes.positionX.targetValue = { left: targetLeft, right: targetRight, position: targetPosition };
           changes.hasChanges = true;
         }
         
-        if (Math.abs(sourceRect.top - targetRect.top) > 1) {
+        const sourceTop = sourceStyle.top;
+        const targetTop = targetStyle.top;
+        
+        if (sourceTop !== targetTop) {
           changes.positionY.changed = true;
-          changes.positionY.sourceValue = sourceRect.top;
-          changes.positionY.targetValue = targetRect.top;
+          changes.positionY.sourceValue = sourceTop;
+          changes.positionY.targetValue = targetTop;
           changes.hasChanges = true;
         }
 
         // Check style changes
-        const sourceStyle = window.getComputedStyle(sourceElement);
-        const targetStyle = window.getComputedStyle(targetElement);
-        
         if (sourceStyle.backgroundColor !== targetStyle.backgroundColor) {
           changes.backgroundColor.changed = true;
           changes.backgroundColor.sourceValue = sourceStyle.backgroundColor;
@@ -329,7 +338,7 @@
                 // Set target elements to starting element values
                 if (changes.positionX.changed || changes.positionY.changed) {
                   element.style.position = 'absolute';
-                  element.style.left = (changes.positionX.sourceValue - destination.getBoundingClientRect().left) + 'px';
+                  element.style.left = (changes.positionX.sourceValue.left - destination.getBoundingClientRect().left) + 'px';
                   element.style.top = (changes.positionY.sourceValue - destination.getBoundingClientRect().top) + 'px';
                 }
                 
@@ -356,7 +365,7 @@
                   const changes = item.changes;
                   
                   if (changes.positionX.changed || changes.positionY.changed) {
-                    element.style.left = (changes.positionX.targetValue - destination.getBoundingClientRect().left) + 'px';
+                    element.style.left = (changes.positionX.targetValue.left - destination.getBoundingClientRect().left) + 'px';
                     element.style.top = (changes.positionY.targetValue - destination.getBoundingClientRect().top) + 'px';
                   }
                   
