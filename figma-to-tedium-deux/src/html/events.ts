@@ -128,8 +128,8 @@ export function generateEventHandlingJavaScript(): string {
         });
       });
       
-      // Track which variants have already had their timers started
-      const startedTimers = new Set();
+      // Track which variants have active timers (for preventing duplicate timers during the same activation)
+      const activeTimers = new Map(); // elementId -> timeoutId
       
       // Function to start timeout reactions for active variants
       function startTimeoutReactionsForActiveVariants() {
@@ -145,15 +145,16 @@ export function generateEventHandlingJavaScript(): string {
             const transitionType = element.getAttribute('data-reaction-transition-type');
             const transitionDuration = element.getAttribute('data-reaction-transition-duration');
             
-            // Handle timeout reactions only for active variants that haven't started yet
-            if (trigger.type === 'AFTER_TIMEOUT' && !startedTimers.has(elementId)) {
+            // Handle timeout reactions only for active variants that don't have an active timer
+            if (trigger.type === 'AFTER_TIMEOUT' && !activeTimers.has(elementId)) {
               console.log('DEBUG: Starting timeout reaction for:', elementId, 'timeout:', trigger.timeout);
-              startedTimers.add(elementId);
-              setTimeout(() => {
+              const timeoutId = setTimeout(() => {
+                activeTimers.delete(elementId); // Clear the timer when it completes
                 handleReaction(element, destinationId, transitionType, transitionDuration);
               }, (trigger.timeout || 0) * 1000);
-            } else if (startedTimers.has(elementId)) {
-              console.log('DEBUG: Skipping variant', elementId, '- timer already started');
+              activeTimers.set(elementId, timeoutId);
+            } else if (activeTimers.has(elementId)) {
+              console.log('DEBUG: Skipping variant', elementId, '- timer already active');
             }
           }
         });
