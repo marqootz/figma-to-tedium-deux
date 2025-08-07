@@ -8,7 +8,7 @@ import { getTagName, generateNodeAttributes } from './node-attributes';
 import { generateNodeContent } from './node-content';
 import { safeToString } from './utils';
 
-export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: OverrideData = {}): Promise<string> {
+export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: OverrideData = {}, parentNode?: FigmaNode): Promise<string> {
   // Apply overrides
   const processedNode = applyOverrides(node, overrideData);
   
@@ -37,7 +37,7 @@ export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: 
   }
   
   // Compute styles for non-SVG nodes
-  const computedStyles = computeNodeStyles(processedNode);
+  const computedStyles = computeNodeStyles(processedNode, parentNode);
   
   // Generate attributes
   const attributes = generateNodeAttributes(processedNode, overrideData);
@@ -71,7 +71,7 @@ export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: 
   if (processedNode.children && processedNode.children.length > 0) {
     const childrenWithMargins = await Promise.all(
       processedNode.children.map(async (child: FigmaNode, index: number) => {
-        let childHTML = await buildComponentSetHTMLAsync(child, overrideData);
+        let childHTML = await buildComponentSetHTMLAsync(child, overrideData, processedNode);
         
         // Handle negative margins for negative gap values
         if (processedNode.itemSpacing !== undefined && processedNode.itemSpacing < 0) {

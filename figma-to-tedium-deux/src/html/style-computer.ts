@@ -11,7 +11,7 @@ function safeHasProperty(obj: any, prop: string): boolean {
 }
 
 // Main style computation orchestrator
-export function computeNodeStyles(node: FigmaNode): ComputedStyles {
+export function computeNodeStyles(node: FigmaNode, parentNode?: FigmaNode): ComputedStyles {
   const computedStyles: ComputedStyles = {};
   
   // Get node appearance opacity (this should multiply all other opacity values)
@@ -20,7 +20,7 @@ export function computeNodeStyles(node: FigmaNode): ComputedStyles {
   // Compute all style categories
   const fillStyles = computeFillStyles(node, nodeOpacity);
   const layoutStyles = computeLayoutStyles(node);
-  const sizingStyles = computeSizingStyles(node);
+  const sizingStyles = computeSizingStyles(node, parentNode);
   const borderStyles = computeBorderStyles(node, nodeOpacity);
   const textStyles = computeTextStyles(node, nodeOpacity);
   
