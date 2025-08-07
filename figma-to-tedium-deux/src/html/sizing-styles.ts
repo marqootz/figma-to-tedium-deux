@@ -4,6 +4,10 @@ import { FigmaNode, ComputedStyles } from '../types';
 export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): ComputedStyles {
   const sizingStyles: ComputedStyles = {};
   
+  // --- BOX SIZING ---
+  // Use border-box so width includes padding and border
+  sizingStyles['box-sizing'] = 'border-box';
+  
   // --- IGNORE LAYOUT (Relative Positioning) ---
   if ((node as any).layoutPositioning === 'ABSOLUTE') {
     sizingStyles.position = 'relative';
