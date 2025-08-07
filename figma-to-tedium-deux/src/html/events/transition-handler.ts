@@ -30,13 +30,15 @@ export function createSmartAnimateHandler(): string {
         if (destinationId) {
           const destination = document.querySelector(\`[data-figma-id="\${destinationId}"]\`);
           if (destination) {
+            // Immediately hide the source element to prevent multiple variants being visible
+            sourceElement.classList.add('variant-hidden');
+            sourceElement.classList.remove('variant-active');
+            
             // Handle different transition types
             if (transitionType === 'DISSOLVE') {
               // Dissolve transition
               sourceElement.style.opacity = '0';
               setTimeout(() => {
-                sourceElement.classList.add('variant-hidden');
-                sourceElement.classList.remove('variant-active');
                 sourceElement.style.opacity = '1'; // Reset source element opacity for next cycle
                 destination.classList.add('variant-active');
                 destination.classList.remove('variant-hidden');
@@ -146,11 +148,7 @@ export function createSmartAnimateHandler(): string {
                 // Cleanup after animation
                 setTimeout(() => {
                   destination.style.transition = '';
-                  sourceElement.classList.add('variant-hidden');
-                  sourceElement.classList.remove('variant-active');
                   sourceElement.style.opacity = '1';
-                  destination.classList.add('variant-active');
-                  destination.classList.remove('variant-hidden');
                   destination.style.opacity = '1';
                   
                   // Ensure tap targets are visible in the destination variant
@@ -372,10 +370,8 @@ export function createSmartAnimateHandler(): string {
                   element.removeAttribute('data-needs-recalculation');
                 });
                 
-                // Hide source variant and reset its opacity for next cycle
-                sourceElement.classList.add('variant-hidden');
-                sourceElement.classList.remove('variant-active');
-                sourceElement.style.opacity = '1'; // Reset source element opacity for next cycle
+                // Reset source element opacity for next cycle
+                sourceElement.style.opacity = '1';
                 
                 // Restore original destination dimensions
                 // This respects the designer's Figma dimensions after animation completes
@@ -396,8 +392,6 @@ export function createSmartAnimateHandler(): string {
               
             } else {
               // Default transition - simple show/hide using CSS classes
-              sourceElement.classList.add('variant-hidden');
-              sourceElement.classList.remove('variant-active');
               sourceElement.style.opacity = '1'; // Reset source element opacity for next cycle
               destination.classList.add('variant-active');
               destination.classList.remove('variant-hidden');

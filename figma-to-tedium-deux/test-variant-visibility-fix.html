@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    html, body { box-sizing: border-box; margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; }
+    p { margin: 0; }
+    /* Variant visibility classes */
+    .variant-active {
+      display: block !important;
+    }
+    .variant-hidden {
+      display: none !important;
+    }
+    /* iOS font loading optimization */
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
+</head>
+<body>
+  <!-- Test component set with variants -->
+  <div data-figma-id="test-component-set" data-figma-type="COMPONENT_SET" style="width: 400px; height: 300px; border: 2px solid #333;">
+    <!-- Variant 1 (should be active initially) -->
+    <div data-figma-id="variant-1" data-variant-property-1="idle" class="variant-active" 
+         style="width: 100%; height: 100%; background-color: #ff6b6b; display: flex; align-items: center; justify-content: center;">
+      <h2 style="color: white;">Variant 1 (Idle)</h2>
+      <button data-has-reactions="true" data-reaction-destination="variant-2" 
+              style="position: absolute; top: 20px; right: 20px; padding: 10px; background: white; border: none; border-radius: 5px;">
+        Switch to Variant 2
+      </button>
+    </div>
+    
+    <!-- Variant 2 (should be hidden initially) -->
+    <div data-figma-id="variant-2" data-variant-property-1="active" class="variant-hidden" 
+         style="width: 100%; height: 100%; background-color: #4ecdc4; display: flex; align-items: center; justify-content: center;">
+      <h2 style="color: white;">Variant 2 (Active)</h2>
+      <button data-has-reactions="true" data-reaction-destination="variant-1" 
+              style="position: absolute; top: 20px; right: 20px; padding: 10px; background: white; border: none; border-radius: 5px;">
+        Switch to Variant 1
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Mock the transition handler to test the fix
+    function handleReaction(sourceElement, destinationId, transitionType, transitionDuration) {
+      if (destinationId) {
+        const destination = document.querySelector(`[data-figma-id="${destinationId}"]`);
+        if (destination) {
+          // FIXED: Immediately hide the source element to prevent multiple variants being visible
+          sourceElement.classList.add('variant-hidden');
+          sourceElement.classList.remove('variant-active');
+          
+          // Handle different transition types
+          if (transitionType === 'DISSOLVE') {
+            // Dissolve transition
+            sourceElement.style.opacity = '0';
+            setTimeout(() => {
+              sourceElement.style.opacity = '1'; // Reset source element opacity for next cycle
+              destination.classList.add('variant-active');
+              destination.classList.remove('variant-hidden');
+              destination.style.opacity = '1';
+              
+              console.log('Transition completed');
+              updateVisibilityStatus();
+            }, parseFloat(transitionDuration || '300'));
+          } else {
+            // Default transition - simple show/hide using CSS classes
+            sourceElement.style.opacity = '1'; // Reset source element opacity for next cycle
+            destination.classList.add('variant-active');
+            destination.classList.remove('variant-hidden');
+            destination.style.opacity = '1'; // Ensure destination has opacity 1
+            
+            console.log('Default transition completed');
+            updateVisibilityStatus();
+          }
+        }
+      }
+    }
+
+    // Function to update visibility status display
+    function updateVisibilityStatus() {
+      const variant1 = document.querySelector('[data-figma-id="variant-1"]');
+      const variant2 = document.querySelector('[data-figma-id="variant-2"]');
+      
+      const status = document.getElementById('visibility-status');
+      if (status) {
+        const variant1Visible = variant1.classList.contains('variant-active');
+        const variant2Visible = variant2.classList.contains('variant-active');
+        
+        status.innerHTML = `
+          <strong>Visibility Status:</strong><br>
+          Variant 1: ${variant1Visible ? '✅ VISIBLE' : '❌ HIDDEN'}<br>
+          Variant 2: ${variant2Visible ? '✅ VISIBLE' : '❌ HIDDEN'}<br>
+          <span style="color: ${variant1Visible && variant2Visible ? 'red' : 'green'}">
+            ${variant1Visible && variant2Visible ? '⚠️ BOTH VISIBLE (BUG!)' : '✅ ONLY ONE VISIBLE (FIXED!)'}
+          </span>
+        `;
+      }
+    }
+
+    // Add event listeners to buttons
+    document.addEventListener('DOMContentLoaded', function() {
+      const buttons = document.querySelectorAll('[data-has-reactions="true"]');
+      buttons.forEach(button => {
+        button.addEventListener('click', function() {
+          const destinationId = this.getAttribute('data-reaction-destination');
+          const sourceElement = this.closest('[data-variant-property-1]');
+          
+          console.log('Button clicked, transitioning from', sourceElement.getAttribute('data-figma-id'), 'to', destinationId);
+          
+          // Call the transition handler
+          handleReaction(sourceElement, destinationId, 'DISSOLVE', '300');
+        });
+      });
+      
+      // Initial visibility status
+      updateVisibilityStatus();
+    });
+  </script>
+
+  <!-- Status display -->
+  <div id="visibility-status" style="position: fixed; top: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px;">
+    <strong>Visibility Status:</strong><br>
+    Variant 1: ✅ VISIBLE<br>
+    Variant 2: ❌ HIDDEN<br>
+    <span style="color: green;">✅ ONLY ONE VISIBLE (FIXED!)</span>
+  </div>
+
+  <!-- Instructions -->
+  <div style="position: fixed; bottom: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 15px; border-radius: 5px; max-width: 400px;">
+    <h3>Variant Visibility Fix Test</h3>
+    <p><strong>Problem:</strong> When switching between variants, both variants were becoming visible simultaneously.</p>
+    <p><strong>Fix:</strong> Source element is now immediately hidden when transition starts, preventing multiple variants from being visible.</p>
+    <p><strong>Test:</strong> Click the buttons to switch between variants. Only one should be visible at a time.</p>
+  </div>
+</body>
+</html>
