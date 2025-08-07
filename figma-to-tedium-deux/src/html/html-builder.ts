@@ -121,7 +121,7 @@ async function processNodeDirectly(node: FigmaNode, overrideData: OverrideData =
   const reactionAttributes = generateReactionAttributes(processedNode);
   
   // Generate variant attributes
-  const variantAttributes = generateVariantAttributes(processedNode);
+  const variantAttributes = generateVariantAttributes(processedNode, parentNode);
   
   // Combine all attributes
   const allAttributes = [

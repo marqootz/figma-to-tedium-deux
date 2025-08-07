@@ -46,7 +46,7 @@ export function generateReactionAttributes(node: FigmaNode): Record<string, stri
   return attributes;
 }
 
-export function generateVariantAttributes(node: FigmaNode): Record<string, string> {
+export function generateVariantAttributes(node: FigmaNode, parentNode?: FigmaNode): Record<string, string> {
   const attributes: Record<string, string> = {};
   
   if (safeHasProperty(node, 'variantProperties') && (node as any).variantProperties) {
@@ -56,6 +56,12 @@ export function generateVariantAttributes(node: FigmaNode): Record<string, strin
       const cleanKey = key.toLowerCase().replace(/\s+/g, '-');
       attributes[`data-variant-${cleanKey}`] = escapeHtmlAttribute(safeToString(value));
     });
+    
+    // Add data-target attribute to point to the parent component set
+    // This allows variant buttons to know which component set to target for switching
+    if (parentNode && (parentNode.type === 'COMPONENT_SET' || parentNode.type === 'COMPONENT')) {
+      attributes['data-target'] = parentNode.id;
+    }
   }
   
   return attributes;
