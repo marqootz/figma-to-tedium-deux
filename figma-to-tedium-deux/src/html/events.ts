@@ -120,13 +120,6 @@ export function generateEventHandlingJavaScript(): string {
         const transitionType = element.getAttribute('data-reaction-transition-type');
         const transitionDuration = element.getAttribute('data-reaction-transition-duration');
         
-        // Handle timeout reactions
-        if (trigger.type === 'AFTER_TIMEOUT') {
-          setTimeout(() => {
-            handleReaction(element, destinationId, transitionType, transitionDuration);
-          }, (trigger.timeout || 0) * 1000);
-        }
-        
         // Handle click reactions
         element.addEventListener('click', function() {
           if (trigger.type === 'ON_CLICK') {
@@ -134,6 +127,43 @@ export function generateEventHandlingJavaScript(): string {
           }
         });
       });
+      
+      // Track which variants have already had their timers started
+      const startedTimers = new Set();
+      
+      // Function to start timeout reactions for active variants
+      function startTimeoutReactionsForActiveVariants() {
+        const activeVariants = document.querySelectorAll('.variant-active[data-has-reactions="true"]');
+        activeVariants.forEach(element => {
+          const elementId = element.getAttribute('data-figma-id');
+          // Only start timers for variants that are actually visible (not hidden by CSS)
+          const computedStyle = window.getComputedStyle(element);
+          if (computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden') {
+            const trigger = JSON.parse(element.getAttribute('data-reaction-trigger') || '{}');
+            const actionType = element.getAttribute('data-reaction-action-type');
+            const destinationId = element.getAttribute('data-reaction-destination');
+            const transitionType = element.getAttribute('data-reaction-transition-type');
+            const transitionDuration = element.getAttribute('data-reaction-transition-duration');
+            
+            // Handle timeout reactions only for active variants that haven't started yet
+            if (trigger.type === 'AFTER_TIMEOUT' && !startedTimers.has(elementId)) {
+              console.log('DEBUG: Starting timeout reaction for:', elementId, 'timeout:', trigger.timeout);
+              startedTimers.add(elementId);
+              setTimeout(() => {
+                handleReaction(element, destinationId, transitionType, transitionDuration);
+              }, (trigger.timeout || 0) * 1000);
+            } else if (startedTimers.has(elementId)) {
+              console.log('DEBUG: Skipping variant', elementId, '- timer already started');
+            }
+          }
+        });
+      }
+      
+      // Start timeout reactions for initially active variants after a short delay
+      // to ensure CSS classes and visibility are properly applied
+      setTimeout(() => {
+        startTimeoutReactionsForActiveVariants();
+      }, 100);
       
       // Helper function to find elements with property changes between variants
       function findElementsWithPropertyChanges(targetVariant, currentVariant) {
@@ -286,6 +316,9 @@ export function generateEventHandlingJavaScript(): string {
                 destination.classList.add('variant-active');
                 destination.classList.remove('variant-hidden');
                 destination.style.opacity = '1';
+                
+                // Start timeout reactions for the newly active destination variant
+                startTimeoutReactionsForActiveVariants();
               }, parseFloat(transitionDuration || '300'));
             } else if (transitionType === 'SMART_ANIMATE') {
               // Smart animate transition - sophisticated implementation
@@ -478,6 +511,9 @@ export function generateEventHandlingJavaScript(): string {
                 sourceElement.classList.remove('variant-active');
                 
                 console.log('DEBUG: SMART_ANIMATE transition completed');
+                
+                // Start timeout reactions for the newly active destination variant
+                startTimeoutReactionsForActiveVariants();
               }, parseFloat(transitionDuration || '300') * 1000 + 100);
               
             } else {
@@ -486,6 +522,9 @@ export function generateEventHandlingJavaScript(): string {
               sourceElement.classList.remove('variant-active');
               destination.classList.add('variant-active');
               destination.classList.remove('variant-hidden');
+              
+              // Start timeout reactions for the newly active destination variant
+              startTimeoutReactionsForActiveVariants();
             }
           }
         }
