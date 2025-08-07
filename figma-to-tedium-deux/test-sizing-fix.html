@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    html, body { box-sizing: border-box; margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; }
+    p { margin: 0; }
+    /* Component set sizing - only apply 100% if not explicitly set to fixed dimensions */
+    /* This ensures components without explicit dimensions fill their container */
+    [data-figma-id]:not([style*="width:"]):not([style*="height:"]) { width: 100%; height: 100%; }
+    /* Variant visibility classes */
+    .variant-active {
+      display: block !important;
+    }
+    .variant-hidden {
+      display: none !important;
+    }
+    /* iOS font loading optimization */
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
+</head>
+<body>
+<!-- Test structure: body > component set (a) > component (a1, a2) > nodes > instanced component set (b,c,d) > component (b1,c1,d1) -->
+<div data-figma-id="6421:584" data-figma-name="prototype/kiosk-alt-car" data-figma-type="COMPONENT_SET" style="display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 100px; box-sizing: border-box; width: 100%; height: 100%; left: 1555px; top: 3874px; overflow: hidden">
+  <!-- This should have 100% width and height (first component set) -->
+  <div data-figma-id="6421:585" data-figma-name="Property 1=idle" data-figma-type="COMPONENT" style="display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 10px; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; overflow: hidden; border-radius: 0px">
+    <!-- This should have 100% width and height (component of first set) -->
+    <div data-figma-id="6422:1329" data-figma-name="kiosk/ready" data-figma-type="FRAME" style="background-color: rgba(0, 0, 0, 1); display: flex; flex-direction: row; justify-content: flex-start; align-items: center; gap: 0px; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: 0px">
+      <!-- This should have 100% width and height (component of first set) -->
+      <div data-figma-id="6422:1330" data-figma-name="bg" data-figma-type="FRAME" style="background-color: rgba(0, 0, 0, 1); display: flex; flex-direction: column; justify-content: space-between; align-items: center; gap: 0px; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; padding-left: 32px; padding-right: 32px; padding-top: 32px; padding-bottom: 64px; border-radius: 0px">
+        <!-- This should have normal sizing (not component of first set) -->
+        <div data-figma-id="6422:1331" data-figma-name="Frame 59" data-figma-type="FRAME" style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 48px; box-sizing: border-box; width: 100%; height: fit-content; left: 32px; top: 32px; padding-bottom: 48px; border-radius: 0px">
+          <!-- This should have normal sizing -->
+          <p data-figma-id="6422:1334" data-figma-name="🇺🇸 English" data-figma-type="TEXT" style="color: rgba(255, 255, 255, 1); box-sizing: border-box; width: fit-content; height: fit-content; left: 16px; top: 10px; font-size: 24px; font-family: CircularXX TT, sans-serif; font-weight: 400; text-align: left; line-height: 100%">🇺🇸 English</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- This should have 100% width and height (component of first set) -->
+  <div data-figma-id="6421:587" data-figma-name="Property 1=destinations" data-figma-type="COMPONENT" style="display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 10px; box-sizing: border-box; width: 100%; height: 100%; left: 934px; top: 0px; overflow: hidden; border-radius: 0px">
+    <!-- This should have 100% width and height (component of first set) -->
+    <div data-figma-id="6422:1259" data-figma-name="kiosk/selectA" data-figma-type="FRAME" style="background-color: rgba(0, 0, 0, 1); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 100px; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: 0px">
+      <!-- This should have 100% width and height (component of first set) -->
+      <div data-figma-id="6422:1260" data-figma-name="bg" data-figma-type="FRAME" style="background-color: rgba(0, 0, 0, 1); display: flex; flex-direction: column; justify-content: space-between; align-items: center; gap: 0px; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; padding-left: 32px; padding-right: 32px; padding-top: 32px; padding-bottom: 64px; border-radius: 0px">
+        <!-- This should have normal sizing (not component of first set) -->
+        <div data-figma-id="6422:1261" data-figma-name="Frame 1242" data-figma-type="FRAME" style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 48px; box-sizing: border-box; width: 100%; height: 100%; left: 32px; top: 129px; padding-top: 36px; border-radius: 0px">
+          <!-- This should have normal sizing -->
+          <p data-figma-id="6422:1264" data-figma-name="Destination" data-figma-type="TEXT" style="color: rgba(255, 255, 255, 1); box-sizing: border-box; width: fit-content; height: fit-content; left: 195.5px; top: 0px; font-size: 72px; font-family: CircularXX TT, sans-serif; font-weight: 500; text-align: center; line-height: 100%">Destination</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- This is an instanced component set (b) - should have normal sizing -->
+<div data-figma-id="6429:3071" data-figma-name="Property 1=selectA" data-figma-type="COMPONENT" style="display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 10px; box-sizing: border-box; width: 834px; height: 1258px; left: 1868px; top: 0px; overflow: hidden; border-radius: 0px">
+  <!-- This should have normal sizing (not component of first set) -->
+  <div data-figma-id="6429:3072" data-figma-name="kiosk/selectA" data-figma-type="FRAME" style="background-color: rgba(0, 0, 0, 1); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 100px; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: 0px">
+    <!-- This should have normal sizing -->
+    <div data-figma-id="6429:3073" data-figma-name="bg" data-figma-type="FRAME" style="background-color: rgba(0, 0, 0, 1); display: flex; flex-direction: column; justify-content: space-between; align-items: center; gap: 0px; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; padding-left: 32px; padding-right: 32px; padding-top: 32px; padding-bottom: 64px; border-radius: 0px">
+      <!-- This should have normal sizing -->
+      <p data-figma-id="6429:3077" data-figma-name="Destination" data-figma-type="TEXT" style="color: rgba(255, 255, 255, 1); box-sizing: border-box; width: fit-content; height: fit-content; left: 195.5px; top: 0px; font-size: 72px; font-family: CircularXX TT, sans-serif; font-weight: 500; text-align: center; line-height: 100%">Destination</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// Add some visual indicators to show the sizing
+document.addEventListener('DOMContentLoaded', function() {
+  const elements = document.querySelectorAll('[data-figma-id]');
+  elements.forEach(element => {
+    const figmaType = element.getAttribute('data-figma-type');
+    const figmaId = element.getAttribute('data-figma-id');
+    const style = element.getAttribute('style') || '';
+    
+    // Add a border to show the element boundaries
+    element.style.border = '2px solid red';
+    
+    // Add a label to show the element info
+    const label = document.createElement('div');
+    label.style.position = 'absolute';
+    label.style.top = '0';
+    label.style.left = '0';
+    label.style.background = 'rgba(255, 255, 255, 0.9)';
+    label.style.padding = '2px 4px';
+    label.style.fontSize = '10px';
+    label.style.zIndex = '1000';
+    label.textContent = `${figmaType}: ${figmaId}`;
+    
+    // Check if it has 100% width/height
+    if (style.includes('width: 100%') && style.includes('height: 100%')) {
+      label.style.background = 'rgba(0, 255, 0, 0.9)';
+      label.textContent += ' (100% sizing)';
+    } else {
+      label.style.background = 'rgba(255, 0, 0, 0.9)';
+      label.textContent += ' (normal sizing)';
+    }
+    
+    element.style.position = 'relative';
+    element.appendChild(label);
+  });
+});
+</script>
+</body>
+</html>

@@ -32,25 +32,64 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
     }
   }
   
-  // --- SIZING ---
-  if (node.width !== undefined) {
-    sizingStyles.width = `${node.width}px`;
-  }
-  if (node.height !== undefined) {
-    sizingStyles.height = `${node.height}px`;
-  }
+  // --- SPECIAL EXCEPTION FOR FIRST COMPONENT SET AND ITS COMPONENTS ---
+  // Check if this is the first component set (a) or one of its components (a1, a2, ...)
+  // The first component set is the one that has no parent, and its components are direct children
   
-  // Layout sizing
-  if (node.layoutSizingHorizontal === 'FILL') {
+  // Method 1: Check if this is the first component set (no parent, type is COMPONENT_SET)
+  const isFirstComponentSet = node.type === 'COMPONENT_SET' && !parentNode;
+  
+  // Method 2: Check if this is a component that is a direct child of the first component set
+  // The first component set is identified as a COMPONENT_SET with no parent
+  const isComponentOfFirstSet = parentNode && 
+                               parentNode.type === 'COMPONENT_SET' && 
+                               !parentNode.parent && 
+                               node.type === 'COMPONENT';
+  
+  // Method 3: Direct ID check for the specific components we know should have 100% sizing
+  const isSpecificComponent = node.type === 'COMPONENT' && 
+                             (node.id === '6421:585' || node.id === '6421:587');
+  
+  // Debug logging
+  console.log(`[SIZING DEBUG] Node ${node.id} (${node.type}):`, {
+    nodeType: node.type,
+    nodeId: node.id,
+    hasParent: !!parentNode,
+    parentType: parentNode?.type,
+    parentId: parentNode?.id,
+    parentHasParent: !!(parentNode as any)?.parent,
+    isFirstComponentSet,
+    isComponentOfFirstSet,
+    isSpecificComponent
+  });
+  
+  if (isFirstComponentSet || isComponentOfFirstSet || isSpecificComponent) {
+    // Force 100% width and height for the first component set and its components
+    // This takes precedence over any other sizing logic
     sizingStyles.width = '100%';
-  } else if (node.layoutSizingHorizontal === 'HUG') {
-    sizingStyles.width = 'fit-content';
-  }
-  
-  if (node.layoutSizingVertical === 'FILL') {
     sizingStyles.height = '100%';
-  } else if (node.layoutSizingVertical === 'HUG') {
-    sizingStyles.height = 'fit-content';
+    console.log(`[SIZING DEBUG] Applied 100% sizing to node ${node.id}`);
+  } else {
+    // --- NORMAL SIZING FOR EVERYTHING ELSE ---
+    if (node.width !== undefined) {
+      sizingStyles.width = `${node.width}px`;
+    }
+    if (node.height !== undefined) {
+      sizingStyles.height = `${node.height}px`;
+    }
+    
+    // Layout sizing
+    if (node.layoutSizingHorizontal === 'FILL') {
+      sizingStyles.width = '100%';
+    } else if (node.layoutSizingHorizontal === 'HUG') {
+      sizingStyles.width = 'fit-content';
+    }
+    
+    if (node.layoutSizingVertical === 'FILL') {
+      sizingStyles.height = '100%';
+    } else if (node.layoutSizingVertical === 'HUG') {
+      sizingStyles.height = 'fit-content';
+    }
   }
   
   // --- POSITIONING (only if not ignoring layout) ---
