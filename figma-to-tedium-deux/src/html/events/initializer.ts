@@ -2,11 +2,12 @@
 export function createComponentSetInitializer(): string {
   return `
       // Initialize component set variants - hide all but the first one
-      const componentSets = document.querySelectorAll('[data-figma-type="COMPONENT_SET"]');
+      // Handle both COMPONENT_SET and COMPONENT elements that contain variants
+      const componentSets = document.querySelectorAll('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
       componentSets.forEach(componentSet => {
         const variants = componentSet.querySelectorAll('[data-variant-property-1]');
         if (variants.length > 1) {
-          console.log('Initializing component set with', variants.length, 'variants');
+          console.log('Initializing component set/instance with', variants.length, 'variants:', componentSet.getAttribute('data-figma-id'));
           // Reset opacity for all variants to ensure clean initial state
           variants.forEach(variant => {
             variant.style.opacity = '1'; // Ensure all variants start with opacity 1

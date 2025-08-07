@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    html, body { box-sizing: border-box; margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; }
+    p { margin: 0; }
+    /* Variant visibility classes */
+    .variant-active {
+      display: block !important;
+    }
+    .variant-hidden {
+      display: none !important;
+    }
+    /* iOS font loading optimization */
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top-level component set -->
+  <div data-figma-id="top-level-set" data-figma-type="COMPONENT_SET" style="width: 400px; height: 300px; border: 2px solid #333; margin: 20px;">
+    <h3>Top-Level Component Set</h3>
+    <!-- Variant 1 (should be active initially) -->
+    <div data-figma-id="top-variant-1" data-variant-property-1="idle" class="variant-active" 
+         style="width: 100%; height: 100px; background-color: #ff6b6b; display: flex; align-items: center; justify-content: center;">
+      <h4 style="color: white;">Top Variant 1 (Idle)</h4>
+    </div>
+    
+    <!-- Variant 2 (should be hidden initially) -->
+    <div data-figma-id="top-variant-2" data-variant-property-1="active" class="variant-hidden" 
+         style="width: 100%; height: 100px; background-color: #4ecdc4; display: flex; align-items: center; justify-content: center;">
+      <h4 style="color: white;">Top Variant 2 (Active)</h4>
+    </div>
+  </div>
+
+  <!-- Nested component set (represented as COMPONENT instance) -->
+  <div data-figma-id="nested-instance" data-figma-type="COMPONENT" style="width: 400px; height: 300px; border: 2px solid #666; margin: 20px;">
+    <h3>Nested Component Set (Instance)</h3>
+    <!-- Variant 1 (should be active initially) -->
+    <div data-figma-id="nested-variant-1" data-variant-property-1="default" class="variant-active" 
+         style="width: 100%; height: 100px; background-color: #a8e6cf; display: flex; align-items: center; justify-content: center;">
+      <h4 style="color: #333;">Nested Variant 1 (Default)</h4>
+    </div>
+    
+    <!-- Variant 2 (should be hidden initially) -->
+    <div data-figma-id="nested-variant-2" data-variant-property-1="pressed" class="variant-hidden" 
+         style="width: 100%; height: 100px; background-color: #ffd3b6; display: flex; align-items: center; justify-content: center;">
+      <h4 style="color: #333;">Nested Variant 2 (Pressed)</h4>
+    </div>
+    
+    <!-- Variant 3 (should be hidden initially) -->
+    <div data-figma-id="nested-variant-3" data-variant-property-1="hover" class="variant-hidden" 
+         style="width: 100%; height: 100px; background-color: #ffaaa5; display: flex; align-items: center; justify-content: center;">
+      <h4 style="color: white;">Nested Variant 3 (Hover)</h4>
+    </div>
+  </div>
+
+  <script>
+    // Mock the initialization logic to test the fix
+    function initializeComponentSets() {
+      // Handle both COMPONENT_SET and COMPONENT elements that contain variants
+      const componentSets = document.querySelectorAll('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
+      componentSets.forEach(componentSet => {
+        const variants = componentSet.querySelectorAll('[data-variant-property-1]');
+        if (variants.length > 1) {
+          console.log('Initializing component set/instance with', variants.length, 'variants:', componentSet.getAttribute('data-figma-id'));
+          // Reset opacity for all variants to ensure clean initial state
+          variants.forEach(variant => {
+            variant.style.opacity = '1'; // Ensure all variants start with opacity 1
+          });
+          // The first variant should already have variant-active class
+          // All others should have variant-hidden class
+          variants.forEach((variant, index) => {
+            if (index === 0) {
+              variant.classList.add('variant-active');
+              variant.classList.remove('variant-hidden');
+            } else {
+              variant.classList.add('variant-hidden');
+              variant.classList.remove('variant-active');
+            }
+          });
+        }
+      });
+    }
+
+    // Function to update initialization status display
+    function updateInitializationStatus() {
+      const topVariants = document.querySelectorAll('[data-figma-id^="top-variant"]');
+      const nestedVariants = document.querySelectorAll('[data-figma-id^="nested-variant"]');
+      
+      const status = document.getElementById('initialization-status');
+      if (status) {
+        let topStatus = '<strong>Top-Level Component Set:</strong><br>';
+        topVariants.forEach((variant, index) => {
+          const isVisible = variant.classList.contains('variant-active');
+          topStatus += `Variant ${index + 1}: ${isVisible ? '✅ VISIBLE' : '❌ HIDDEN'}<br>`;
+        });
+        
+        let nestedStatus = '<strong>Nested Component Set (Instance):</strong><br>';
+        nestedVariants.forEach((variant, index) => {
+          const isVisible = variant.classList.contains('variant-active');
+          nestedStatus += `Variant ${index + 1}: ${isVisible ? '✅ VISIBLE' : '❌ HIDDEN'}<br>`;
+        });
+        
+        status.innerHTML = topStatus + '<br>' + nestedStatus;
+      }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Running nested variant initialization test...');
+      
+      // Run the initialization
+      initializeComponentSets();
+      
+      // Update status display
+      updateInitializationStatus();
+      
+      console.log('Initialization complete!');
+    });
+  </script>
+
+  <!-- Status display -->
+  <div id="initialization-status" style="position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; max-width: 300px;">
+    <strong>Initialization Status:</strong><br>
+    <strong>Top-Level Component Set:</strong><br>
+    Variant 1: ✅ VISIBLE<br>
+    Variant 2: ❌ HIDDEN<br>
+    <br>
+    <strong>Nested Component Set (Instance):</strong><br>
+    Variant 1: ✅ VISIBLE<br>
+    Variant 2: ❌ HIDDEN<br>
+    Variant 3: ❌ HIDDEN<br>
+  </div>
+
+  <!-- Instructions -->
+  <div style="position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 15px; border-radius: 5px; max-width: 400px;">
+    <h3>Nested Variant Initialization Fix Test</h3>
+    <p><strong>Problem:</strong> Nested component sets (instances) were showing all variants instead of only the first one.</p>
+    <p><strong>Fix:</strong> Initialization now handles both COMPONENT_SET and COMPONENT elements that contain variants.</p>
+    <p><strong>Expected:</strong> Both top-level and nested component sets should show only the first variant as active.</p>
+  </div>
+</body>
+</html>
