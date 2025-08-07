@@ -25,6 +25,11 @@ export function createSmartAnimateHandler(): string {
               // Smart animate transition - sophisticated implementation
               console.log('DEBUG: SMART_ANIMATE transition started');
               
+              // Store original destination dimensions for restoration after animation
+              // This ensures we respect the designer's Figma dimensions after animation completes
+              const originalDestinationWidth = destination.style.width;
+              const originalDestinationHeight = destination.style.height;
+              
               // Ensure destination is visible and positioned before analysis
               destination.classList.add('variant-active');
               destination.classList.remove('variant-hidden');
@@ -33,6 +38,8 @@ export function createSmartAnimateHandler(): string {
               destination.style.position = 'absolute';
               destination.style.top = '0';
               destination.style.left = '0';
+              // Temporarily set to 100% for smooth animation
+              // This ensures variants have identical dimensions during transition for seamless animation
               destination.style.width = '100%';
               destination.style.height = '100%';
               destination.style.opacity = '1';
@@ -261,6 +268,11 @@ export function createSmartAnimateHandler(): string {
                 sourceElement.classList.add('variant-hidden');
                 sourceElement.classList.remove('variant-active');
                 sourceElement.style.opacity = '1'; // Reset source element opacity for next cycle
+                
+                // Restore original destination dimensions
+                // This respects the designer's Figma dimensions after animation completes
+                if (originalDestinationWidth) destination.style.width = originalDestinationWidth;
+                if (originalDestinationHeight) destination.style.height = originalDestinationHeight;
                 
                 // Ensure destination is fully visible
                 destination.style.opacity = '1';

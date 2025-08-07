@@ -28,15 +28,18 @@ export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: 
           // For component set variants, ensure they all start at the same position (top: 0)
           // This is crucial for SMART_ANIMATE to work properly
           if (componentHTML.includes('style="')) {
-            // Replace any top positioning with top: 0 for variants
+            // For component set variants, ensure they start at the same position for SMART_ANIMATE
+            // but respect their original Figma dimensions for design fidelity
+            // This balances animation smoothness with design accuracy
             componentHTML = componentHTML.replace(
               /style="([^"]*)"/,
               (match, styleContent) => {
-                // Remove any top positioning and ensure variants start at the same position
+                // Remove any top positioning to ensure variants start at the same position
+                // but keep the original width/height from Figma to respect designer intent
                 const updatedStyle = styleContent
                   .replace(/top:\s*[^;]+;?\s*/g, '') // Remove any top positioning
                   .replace(/position:\s*[^;]+;?\s*/g, '') // Remove any position
-                  + '; top: 0; position: absolute; width: 100%; height: 100%;';
+                  + '; top: 0; position: absolute;'; // No forced 100% width/height
                 return `style="${updatedStyle}"`;
               }
             );
@@ -56,11 +59,16 @@ export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: 
     );
     
     // Wrap all components in a component set container
+    // Use the instance's actual dimensions for the container to respect Figma design intent
+    // This ensures the container matches what the designer specified in Figma
+    const containerWidth = node.width ? `${node.width}px` : '100%';
+    const containerHeight = node.height ? `${node.height}px` : '100%';
+    
     const containerAttributes = [
       `data-figma-type="COMPONENT_SET"`,
       `data-figma-id="${node.id}"`,
       `data-figma-name="${node.name}"`,
-      `style="position: relative; width: 100%; height: 100%;"`
+      `style="position: relative; width: ${containerWidth}; height: ${containerHeight};"`
     ];
     
     const containerOpenTag = `<div ${containerAttributes.join(' ')}>`;

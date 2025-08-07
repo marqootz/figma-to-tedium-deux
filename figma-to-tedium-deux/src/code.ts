@@ -49,6 +49,7 @@ figma.ui.onmessage = async (msg) => {
     html, body { box-sizing: border-box; margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; }
     p { margin: 0; }
     /* Component set sizing - only apply 100% if not explicitly set to fixed dimensions */
+    /* This ensures components without explicit dimensions fill their container */
     [data-figma-id]:not([style*="width:"]):not([style*="height:"]) { width: 100%; height: 100%; }
     /* Variant visibility classes */
     .variant-active {
