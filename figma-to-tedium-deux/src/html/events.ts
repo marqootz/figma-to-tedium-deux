@@ -1,23 +1,5 @@
 import { FigmaNode, Reaction, VariantProperties } from '../types';
-
-// Utility functions
-function safeHasProperty(obj: any, prop: string): boolean {
-  return obj && typeof obj === 'object' && prop in obj;
-}
-
-function safeToString(value: any): string {
-  if (value === null || value === undefined) return '';
-  return String(value);
-}
-
-function escapeHtmlAttribute(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
+import { safeToString, escapeHtmlAttribute, safeHasProperty } from './utils';
 
 // Event attribute generation
 export function generateReactionAttributes(node: FigmaNode): Record<string, string> {

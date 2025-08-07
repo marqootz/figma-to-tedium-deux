@@ -4,11 +4,7 @@ import { computeSizingStyles } from './sizing-styles';
 import { computeBorderStyles } from './border-styles';
 import { computeTextStyles } from './text-styles';
 import { computeFillStyles } from './fill-styles';
-
-// Utility functions
-function safeHasProperty(obj: any, prop: string): boolean {
-  return obj && typeof obj === 'object' && prop in obj;
-}
+import { safeHasProperty } from './utils';
 
 // Main style computation orchestrator
 export function computeNodeStyles(node: FigmaNode, parentNode?: FigmaNode): ComputedStyles {

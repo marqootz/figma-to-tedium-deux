@@ -1,23 +1,5 @@
 import { FigmaNode, OverrideData } from '../types';
-
-// Utility functions
-function safeHasProperty(obj: any, prop: string): boolean {
-  return obj && typeof obj === 'object' && prop in obj;
-}
-
-function safeToString(value: any): string {
-  if (value === null || value === undefined) return '';
-  return String(value);
-}
-
-function escapeHtmlAttribute(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
+import { safeToString, escapeHtmlAttribute, safeHasProperty } from '../html/utils';
 
 // Node processing functions
 export function getAllNodeIds(node: FigmaNode): string[] {
@@ -180,6 +162,22 @@ export async function getComponentSetFromInstance(instance: any): Promise<any[]>
         } else {
           console.log('Could not find component set, falling back to instance processing');
           
+          // Safely get the component property value, handling symbols
+          let propertyValue = 'start'; // default value
+          try {
+            const property1 = instance.componentProperties['Property 1'];
+            if (property1 && typeof property1 === 'object' && 'value' in property1) {
+              propertyValue = String(property1.value);
+            } else if (typeof property1 === 'string') {
+              propertyValue = property1;
+            } else if (typeof property1 === 'symbol') {
+              propertyValue = property1.toString();
+            }
+          } catch (error) {
+            console.warn('Error accessing component property value:', error);
+            propertyValue = 'start'; // fallback
+          }
+          
           // Fallback: process the instance as a single component
           const componentFromInstance = {
             // Copy all the essential properties explicitly
@@ -224,7 +222,7 @@ export async function getComponentSetFromInstance(instance: any): Promise<any[]>
             isInstanceComponent: true,
             // Apply the variant properties
             variantProperties: {
-              'Property 1': instance.componentProperties['Property 1'].value
+              'Property 1': propertyValue
             }
           };
           
