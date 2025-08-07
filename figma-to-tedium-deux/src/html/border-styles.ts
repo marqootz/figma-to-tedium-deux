@@ -5,6 +5,11 @@ import { convertGradientToCSS } from './gradient-converter';
 export function computeBorderStyles(node: FigmaNode, nodeOpacity: number): ComputedStyles {
   const borderStyles: ComputedStyles = {};
   
+  // Skip border processing for component set containers to ignore Figma's purple dashed border
+  if (node.type === 'COMPONENT_SET') {
+    return borderStyles;
+  }
+  
   // --- BORDERS ---
   if ((node as any).strokes && Array.isArray((node as any).strokes) && (node as any).strokes.length > 0) {
     const stroke = (node as any).strokes[0];
