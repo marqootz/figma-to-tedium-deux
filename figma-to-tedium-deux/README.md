@@ -81,6 +81,22 @@ npm run build:css     # Build CSS assets
 - **Interface Segregation**: Modules expose only what's needed
 - **Open/Closed Principle**: Easy to extend without modifying existing code
 
+## Layout Features Support
+
+### **HUG Sizing**
+- **Horizontal HUG**: `layoutSizingHorizontal === 'HUG'` → `width: fit-content`
+- **Vertical HUG**: `layoutSizingVertical === 'HUG'` → `height: fit-content`
+- **Both HUG**: Both dimensions set to `fit-content`
+
+### **FILL Sizing**
+- **Horizontal FILL**: `layoutSizingHorizontal === 'FILL'` → `width: 100%`
+- **Vertical FILL**: `layoutSizingVertical === 'FILL'` → `height: 100%`
+
+### **Ignore Layout**
+- **Absolute Positioning**: `layoutPositioning === 'ABSOLUTE'` → `position: absolute`
+- **Coordinate Positioning**: Uses `x` and `y` coordinates for precise placement
+- **Parent Relative**: Positioned absolutely with respect to parent container
+
 ## Gradient Border Support
 
 The plugin now supports gradient borders using the multiple background layers technique:

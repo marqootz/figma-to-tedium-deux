@@ -138,5 +138,10 @@ export function generateNodeAttributes(node: FigmaNode, overrideData: OverrideDa
     attributes.push('data-clips-content="true"');
   }
   
+  // Add layout positioning attribute
+  if ((node as any).layoutPositioning) {
+    attributes.push(`data-layout-positioning="${escapeHtmlAttribute((node as any).layoutPositioning)}"`);
+  }
+  
   return attributes;
 } 

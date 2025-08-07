@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    html, body { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 20px; 
+      width: 100vw; 
+      height: 100vh; 
+      font-family: Arial, sans-serif;
+    }
+    
+    /* Variant visibility classes */
+    .variant-active {
+      display: block !important;
+    }
+    .variant-hidden {
+      display: none !important;
+    }
+    
+    /* Test styles */
+    .test-container {
+      border: 2px solid #ccc;
+      padding: 20px;
+      margin: 20px 0;
+      background: #f9f9f9;
+    }
+    
+    .progress-bar {
+      background-color: rgba(79, 79, 79, 1);
+      height: 84px;
+      border-radius: 1000px;
+      position: relative;
+      margin: 10px 0;
+    }
+    
+    .progress-fill {
+      background-color: rgba(44, 129, 165, 1);
+      width: 84px;
+      height: 84px;
+      border-radius: 1000px;
+      position: absolute;
+      top: 0;
+    }
+    
+    .start-fill {
+      left: 0;
+    }
+    
+    .end-fill {
+      right: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Component Set Test</h1>
+  
+  <div class="test-container">
+    <h2>Component Set with Variants</h2>
+    <p>This simulates what should be exported when selecting a component set instance:</p>
+    
+    <!-- Start variant (should be visible initially) -->
+    <div data-figma-id="6461:693" 
+         data-figma-name="Property 1=start" 
+         data-figma-type="COMPONENT" 
+         data-variant-property-1="start"
+         data-has-reactions="true" 
+         data-reaction-count="1" 
+         data-reaction-trigger="{&quot;type&quot;:&quot;AFTER_TIMEOUT&quot;,&quot;timeout&quot;:0.8}" 
+         data-reaction-action-type="NODE" 
+         data-reaction-destination="5829:3368"
+         class="test-container">
+      <div class="progress-bar">
+        <div class="progress-fill start-fill"></div>
+      </div>
+      <p>Start Variant (will auto-transition in 0.8s)</p>
+    </div>
+    
+    <!-- End variant (should be hidden initially) -->
+    <div data-figma-id="5829:3368" 
+         data-figma-name="Property 1=end" 
+         data-figma-type="COMPONENT" 
+         data-variant-property-1="end"
+         class="test-container" 
+         style="display: none;">
+      <div class="progress-bar">
+        <div class="progress-fill end-fill"></div>
+      </div>
+      <p>End Variant (transitioned to)</p>
+    </div>
+  </div>
+
+  <script>
+    // Event handling for interactive elements
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Component set test initialized');
+      
+      // Handle variant switching - support both data-variant and data-variant-property-* attributes
+      const variantButtons = document.querySelectorAll('[data-variant], [data-variant-property-1]');
+      variantButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const variant = this.getAttribute('data-variant') || this.getAttribute('data-variant-property-1');
+          const targetId = this.getAttribute('data-target');
+          
+          console.log('Variant button clicked:', variant, 'target:', targetId);
+          
+          if (targetId) {
+            const target = document.querySelector(`[data-figma-id="${targetId}"]`);
+            if (target) {
+              // Hide all variants
+              target.querySelectorAll('[data-variant], [data-variant-property-1]').forEach(el => {
+                el.classList.add('variant-hidden');
+                el.classList.remove('variant-active');
+                el.style.display = 'none';
+              });
+              
+              // Show selected variant
+              const selectedVariant = target.querySelector(`[data-variant="${variant}"], [data-variant-property-1="${variant}"]`);
+              if (selectedVariant) {
+                selectedVariant.classList.add('variant-active');
+                selectedVariant.classList.remove('variant-hidden');
+                selectedVariant.style.display = 'block';
+              }
+            }
+          }
+        });
+      });
+      
+      // Handle reactions - both click and timeout
+      const reactionElements = document.querySelectorAll('[data-has-reactions="true"]');
+      reactionElements.forEach(element => {
+        const trigger = JSON.parse(element.getAttribute('data-reaction-trigger') || '{}');
+        const actionType = element.getAttribute('data-reaction-action-type');
+        const destinationId = element.getAttribute('data-reaction-destination');
+        const transitionType = element.getAttribute('data-reaction-transition-type');
+        const transitionDuration = element.getAttribute('data-reaction-transition-duration');
+        
+        console.log('Setting up reaction:', trigger.type, 'destination:', destinationId);
+        
+        // Handle timeout reactions
+        if (trigger.type === 'AFTER_TIMEOUT') {
+          console.log('Setting up timeout reaction for', trigger.timeout, 'seconds');
+          setTimeout(() => {
+            console.log('Timeout reaction triggered');
+            handleReaction(element, destinationId, transitionType, transitionDuration);
+          }, (trigger.timeout || 0) * 1000);
+        }
+        
+        // Handle click reactions
+        element.addEventListener('click', function() {
+          if (trigger.type === 'ON_CLICK') {
+            console.log('Click reaction triggered');
+            handleReaction(this, destinationId, transitionType, transitionDuration);
+          }
+        });
+      });
+      
+      // Helper function to handle reaction transitions
+      function handleReaction(sourceElement, destinationId, transitionType, transitionDuration) {
+        console.log('Handling reaction:', destinationId, transitionType);
+        if (destinationId) {
+          const destination = document.querySelector(`[data-figma-id="${destinationId}"]`);
+          if (destination) {
+            // Handle different transition types
+            if (transitionType === 'DISSOLVE') {
+              // Dissolve transition
+              sourceElement.style.opacity = '0';
+              setTimeout(() => {
+                sourceElement.style.display = 'none';
+                destination.style.display = 'block';
+                destination.style.opacity = '1';
+              }, parseFloat(transitionDuration || '300'));
+            } else if (transitionType === 'SMART_ANIMATE') {
+              // Smart animate transition
+              sourceElement.style.opacity = '0';
+              destination.style.opacity = '1';
+              setTimeout(() => {
+                sourceElement.style.display = 'none';
+                destination.style.display = 'block';
+              }, parseFloat(transitionDuration || '300'));
+            } else {
+              // Default transition - simple show/hide
+              sourceElement.style.display = 'none';
+              destination.style.display = 'block';
+            }
+          } else {
+            console.warn('Destination element not found:', destinationId);
+          }
+        }
+      }
+      
+      // Handle component set variants
+      const componentSets = document.querySelectorAll('[data-figma-type="COMPONENT_SET"]');
+      componentSets.forEach(componentSet => {
+        const variants = componentSet.querySelectorAll('[data-variant-property-1]');
+        if (variants.length > 1) {
+          // Hide all variants except the first one initially
+          variants.forEach((variant, index) => {
+            if (index > 0) {
+              variant.style.display = 'none';
+            }
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

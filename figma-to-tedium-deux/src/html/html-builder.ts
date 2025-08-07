@@ -23,7 +23,24 @@ export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: 
         if (component.isInstanceComponent) {
           console.log('Processing instance component directly, avoiding recursion');
           // Process the component directly without checking for component sets again
-          const componentHTML = await processNodeDirectly(component, overrideData, parentNode);
+          let componentHTML = await processNodeDirectly(component, overrideData, parentNode);
+          
+          // For component set variants, ensure they all start at the same position (top: 0)
+          // This is crucial for SMART_ANIMATE to work properly
+          if (componentHTML.includes('style="')) {
+            // Replace any top positioning with top: 0 for variants
+            componentHTML = componentHTML.replace(
+              /style="([^"]*)"/,
+              (match, styleContent) => {
+                // Remove any top positioning and ensure variants start at the same position
+                const updatedStyle = styleContent
+                  .replace(/top:\s*[^;]+;?\s*/g, '') // Remove any top positioning
+                  .replace(/position:\s*[^;]+;?\s*/g, '') // Remove any position
+                  + '; top: 0; position: absolute; width: 100%; height: 100%;';
+                return `style="${updatedStyle}"`;
+              }
+            );
+          }
           
           // Add visibility control classes for variants
           if (index === 0) {

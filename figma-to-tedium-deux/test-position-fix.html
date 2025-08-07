@@ -1,115 +1,102 @@
-import { FigmaNode, Reaction, VariantProperties } from '../types';
-
-// Utility functions
-function safeHasProperty(obj: any, prop: string): boolean {
-  return obj && typeof obj === 'object' && prop in obj;
-}
-
-function safeToString(value: any): string {
-  if (value === null || value === undefined) return '';
-  return String(value);
-}
-
-function escapeHtmlAttribute(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-// Event attribute generation
-export function generateReactionAttributes(node: FigmaNode): Record<string, string> {
-  const attributes: Record<string, string> = {};
-  
-  if (safeHasProperty(node, 'reactions') && (node as any).reactions && (node as any).reactions.length > 0) {
-    const reactions = (node as any).reactions as Reaction[];
-    const firstReaction = reactions[0];
-    
-    if (firstReaction) {
-      attributes['data-has-reactions'] = 'true';
-      attributes['data-reaction-count'] = String(reactions.length);
-      
-      if (firstReaction.trigger) {
-        attributes['data-reaction-trigger'] = escapeHtmlAttribute(JSON.stringify(firstReaction.trigger));
-      }
-      
-      // Check both action and actions fields
-      let actionToUse: any = null;
-      if (firstReaction.action) {
-        actionToUse = firstReaction.action;
-      } else if (firstReaction.actions && firstReaction.actions.length > 0) {
-        actionToUse = firstReaction.actions[0];
-      }
-      
-      if (actionToUse && actionToUse.type) {
-        attributes['data-reaction-action-type'] = actionToUse.type;
-        
-        if (actionToUse.destinationId) {
-          attributes['data-reaction-destination'] = actionToUse.destinationId;
-        }
-        
-        // Extract transition data from the action
-        if (actionToUse.transition && actionToUse.transition.type) {
-          attributes['data-reaction-transition-type'] = actionToUse.transition.type;
-          if (actionToUse.transition.duration) {
-            attributes['data-reaction-transition-duration'] = String(actionToUse.transition.duration);
-          }
-        }
-      }
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    /* Variant visibility classes */
+    .variant-active {
+      display: block !important;
     }
-  }
-  
-  return attributes;
-}
-
-export function generateVariantAttributes(node: FigmaNode): Record<string, string> {
-  const attributes: Record<string, string> = {};
-  
-  if (safeHasProperty(node, 'variantProperties') && (node as any).variantProperties) {
-    const variantProps = (node as any).variantProperties as VariantProperties;
+    .variant-hidden {
+      display: none !important;
+    }
     
-    Object.entries(variantProps).forEach(([key, value]) => {
-      const cleanKey = key.toLowerCase().replace(/\s+/g, '-');
-      attributes[`data-variant-${cleanKey}`] = escapeHtmlAttribute(safeToString(value));
-    });
-  }
-  
-  return attributes;
-}
+    /* Demo styles */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    
+    .demo-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .test-button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    
+    .test-button:hover {
+      background: #0056b3;
+    }
+    
+    .debug-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+      font-family: monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h1>Position Fix Test</h1>
+    <p>This test verifies that the position fix works correctly with the actual exported HTML values.</p>
+    
+    <!-- Test component with exact exported HTML structure -->
+    <div data-figma-type="COMPONENT_SET" data-figma-id="5829:3372" data-figma-name="glydcar/info-bar/ride-progress" style="position: relative; width: 100%; height: 200px; border: 2px solid #ddd; margin: 20px 0;">
+      
+      <!-- Start Variant (initially visible) - EXACT EXPORTED VALUES -->
+      <div class="variant-active" data-figma-id="6461:693" data-figma-name="Property 1=start" data-figma-type="COMPONENT" data-variant-property-1="start" data-has-reactions="true" data-reaction-trigger="{&quot;type&quot;:&quot;AFTER_TIMEOUT&quot;,&quot;timeout&quot;:0.8}" data-reaction-action-type="NODE" data-reaction-destination="5829:3368" data-reaction-transition-type="SMART_ANIMATE" data-reaction-transition-duration="3.2" style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0px; box-sizing: border-box; width: 100%; height: fit-content; left: 0px; border-radius: 0px; top: 0; position: absolute; width: 100%; height: 100%;">
+        <h3>Start Variant (Active)</h3>
+        <p>Blue circle starts on the left. After 0.8 seconds, it will animate to the right position.</p>
+        <div data-figma-id="6461:694" data-figma-name="Frame 1308" data-figma-type="FRAME" style="background-color: rgba(79, 79, 79, 1); display: flex; flex-direction: row; justify-content: flex-start; align-items: center; gap: 10px; box-sizing: border-box; width: 100%; height: 84px; left: 0px; top: 0px; border-radius: 1000px">
+          <div data-figma-id="6461:695" data-figma-name="Frame 1307" data-figma-type="FRAME" style="background-color: rgba(44, 129, 165, 1); display: flex; justify-content: center; align-items: center; gap: 10px; box-sizing: border-box; width: 84px; height: 84px; left: 0px; top: 0px; border-radius: 1000px">1</div>
+        </div>
+      </div>
+      
+      <!-- End Variant (initially hidden) - EXACT EXPORTED VALUES -->
+      <div class="variant-hidden" data-figma-id="5829:3368" data-figma-name="Property 1=end" data-figma-type="COMPONENT" data-variant-property-1="end" style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0px; box-sizing: border-box; width: 100%; height: fit-content; left: 0px; border-radius: 0px; top: 0; position: absolute; width: 100%; height: 100%;">
+        <h3>End Variant (Hidden)</h3>
+        <p>Blue circle will animate to this position on the right.</p>
+        <div data-figma-id="6457:692" data-figma-name="Frame 1308" data-figma-type="FRAME" style="background-color: rgba(79, 79, 79, 1); display: flex; flex-direction: row; justify-content: flex-end; align-items: center; gap: 10px; box-sizing: border-box; width: 100%; height: 84px; left: 0px; top: 0px; border-radius: 1000px">
+          <div data-figma-id="6457:681" data-figma-name="Frame 1307" data-figma-type="FRAME" style="background-color: rgba(44, 129, 165, 1); display: flex; justify-content: center; align-items: center; gap: 10px; box-sizing: border-box; width: 84px; height: 84px; left: 2535.125px; top: 0px; border-radius: 1000px">2</div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div style="margin-top: 20px; text-align: center;">
+      <button class="test-button" onclick="testManualVariantSwitch()">Test Manual Variant Switch</button>
+      <button class="test-button" onclick="testReactionTrigger()">Test Reaction Trigger</button>
+      <button class="test-button" onclick="resetToStart()">Reset to Start</button>
+      <button class="test-button" onclick="checkElementPositions()">Check Element Positions</button>
+    </div>
+    
+    <div class="debug-info" id="debug-info">
+      <h4>Debug Information:</h4>
+      <div id="position-info"></div>
+    </div>
+  </div>
 
-// Event JavaScript generation
-export function generateEventHandlingJavaScript(): string {
-  return `
+  <script>
     // Event handling for interactive elements
     document.addEventListener('DOMContentLoaded', function() {
-      // Handle variant switching - support both data-variant and data-variant-property-* attributes
-      const variantButtons = document.querySelectorAll('[data-variant], [data-variant-property-1]');
-      variantButtons.forEach(button => {
-        button.addEventListener('click', function() {
-          const variant = this.getAttribute('data-variant') || this.getAttribute('data-variant-property-1');
-          const targetId = this.getAttribute('data-target');
-          
-          if (targetId) {
-            const target = document.querySelector(\`[data-figma-id="\${targetId}"]\`);
-            if (target) {
-              // Hide all variants
-              target.querySelectorAll('[data-variant], [data-variant-property-1]').forEach(el => {
-                el.classList.add('variant-hidden');
-                el.classList.remove('variant-active');
-              });
-              
-              // Show selected variant
-              const selectedVariant = target.querySelector(\`[data-variant="\${variant}"], [data-variant-property-1="\${variant}"]\`);
-              if (selectedVariant) {
-                selectedVariant.classList.add('variant-active');
-                selectedVariant.classList.remove('variant-hidden');
-              }
-            }
-          }
-        });
-      });
+      console.log('Initializing Position Fix Test...');
       
       // Handle reactions - both click and timeout
       const reactionElements = document.querySelectorAll('[data-has-reactions="true"]');
@@ -120,9 +107,19 @@ export function generateEventHandlingJavaScript(): string {
         const transitionType = element.getAttribute('data-reaction-transition-type');
         const transitionDuration = element.getAttribute('data-reaction-transition-duration');
         
+        console.log('Reaction setup:', { 
+          trigger, 
+          actionType, 
+          destinationId, 
+          transitionType, 
+          transitionDuration 
+        });
+        
         // Handle timeout reactions
         if (trigger.type === 'AFTER_TIMEOUT') {
+          console.log('Setting up timeout reaction for', trigger.timeout, 'seconds');
           setTimeout(() => {
+            console.log('Timeout reaction triggered!');
             handleReaction(element, destinationId, transitionType, transitionDuration);
           }, (trigger.timeout || 0) * 1000);
         }
@@ -240,9 +237,11 @@ export function generateEventHandlingJavaScript(): string {
       
       // Helper function to handle reaction transitions
       function handleReaction(sourceElement, destinationId, transitionType, transitionDuration) {
+        console.log('Handling reaction:', { destinationId, transitionType, transitionDuration });
         if (destinationId) {
-          const destination = document.querySelector(\`[data-figma-id="\${destinationId}"]\`);
+          const destination = document.querySelector(`[data-figma-id="${destinationId}"]`);
           if (destination) {
+            console.log('Found destination element, applying transition');
             // Handle different transition types
             if (transitionType === 'DISSOLVE') {
               // Dissolve transition
@@ -322,7 +321,7 @@ export function generateEventHandlingJavaScript(): string {
                 }
                 
                 // Add transition
-                element.style.transition = \`all \${transitionDuration || 0.3}s ease-in-out\`;
+                element.style.transition = `all ${transitionDuration || 0.3}s ease-in-out`;
               });
               
               // Execution phase: Animate to target values
@@ -398,6 +397,8 @@ export function generateEventHandlingJavaScript(): string {
               destination.classList.add('variant-active');
               destination.classList.remove('variant-hidden');
             }
+          } else {
+            console.log('Destination element not found:', destinationId);
           }
         }
       }
@@ -421,6 +422,80 @@ export function generateEventHandlingJavaScript(): string {
           });
         }
       });
+      
+      console.log('Position Fix Test initialized!');
     });
-  `;
-} 
+    
+    // Test functions
+    function testManualVariantSwitch() {
+      const componentSet = document.querySelector('[data-figma-type="COMPONENT_SET"]');
+      const variants = componentSet.querySelectorAll('[data-variant-property-1]');
+      const currentActive = componentSet.querySelector('.variant-active');
+      const currentHidden = componentSet.querySelector('.variant-hidden');
+      
+      if (currentActive && currentHidden) {
+        // Trigger the smart animate transition manually
+        const transitionType = 'SMART_ANIMATE';
+        const transitionDuration = '3.2';
+        handleReaction(currentActive, currentHidden.getAttribute('data-figma-id'), transitionType, transitionDuration);
+        console.log('Manually triggered smart animate transition');
+      }
+    }
+    
+    function testReactionTrigger() {
+      const reactionElement = document.querySelector('[data-has-reactions="true"]');
+      if (reactionElement) {
+        const destinationId = reactionElement.getAttribute('data-reaction-destination');
+        const transitionType = reactionElement.getAttribute('data-reaction-transition-type');
+        const transitionDuration = reactionElement.getAttribute('data-reaction-transition-duration');
+        
+        handleReaction(reactionElement, destinationId, transitionType, transitionDuration);
+        console.log('Manually triggered reaction');
+      }
+    }
+    
+    function resetToStart() {
+      const componentSet = document.querySelector('[data-figma-type="COMPONENT_SET"]');
+      const variants = componentSet.querySelectorAll('[data-variant-property-1]');
+      
+      variants.forEach((variant, index) => {
+        if (index === 0) {
+          variant.classList.add('variant-active');
+          variant.classList.remove('variant-hidden');
+        } else {
+          variant.classList.add('variant-hidden');
+          variant.classList.remove('variant-active');
+        }
+      });
+      console.log('Reset to start variant');
+    }
+    
+    function checkElementPositions() {
+      const componentSet = document.querySelector('[data-figma-type="COMPONENT_SET"]');
+      const elements = componentSet.querySelectorAll('[data-figma-id]');
+      const positionInfo = document.getElementById('position-info');
+      
+      const positions = [];
+      elements.forEach((element, index) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        positions.push({
+          element: element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id'),
+          left: style.left,
+          top: style.top,
+          position: style.position,
+          rect: {
+            left: rect.left,
+            top: rect.top,
+            width: rect.width,
+            height: rect.height
+          }
+        });
+      });
+      
+      positionInfo.innerHTML = '<pre>' + JSON.stringify(positions, null, 2) + '</pre>';
+      console.log('Element positions:', positions);
+    }
+  </script>
+</body>
+</html>

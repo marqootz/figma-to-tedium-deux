@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    html, body { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 20px; 
+      width: 100vw; 
+      height: 100vh; 
+      font-family: Arial, sans-serif;
+    }
+    
+    /* Test styles */
+    .test-container {
+      border: 2px solid #ccc;
+      padding: 20px;
+      margin: 20px 0;
+      background: #f9f9f9;
+    }
+    
+    .progress-bar {
+      background-color: rgba(79, 79, 79, 1);
+      height: 84px;
+      border-radius: 1000px;
+      position: relative;
+      margin: 10px 0;
+    }
+    
+    .progress-fill {
+      background-color: rgba(44, 129, 165, 1);
+      width: 84px;
+      height: 84px;
+      border-radius: 1000px;
+      position: absolute;
+      top: 0;
+    }
+    
+    .start-fill {
+      left: 0;
+    }
+    
+    .end-fill {
+      right: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Instance Approach Test</h1>
+  
+  <div class="test-container">
+    <h2>Component Set Instance Test</h2>
+    <p>This simulates what should be exported when selecting a component set instance:</p>
+    
+    <!-- Single instance with variant properties -->
+    <div data-figma-id="5829:3372" 
+         data-figma-name="glydcar/info-bar/ride-progress" 
+         data-figma-type="INSTANCE" 
+         data-variant-property-1="start"
+         data-has-reactions="true" 
+         data-reaction-count="1" 
+         data-reaction-trigger="{&quot;type&quot;:&quot;AFTER_TIMEOUT&quot;,&quot;timeout&quot;:0.8}" 
+         data-reaction-action-type="NODE" 
+         data-reaction-destination="5829:3368"
+         class="test-container">
+      <div class="progress-bar">
+        <div class="progress-fill start-fill"></div>
+      </div>
+      <p>Instance with "start" variant (will auto-transition in 0.8s)</p>
+      <p>This should transition to destination ID: 5829:3368</p>
+    </div>
+  </div>
+
+  <script>
+    // Event handling for interactive elements
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Instance approach test initialized');
+      
+      // Handle reactions - both click and timeout
+      const reactionElements = document.querySelectorAll('[data-has-reactions="true"]');
+      reactionElements.forEach(element => {
+        const trigger = JSON.parse(element.getAttribute('data-reaction-trigger') || '{}');
+        const actionType = element.getAttribute('data-reaction-action-type');
+        const destinationId = element.getAttribute('data-reaction-destination');
+        const transitionType = element.getAttribute('data-reaction-transition-type');
+        const transitionDuration = element.getAttribute('data-reaction-transition-duration');
+        
+        console.log('Setting up reaction:', trigger.type, 'destination:', destinationId);
+        
+        // Handle timeout reactions
+        if (trigger.type === 'AFTER_TIMEOUT') {
+          console.log('Setting up timeout reaction for', trigger.timeout, 'seconds');
+          setTimeout(() => {
+            console.log('Timeout reaction triggered');
+            handleReaction(element, destinationId, transitionType, transitionDuration);
+          }, (trigger.timeout || 0) * 1000);
+        }
+        
+        // Handle click reactions
+        element.addEventListener('click', function() {
+          if (trigger.type === 'ON_CLICK') {
+            console.log('Click reaction triggered');
+            handleReaction(this, destinationId, transitionType, transitionDuration);
+          }
+        });
+      });
+      
+      // Helper function to handle reaction transitions
+      function handleReaction(sourceElement, destinationId, transitionType, transitionDuration) {
+        console.log('Handling reaction:', destinationId, transitionType);
+        if (destinationId) {
+          const destination = document.querySelector(`[data-figma-id="${destinationId}"]`);
+          if (destination) {
+            console.log('Destination found, performing transition');
+            // Default transition - simple show/hide
+            sourceElement.style.display = 'none';
+            destination.style.display = 'block';
+          } else {
+            console.warn('Destination element not found:', destinationId);
+            console.log('Available elements with data-figma-id:');
+            document.querySelectorAll('[data-figma-id]').forEach(el => {
+              console.log('-', el.getAttribute('data-figma-id'), el.getAttribute('data-figma-name'));
+            });
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

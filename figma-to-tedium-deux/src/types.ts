@@ -35,6 +35,8 @@ export interface FigmaNode {
   imageTransform?: number[][];
   // Clipping properties
   clipsContent?: boolean;
+  // Layout properties
+  layoutPositioning?: string;
   [key: string]: any;
 }
 
@@ -82,11 +84,30 @@ export interface Stroke {
 export interface Reaction {
   trigger: {
     type: string;
+    timeout?: number;
   };
-  action: {
+  action?: {
     type: string;
     destinationId?: string;
+    transition?: {
+      type: string;
+      duration?: number;
+      easing?: {
+        type: string;
+      };
+    };
   };
+  actions?: Array<{
+    type: string;
+    destinationId?: string;
+    transition?: {
+      type: string;
+      duration?: number;
+      easing?: {
+        type: string;
+      };
+    };
+  }>;
   transition?: {
     type: string;
     duration?: number;
