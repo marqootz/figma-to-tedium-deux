@@ -58,6 +58,14 @@ figma.ui.onmessage = async (msg) => {
     .variant-hidden {
       display: none !important;
     }
+    /* Hide all COMPONENT children of COMPONENT_SET by default to prevent flash */
+    [data-figma-type="COMPONENT_SET"] > [data-figma-type="COMPONENT"] {
+      display: none;
+    }
+    /* Show only the first COMPONENT child by default */
+    [data-figma-type="COMPONENT_SET"] > [data-figma-type="COMPONENT"]:first-child {
+      display: flex;
+    }
     /* Dissolve transition overrides */
     .dissolve-source, .dissolve-target {
       display: block !important;

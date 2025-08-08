@@ -6,7 +6,9 @@ export function createComponentSetInitializer(): string {
       // With the new 1:1 structure, this will handle nested component sets correctly
       const componentSets = document.querySelectorAll('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
       componentSets.forEach(componentSet => {
-        const variants = componentSet.querySelectorAll('[data-variant-property-1]');
+        // Find all COMPONENT children - these are the variants
+        // Some may have explicit variant attributes, others are variants by hierarchy
+        const variants = componentSet.querySelectorAll('[data-figma-type="COMPONENT"]');
         if (variants.length > 1) {
           console.log('Initializing component set/instance with', variants.length, 'variants:', {
             componentSetId: componentSet.getAttribute('data-figma-id'),
