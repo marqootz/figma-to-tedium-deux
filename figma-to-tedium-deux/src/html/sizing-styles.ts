@@ -128,11 +128,11 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
     
     // Check if this is a child of an auto-layout frame (should get 0px positioning)
     // BUT exclude frames that should animate (like Frame 1232 itself)
-    // Children of Frame 1232 should get 0px positioning
+    // Children of ANY auto-layout frame should get 0px positioning
     const isChildOfAutoLayoutFrame = parentNode && 
                                     parentNode.type === 'FRAME' && 
                                     parentNode.layoutMode &&
-                                    (node.type !== 'FRAME' || (parentNode.name === 'Frame 1232' && node.name !== 'Frame 1232')); // Apply to children of Frame 1232, but not Frame 1232 itself
+                                    (node.type !== 'FRAME' || (node.name !== 'Frame 1232')); // Apply to all children of auto-layout frames, but not Frame 1232 itself
     
     // Comprehensive approach: Any element that should be positioned at 0px
     // This includes top-level elements, children of positioned containers, and certain node types
@@ -158,9 +158,9 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
       sizingStyles.left = '0px';
       sizingStyles.top = '0px';
       console.log(`[SIZING DEBUG] Applied position: relative + 0px to ${isTopLevel ? 'top-level' : 'positioned element'} ${node.type} ${node.id} (parent: ${parentNode?.type})`);
-    } else if (hasExplicitCoordinates && !isChildOfAutoLayoutFrame) {
+    } else if (hasExplicitCoordinates && !isChildOfAutoLayoutFrame && !shouldBePositionedAtZero) {
       // Elements with explicit coordinates get NO position property + their coordinates
-      // BUT only if they're NOT children of auto-layout frames
+      // BUT only if they're NOT children of auto-layout frames AND NOT positioned at zero
       // This means they use position: static (default) + their Figma coordinates
       if (node.x !== undefined) {
         sizingStyles.left = `${node.x}px`;
