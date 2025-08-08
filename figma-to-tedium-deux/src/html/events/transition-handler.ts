@@ -83,6 +83,9 @@ export function createSmartAnimateHandler(): string {
                   const originalDestinationWidth = destination.style.width;
                   const originalDestinationHeight = destination.style.height;
                   
+                  // Hide source element immediately to prevent both being visible
+                  activeVariant.style.opacity = '0';
+                  
                   // Ensure destination is visible and positioned before analysis
                   destination.classList.add('variant-active');
                   destination.classList.remove('variant-hidden');
@@ -104,9 +107,6 @@ export function createSmartAnimateHandler(): string {
                   
                   // Double-check tap targets are visible after reflow
                   ensureTapTargetsVisible(destination);
-                  
-                  // Hide source element during animation to prevent visual conflicts
-                  activeVariant.style.opacity = '0';
                   
                   // Find elements with property changes
                   const elementsToAnimate = findElementsWithPropertyChanges(destination, activeVariant);
@@ -336,6 +336,9 @@ export function createSmartAnimateHandler(): string {
                 const originalDestinationWidth = destination.style.width;
                 const originalDestinationHeight = destination.style.height;
                 
+                // Hide source element immediately to prevent both being visible
+                sourceElement.style.opacity = '0';
+                
                 // Ensure destination is visible and positioned before analysis
                 destination.classList.add('variant-active');
                 destination.classList.remove('variant-hidden');
@@ -357,9 +360,6 @@ export function createSmartAnimateHandler(): string {
                 
                 // Double-check tap targets are visible after reflow
                 ensureTapTargetsVisible(destination);
-                
-                // Hide source element during animation to prevent visual conflicts
-                sourceElement.style.opacity = '0';
                 
                 // Find elements with property changes
                 const elementsToAnimate = findElementsWithPropertyChanges(destination, sourceElement);
