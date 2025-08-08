@@ -175,6 +175,25 @@ export function createSmartAnimateHandler(): string {
                           element.style.top = changes.positionY.sourceValue + 'px';
                         }
                         
+                        // Calculate correct end position for elements moving to the right (off-screen positions)
+                        if (changes.positionX && changes.positionX.changed && changes.positionX.targetValue > 1000) {
+                          const container = element.closest('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
+                          if (container) {
+                            const containerRect = container.getBoundingClientRect();
+                            const elementRect = element.getBoundingClientRect();
+                            
+                            if (containerRect.width > 0 && elementRect.width > 0) {
+                              // For flex-end positioning, the element should be flush against the right edge
+                              // The gap is for spacing between elements, not from the edge
+                              const calculatedEndPosition = containerRect.width - elementRect.width;
+                              changes.positionX.targetValue = calculatedEndPosition;
+                              // Store the calculated value for cleanup
+                              element.setAttribute('data-calculated-end-position', calculatedEndPosition.toString());
+                              console.log('DEBUG: Recalculated end position:', calculatedEndPosition, 'container width:', containerRect.width, 'element width:', elementRect.width);
+                            }
+                          }
+                        }
+                        
                         // Animate to target state
                         setTimeout(() => {
                           if (changes.backgroundColor && changes.backgroundColor.changed) {
@@ -202,6 +221,21 @@ export function createSmartAnimateHandler(): string {
                       destination.style.position = '';
                       destination.style.top = '';
                       destination.style.left = '';
+                      
+                      // Clean up animated elements - restore proper layout
+                      elementsToAnimate.forEach(({ element }) => {
+                        const calculatedEndPosition = element.getAttribute('data-calculated-end-position');
+                        if (calculatedEndPosition) {
+                          // For elements that were recalculated, we need to restore the proper layout
+                          // Remove absolute positioning and let the parent's flexbox handle positioning
+                          element.style.position = '';
+                          element.style.left = '';
+                          element.style.top = '';
+                          console.log('DEBUG: Restored flexbox layout for element with calculated position:', element.getAttribute('data-figma-id'));
+                        }
+                        // Remove stored data
+                        element.removeAttribute('data-calculated-end-position');
+                      });
                       
                       // Hide all other variants
                       allVariants.forEach(variant => {
@@ -394,6 +428,25 @@ export function createSmartAnimateHandler(): string {
                         element.style.top = changes.positionY.sourceValue + 'px';
                       }
                       
+                      // Calculate correct end position for elements moving to the right (off-screen positions)
+                      if (changes.positionX && changes.positionX.changed && changes.positionX.targetValue > 1000) {
+                        const container = element.closest('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
+                        if (container) {
+                          const containerRect = container.getBoundingClientRect();
+                          const elementRect = element.getBoundingClientRect();
+                          
+                          if (containerRect.width > 0 && elementRect.width > 0) {
+                            // For flex-end positioning, the element should be flush against the right edge
+                            // The gap is for spacing between elements, not from the edge
+                            const calculatedEndPosition = containerRect.width - elementRect.width;
+                            changes.positionX.targetValue = calculatedEndPosition;
+                            // Store the calculated value for cleanup
+                            element.setAttribute('data-calculated-end-position', calculatedEndPosition.toString());
+                            console.log('DEBUG: Recalculated end position:', calculatedEndPosition, 'container width:', containerRect.width, 'element width:', elementRect.width);
+                          }
+                        }
+                      }
+                      
                       // Animate to target state
                       setTimeout(() => {
                         if (changes.backgroundColor && changes.backgroundColor.changed) {
@@ -421,6 +474,21 @@ export function createSmartAnimateHandler(): string {
                     destination.style.position = '';
                     destination.style.top = '';
                     destination.style.left = '';
+                    
+                    // Clean up animated elements - restore proper layout
+                    elementsToAnimate.forEach(({ element }) => {
+                      const calculatedEndPosition = element.getAttribute('data-calculated-end-position');
+                      if (calculatedEndPosition) {
+                        // For elements that were recalculated, we need to restore the proper layout
+                        // Remove absolute positioning and let the parent's flexbox handle positioning
+                        element.style.position = '';
+                        element.style.left = '';
+                        element.style.top = '';
+                        console.log('DEBUG: Restored flexbox layout for element with calculated position:', element.getAttribute('data-figma-id'));
+                      }
+                      // Remove stored data
+                      element.removeAttribute('data-calculated-end-position');
+                    });
                     
                     // Hide all other variants
                     allVariants.forEach(variant => {
