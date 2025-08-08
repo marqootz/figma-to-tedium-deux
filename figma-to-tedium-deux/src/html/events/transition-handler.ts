@@ -402,9 +402,12 @@ export function createSmartAnimateHandler(): string {
               // Start timeout reactions for nested components within the destination
               startTimeoutReactionsForNestedComponents(destination);
               
-              // Release transition lock
-              isTransitionInProgress = false;
-              console.log('DEBUG: Transition lock released');
+              // CRITICAL FIX: Add delay to transition lock release to prevent variant handler conflicts
+              setTimeout(() => {
+                // Release transition lock
+                isTransitionInProgress = false;
+                console.log('DEBUG: Transition lock released (delayed)');
+              }, 100); // 100ms delay to ensure variant handler doesn't interfere
               
               return; // Exit early for variant switching
             }

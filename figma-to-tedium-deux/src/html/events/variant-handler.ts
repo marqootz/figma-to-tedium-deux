@@ -7,6 +7,12 @@ export function createVariantSwitchingHandler(): string {
         button.addEventListener('click', function() {
           // CRITICAL FIX: Prevent variant handler from running if a reaction transition is in progress
           // This prevents conflicts between reaction handler and variant handler
+          console.log('DEBUG: Variant handler checking transition lock:', {
+            isTransitionInProgress: typeof isTransitionInProgress !== 'undefined' ? isTransitionInProgress : 'undefined',
+            elementId: this.getAttribute('data-figma-id'),
+            elementType: this.getAttribute('data-figma-type')
+          });
+          
           if (typeof isTransitionInProgress !== 'undefined' && isTransitionInProgress) {
             console.log('DEBUG: Skipping variant handler - transition in progress');
             return;
