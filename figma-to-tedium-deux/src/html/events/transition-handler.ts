@@ -86,6 +86,62 @@ export function createSmartAnimateHandler(): string {
           // Check if this is a static layout element that shouldn't animate
           const elementName = targetElement.getAttribute('data-figma-name');
           const elementType = targetElement.getAttribute('data-figma-type');
+          const isFrame1232 = elementName === 'Frame 1232';
+          
+          if (isFrame1232) {
+            console.log('🔍 FRAME 1232 DETECTED - Starting detailed analysis');
+            console.log('🔍 Frame 1232 - Element ID:', targetElement.getAttribute('data-figma-id'));
+            console.log('🔍 Frame 1232 - Source Element ID:', sourceElement.getAttribute('data-figma-id'));
+            console.log('🔍 Frame 1232 - Target Element ID:', targetElement.getAttribute('data-figma-id'));
+            
+            // Log computed styles for both elements
+            const sourceComputed = window.getComputedStyle(sourceElement);
+            const targetComputed = window.getComputedStyle(targetElement);
+            
+            console.log('🔍 Frame 1232 - Source computed styles:');
+            console.log('  - position:', sourceComputed.position);
+            console.log('  - top:', sourceComputed.top);
+            console.log('  - left:', sourceComputed.left);
+            console.log('  - transform:', sourceComputed.transform);
+            console.log('  - display:', sourceComputed.display);
+            console.log('  - visibility:', sourceComputed.visibility);
+            
+            console.log('🔍 Frame 1232 - Target computed styles:');
+            console.log('  - position:', targetComputed.position);
+            console.log('  - top:', targetComputed.top);
+            console.log('  - left:', targetComputed.left);
+            console.log('  - transform:', targetComputed.transform);
+            console.log('  - display:', targetComputed.display);
+            console.log('  - visibility:', targetComputed.visibility);
+            
+            // Log inline styles
+            console.log('🔍 Frame 1232 - Source inline styles:');
+            console.log('  - style.top:', sourceElement.style.top);
+            console.log('  - style.left:', sourceElement.style.left);
+            console.log('  - style.position:', sourceElement.style.position);
+            
+            console.log('🔍 Frame 1232 - Target inline styles:');
+            console.log('  - style.top:', targetElement.style.top);
+            console.log('  - style.left:', targetElement.style.left);
+            console.log('  - style.position:', targetElement.style.position);
+            
+            // Check for position style issues
+            const sourcePosition = sourceElement.style.position || sourceComputed.position;
+            const targetPosition = targetElement.style.position || targetComputed.position;
+            
+            console.log('🔍 Frame 1232 - Position style analysis:');
+            console.log('  - source position style:', sourcePosition);
+            console.log('  - target position style:', targetPosition);
+            console.log('  - source has position style:', !!sourceElement.style.position);
+            console.log('  - target has position style:', !!targetElement.style.position);
+            
+            if (!sourcePosition || sourcePosition === 'static') {
+              console.log('⚠️ WARNING: Frame 1232 source has no position or is static!');
+            }
+            if (!targetPosition || targetPosition === 'static') {
+              console.log('⚠️ WARNING: Frame 1232 target has no position or is static!');
+            }
+          }
           
           // Exclude only specific static layout elements from position animation
           const isStaticLayoutElement = elementName === 'bg' || 
@@ -98,25 +154,55 @@ export function createSmartAnimateHandler(): string {
                                     targetElement.parentElement.getAttribute('data-layout-mode');
           
           // Check if auto layout element has explicit position values (should animate)
-          const hasExplicitPosition = targetElement.style.left !== '' || targetElement.style.top !== '';
+          // Instead of checking if inline styles are empty, check if there are position changes between variants
+          const sourceStyle = window.getComputedStyle(sourceElement);
+          const targetStyle = window.getComputedStyle(targetElement);
+          const sourceLeft = parseFloat(sourceStyle.left) || 0;
+          const targetLeft = parseFloat(targetStyle.left) || 0;
+          const sourceTop = parseFloat(sourceStyle.top) || 0;
+          const targetTop = parseFloat(targetStyle.top) || 0;
+          
+          const hasPositionChanges = Math.abs(sourceLeft - targetLeft) > 1 || Math.abs(sourceTop - targetTop) > 1;
+          const hasExplicitPosition = hasPositionChanges;
+          
+          if (isFrame1232) {
+            console.log('🔍 Frame 1232 - Layout analysis:');
+            console.log('  - isStaticLayoutElement:', isStaticLayoutElement);
+            console.log('  - isPartOfAutoLayout:', isPartOfAutoLayout);
+            console.log('  - hasExplicitPosition:', hasExplicitPosition);
+            console.log('  - layout-positioning:', targetElement.getAttribute('data-layout-positioning'));
+            console.log('  - parent layout-mode:', targetElement.parentElement?.getAttribute('data-layout-mode'));
+          }
           
           if (isStaticLayoutElement) {
             console.log('DEBUG: Skipping position animation for static layout element:', elementName);
+            if (isFrame1232) {
+              console.log('🔍 Frame 1232 - SKIPPED (static layout element)');
+            }
           } else if (isPartOfAutoLayout && !hasExplicitPosition) {
             console.log('DEBUG: Skipping position animation for auto layout element without explicit position:', elementName);
+            if (isFrame1232) {
+              console.log('🔍 Frame 1232 - SKIPPED (auto layout without explicit position)');
+            }
             // Note: We still check for padding, margin, and opacity changes even for auto layout elements
           } else {
             // Check position changes by comparing the computed styles
-            const sourceStyle = window.getComputedStyle(sourceElement);
-            const targetStyle = window.getComputedStyle(targetElement);
+            // Reuse the already declared sourceStyle and targetStyle variables
             
             console.log('DEBUG: Checking position changes for element:', elementName);
             console.log('DEBUG: Source element ID:', sourceElement.getAttribute('data-figma-id'));
             console.log('DEBUG: Target element ID:', targetElement.getAttribute('data-figma-id'));
             
             // Check left position changes (only for non-static, non-auto-layout elements)
-            const sourceLeft = parseFloat(sourceStyle.left) || 0;
-            const targetLeft = parseFloat(targetStyle.left) || 0;
+            // Reuse the already calculated sourceLeft and targetLeft
+            
+            if (isFrame1232) {
+              console.log('🔍 Frame 1232 - Position X analysis:');
+              console.log('  - sourceLeft (computed):', sourceLeft);
+              console.log('  - targetLeft (computed):', targetLeft);
+              console.log('  - difference:', Math.abs(sourceLeft - targetLeft));
+              console.log('  - threshold: 1');
+            }
             
             if (Math.abs(sourceLeft - targetLeft) > 1) { // Reduced threshold for better sensitivity
               changes.positionX.changed = true;
@@ -124,11 +210,21 @@ export function createSmartAnimateHandler(): string {
               changes.positionX.targetValue = targetLeft;
               changes.hasChanges = true;
               console.log('DEBUG: Position X change detected:', sourceLeft, '->', targetLeft, 'for element:', elementName);
+              if (isFrame1232) {
+                console.log('🔍 Frame 1232 - Position X CHANGE DETECTED:', sourceLeft, '->', targetLeft);
+              }
             }
             
             // Check top position changes (only for non-static, non-auto-layout elements)
-            const sourceTop = parseFloat(sourceStyle.top) || 0;
-            const targetTop = parseFloat(targetStyle.top) || 0;
+            // Reuse the already calculated sourceTop and targetTop
+            
+            if (isFrame1232) {
+              console.log('🔍 Frame 1232 - Position Y analysis:');
+              console.log('  - sourceTop (computed):', sourceTop);
+              console.log('  - targetTop (computed):', targetTop);
+              console.log('  - difference:', Math.abs(sourceTop - targetTop));
+              console.log('  - threshold: 1');
+            }
             
             if (Math.abs(sourceTop - targetTop) > 1) { // Reduced threshold for better sensitivity
               changes.positionY.changed = true;
@@ -136,12 +232,14 @@ export function createSmartAnimateHandler(): string {
               changes.positionY.targetValue = targetTop;
               changes.hasChanges = true;
               console.log('DEBUG: Position Y change detected:', sourceTop, '->', targetTop, 'for element:', elementName);
+              if (isFrame1232) {
+                console.log('🔍 Frame 1232 - Position Y CHANGE DETECTED:', sourceTop, '->', targetTop);
+              }
             }
           }
 
           // Check style changes (for all elements, including auto layout)
-          const sourceStyle = window.getComputedStyle(sourceElement);
-          const targetStyle = window.getComputedStyle(targetElement);
+          // Reuse the already declared sourceStyle and targetStyle variables
           const sourceBg = sourceStyle.backgroundColor || 'rgba(0, 0, 0, 0)';
           const targetBg = targetStyle.backgroundColor || 'rgba(0, 0, 0, 0)';
           
@@ -291,8 +389,26 @@ export function createSmartAnimateHandler(): string {
             changes.hasChanges = true;
             console.log('DEBUG: Opacity change detected:', sourceOpacity, '->', targetOpacity);
           }
+          
+          if (isFrame1232) {
+            console.log('�� Frame 1232 - Final changes summary:');
+            console.log('  - hasChanges:', changes.hasChanges);
+            console.log('  - positionX changed:', changes.positionX.changed);
+            console.log('  - positionY changed:', changes.positionY.changed);
+            console.log('  - backgroundColor changed:', changes.backgroundColor.changed);
+            console.log('  - color changed:', changes.color.changed);
+            console.log('  - justifyContent changed:', changes.justifyContent.changed);
+            console.log('  - alignItems changed:', changes.alignItems.changed);
+            console.log('  - width changed:', changes.width.changed);
+            console.log('  - height changed:', changes.height.changed);
+            console.log('  - opacity changed:', changes.opacity.changed);
+            console.log('🔍 Frame 1232 - Analysis complete');
+          }
         } catch (error) {
           console.log('DEBUG: Error detecting property changes:', error);
+          if (isFrame1232) {
+            console.log('🔍 Frame 1232 - Error during analysis:', error);
+          }
         }
 
         return changes;

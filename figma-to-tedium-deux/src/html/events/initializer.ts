@@ -33,12 +33,13 @@ export function createComponentSetInitializer(): string {
             singleVariant.classList.remove('variant-hidden');
             console.log('Set single variant as active:', singleVariant.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
           } else {
-            // For multiple variants, the first variant should be active, others hidden
+            // For multiple variants, the FIRST variant should be active initially (where reactions are)
+            // This ensures the animation starts from the variant with reactions
             variants.forEach((variant, index) => {
               if (index === 0) {
                 variant.classList.add('variant-active');
                 variant.classList.remove('variant-hidden');
-                console.log('Set first variant as active:', variant.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
+                console.log('Set first variant as active (with reactions):', variant.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
               } else {
                 variant.classList.add('variant-hidden');
                 variant.classList.remove('variant-active');

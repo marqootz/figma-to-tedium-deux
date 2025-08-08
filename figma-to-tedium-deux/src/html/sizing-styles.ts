@@ -126,6 +126,14 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
     // Check if element has explicit Figma coordinates
     const hasExplicitCoordinates = node.x !== undefined || node.y !== undefined;
     
+    // Check if this is a child of an auto-layout frame (should get 0px positioning)
+    // BUT exclude frames that should animate (like Frame 1232 itself)
+    // Children of Frame 1232 should get 0px positioning
+    const isChildOfAutoLayoutFrame = parentNode && 
+                                    parentNode.type === 'FRAME' && 
+                                    parentNode.layoutMode &&
+                                    (node.type !== 'FRAME' || (parentNode.name === 'Frame 1232' && node.name !== 'Frame 1232')); // Apply to children of Frame 1232, but not Frame 1232 itself
+    
     // Comprehensive approach: Any element that should be positioned at 0px
     // This includes top-level elements, children of positioned containers, and certain node types
     const isTopLevel = !parentNode;
@@ -139,7 +147,8 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
                                     hasPositionedParent || 
                                     node.type === 'INSTANCE' || 
                                     node.type === 'COMPONENT_SET' ||
-                                    node.type === 'COMPONENT';
+                                    node.type === 'COMPONENT' ||
+                                    isChildOfAutoLayoutFrame;
     
     // Top-level elements and certain node types should ALWAYS get position: relative + 0px
     // regardless of whether they have explicit coordinates
@@ -149,8 +158,9 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
       sizingStyles.left = '0px';
       sizingStyles.top = '0px';
       console.log(`[SIZING DEBUG] Applied position: relative + 0px to ${isTopLevel ? 'top-level' : 'positioned element'} ${node.type} ${node.id} (parent: ${parentNode?.type})`);
-    } else if (hasExplicitCoordinates) {
+    } else if (hasExplicitCoordinates && !isChildOfAutoLayoutFrame) {
       // Elements with explicit coordinates get NO position property + their coordinates
+      // BUT only if they're NOT children of auto-layout frames
       // This means they use position: static (default) + their Figma coordinates
       if (node.x !== undefined) {
         sizingStyles.left = `${node.x}px`;
@@ -159,6 +169,10 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
         sizingStyles.top = `${node.y}px`;
       }
       console.log(`[SIZING DEBUG] Applied position: static + explicit coordinates to ${node.type} ${node.id}: left: ${node.x}px, top: ${node.y}px`);
+    } else if (isChildOfAutoLayoutFrame) {
+      // Children of auto-layout frames should NOT get explicit coordinates
+      // They should keep the 0px positioning from layout-styles.ts
+      console.log(`[SIZING DEBUG] Skipping explicit coordinates for child of auto-layout frame ${node.type} ${node.id} (parent: ${parentNode?.type})`);
     }
   }
   

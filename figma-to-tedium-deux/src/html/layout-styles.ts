@@ -1,14 +1,39 @@
 import { FigmaNode, ComputedStyles } from '../types';
 
 // Layout and flexbox styles computation
-export function computeLayoutStyles(node: FigmaNode): ComputedStyles {
+export function computeLayoutStyles(node: FigmaNode, parentNode?: FigmaNode): ComputedStyles {
   const layoutStyles: ComputedStyles = {};
   
-  // Add position: relative to instances, component sets and components for proper absolute positioning context
-  if (node.type === 'INSTANCE' || node.type === 'COMPONENT_SET' || node.type === 'COMPONENT') {
+  // --- POSITIONING LOGIC ---
+  // Determine if this element should get position: relative
+  
+  // Case 1: Container elements that establish positioning context
+  const isContainerElement = node.type === 'INSTANCE' || 
+                           node.type === 'COMPONENT_SET' || 
+                           node.type === 'COMPONENT';
+  
+  // Case 2: Frames with auto-layout that have children (need positioning context for children)
+  const isFrameWithAutoLayout = node.type === 'FRAME' && 
+                               node.layoutMode && 
+                               node.children && 
+                               node.children.length > 0;
+  
+  // Case 3: ANY child of an auto-layout frame (needs position: relative + 0px)
+  const isChildOfAutoLayoutFrame = parentNode && 
+                                  parentNode.type === 'FRAME' && 
+                                  parentNode.layoutMode;
+  
+  if (isContainerElement || isFrameWithAutoLayout || isChildOfAutoLayoutFrame) {
     layoutStyles.position = 'relative';
+    
+    // For children of auto-layout frames, also set top/left to 0px
+    if (isChildOfAutoLayoutFrame) {
+      layoutStyles.top = '0px';
+      layoutStyles.left = '0px';
+    }
   }
   
+  // --- AUTO-LAYOUT STYLES ---
   if (node.layoutMode) {
     // Set display: flex for flexbox properties to work, but without !important
     // so CSS classes can override it

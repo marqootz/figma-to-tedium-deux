@@ -15,7 +15,7 @@ export function computeNodeStyles(node: FigmaNode, parentNode?: FigmaNode): Comp
   
   // Compute all style categories
   const fillStyles = computeFillStyles(node, nodeOpacity);
-  const layoutStyles = computeLayoutStyles(node);
+  const layoutStyles = computeLayoutStyles(node, parentNode);
   const sizingStyles = computeSizingStyles(node, parentNode);
   const borderStyles = computeBorderStyles(node, nodeOpacity);
   const textStyles = computeTextStyles(node, nodeOpacity);
