@@ -4,6 +4,11 @@ import { FigmaNode, ComputedStyles } from '../types';
 export function computeLayoutStyles(node: FigmaNode): ComputedStyles {
   const layoutStyles: ComputedStyles = {};
   
+  // Add position: relative to instances, component sets and components for proper absolute positioning context
+  if (node.type === 'INSTANCE' || node.type === 'COMPONENT_SET' || node.type === 'COMPONENT') {
+    layoutStyles.position = 'relative';
+  }
+  
   if (node.layoutMode) {
     // Set display: flex for flexbox properties to work, but without !important
     // so CSS classes can override it

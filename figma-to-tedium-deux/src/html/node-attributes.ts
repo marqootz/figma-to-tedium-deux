@@ -53,6 +53,20 @@ export function generateNodeAttributes(node: FigmaNode, overrideData: OverrideDa
     });
   }
   
+  // Add variant attributes for components that are variants
+  if (node.type === 'COMPONENT' && node.name) {
+    // Check if the name contains variant information (e.g., "Property 1=default")
+    const variantMatch = node.name.match(/^([^=]+)=(.+)$/);
+    
+    if (variantMatch && variantMatch.length >= 3) {
+      const propertyName = variantMatch[1]!.toLowerCase().replace(/\s+/g, '-');
+      const propertyValue = variantMatch[2]!;
+      const attributeName = `data-variant-${propertyName}`;
+      const attributeValue = escapeHtmlAttribute(safeAttributeValue(propertyValue));
+      attributes.push(`${attributeName}="${attributeValue}"`);
+    }
+  }
+  
   // Add layout mode attribute for debugging
   if (node.layoutMode) {
     attributes.push(`data-layout-mode="${escapeHtmlAttribute(safeAttributeValue(node.layoutMode))}"`);

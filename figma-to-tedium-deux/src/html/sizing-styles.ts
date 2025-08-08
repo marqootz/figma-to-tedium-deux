@@ -123,11 +123,24 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
   
   // --- POSITIONING (only if not ignoring layout) ---
   if ((node as any).layoutPositioning !== 'ABSOLUTE') {
-    if (node.x !== undefined) {
-      sizingStyles.left = `${node.x}px`;
-    }
-    if (node.y !== undefined) {
-      sizingStyles.top = `${node.y}px`;
+    // Special case: Top-level elements and their direct children should be positioned at 0px
+    // This prevents them from being positioned off-screen using Figma coordinates
+    const isTopLevel = !parentNode;
+    const isDirectChildOfTopLevel = parentNode && !(parentNode as any).parent;
+    
+    if (isTopLevel || isDirectChildOfTopLevel) {
+      // Top-level elements and their direct children should be positioned at 0px in their HTML context
+      sizingStyles.left = '0px';
+      sizingStyles.top = '0px';
+      console.log(`[SIZING DEBUG] Applied 0px positioning to ${isTopLevel ? 'top-level' : 'direct child of top-level'} element ${node.id}`);
+    } else {
+      // Child elements can use their Figma coordinates relative to their parent
+      if (node.x !== undefined) {
+        sizingStyles.left = `${node.x}px`;
+      }
+      if (node.y !== undefined) {
+        sizingStyles.top = `${node.y}px`;
+      }
     }
   }
   
