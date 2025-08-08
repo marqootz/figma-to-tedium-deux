@@ -34,7 +34,26 @@ export function generateReactionAttributes(node: FigmaNode): Record<string, stri
         
         // Extract transition data from the action
         if (actionToUse.transition && actionToUse.transition.type) {
-          attributes['data-reaction-transition-type'] = actionToUse.transition.type;
+          // Check if this is a bouncy animation based on easing type
+          let transitionType = actionToUse.transition.type;
+          if (actionToUse.transition.easing && actionToUse.transition.easing.type) {
+            const easingType = actionToUse.transition.easing.type;
+            
+            // Map Figma easing types to our transition types
+            if (easingType === 'EASE_IN_AND_OUT_BACK' || easingType === 'BOUNCY') {
+              transitionType = 'BOUNCY';
+            } else if (easingType === 'EASE_IN_AND_OUT') {
+              transitionType = 'SMART_ANIMATE';
+            } else if (easingType === 'EASE_IN') {
+              transitionType = 'SMART_ANIMATE';
+            } else if (easingType === 'EASE_OUT') {
+              transitionType = 'SMART_ANIMATE';
+            } else if (easingType === 'LINEAR') {
+              transitionType = 'SMART_ANIMATE';
+            }
+          }
+          
+          attributes['data-reaction-transition-type'] = transitionType;
           if (actionToUse.transition.duration) {
             attributes['data-reaction-transition-duration'] = String(actionToUse.transition.duration);
           }

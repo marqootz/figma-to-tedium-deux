@@ -4,6 +4,207 @@ export function createSmartAnimateHandler(): string {
       // Global transition lock to prevent multiple simultaneous transitions
       let isTransitionInProgress = false;
       
+      // Helper function to map Figma animation types to CSS easing functions
+      function getEasingFunction(animationType) {
+        switch (animationType) {
+          case 'EASE_IN_AND_OUT_BACK':
+            return 'cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+          case 'EASE_IN_AND_OUT':
+            return 'ease-in-out';
+          case 'EASE_IN':
+            return 'ease-in';
+          case 'EASE_OUT':
+            return 'ease-out';
+          case 'LINEAR':
+            return 'linear';
+          case 'BOUNCY':
+            return 'cubic-bezier(0.68, -0.55, 0.265, 1.55)'; // Bouncy animation
+          default:
+            return 'ease-out'; // Default fallback
+        }
+      }
+      
+      // Helper function to create bouncy animation keyframes
+      function createBouncyKeyframes(elementId, startPosition, endPosition, duration) {
+        const style = document.createElement('style');
+        const keyframeName = \`bouncy-\${elementId.replace(/[^a-zA-Z0-9]/g, '')}\`;
+        
+        style.textContent = \`
+          @keyframes \${keyframeName} {
+            0% { transform: translateX(\${startPosition}px); }
+            60% { transform: translateX(\${endPosition + (endPosition - startPosition) * 0.1}px); }
+            80% { transform: translateX(\${endPosition - (endPosition - startPosition) * 0.05}px); }
+            100% { transform: translateX(\${endPosition}px); }
+          }
+        \`;
+        
+        document.head.appendChild(style);
+        return keyframeName;
+      }
+      
+      // Helper function to apply bouncy animation to an element
+      function applyBouncyAnimation(element, startPosition, endPosition, duration) {
+        const elementId = element.getAttribute('data-figma-id');
+        const keyframeName = createBouncyKeyframes(elementId, startPosition, endPosition, duration);
+        
+        element.style.animation = \`\${keyframeName} \${duration}s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards\`;
+        
+        // Clean up the keyframes after animation
+        setTimeout(() => {
+          element.style.animation = '';
+          const styleElement = document.querySelector(\`style[data-keyframe="\${keyframeName}"]\`);
+          if (styleElement) {
+            styleElement.remove();
+          }
+        }, duration * 1000 + 100);
+      }
+      
+      // Helper function to detect property changes between elements
+      function detectPropertyChanges(targetElement, sourceElement) {
+        const changes = {
+          hasChanges: false,
+          positionX: { changed: false, sourceValue: null, targetValue: null },
+          positionY: { changed: false, sourceValue: null, targetValue: null },
+          backgroundColor: { changed: false, sourceValue: null, targetValue: null },
+          color: { changed: false, sourceValue: null, targetValue: null },
+          justifyContent: { changed: false, sourceValue: null, targetValue: null },
+          alignItems: { changed: false, sourceValue: null, targetValue: null },
+          width: { changed: false, sourceValue: null, targetValue: null },
+          height: { changed: false, sourceValue: null, targetValue: null }
+        };
+
+        try {
+          // Check position changes by comparing the computed styles
+          const sourceStyle = window.getComputedStyle(sourceElement);
+          const targetStyle = window.getComputedStyle(targetElement);
+          
+          // Check left position changes
+          const sourceLeft = parseFloat(sourceStyle.left) || 0;
+          const targetLeft = parseFloat(targetStyle.left) || 0;
+          
+          if (Math.abs(sourceLeft - targetLeft) > 1) {
+            changes.positionX.changed = true;
+            changes.positionX.sourceValue = sourceLeft;
+            changes.positionX.targetValue = targetLeft;
+            changes.hasChanges = true;
+            console.log('DEBUG: Position X change detected:', sourceLeft, '->', targetLeft);
+          }
+          
+          // Check top position changes
+          const sourceTop = parseFloat(sourceStyle.top) || 0;
+          const targetTop = parseFloat(targetStyle.top) || 0;
+          
+          if (Math.abs(sourceTop - targetTop) > 1) {
+            changes.positionY.changed = true;
+            changes.positionY.sourceValue = sourceTop;
+            changes.positionY.targetValue = targetTop;
+            changes.hasChanges = true;
+            console.log('DEBUG: Position Y change detected:', sourceTop, '->', targetTop);
+          }
+
+          // Check style changes
+          const sourceBg = sourceStyle.backgroundColor || 'rgba(0, 0, 0, 0)';
+          const targetBg = targetStyle.backgroundColor || 'rgba(0, 0, 0, 0)';
+          
+          if (sourceBg !== targetBg) {
+            changes.backgroundColor.changed = true;
+            changes.backgroundColor.sourceValue = sourceBg;
+            changes.backgroundColor.targetValue = targetBg;
+            changes.hasChanges = true;
+            console.log('DEBUG: Background color change detected:', sourceBg, '->', targetBg);
+          }
+          
+          if (sourceStyle.color !== targetStyle.color) {
+            changes.color.changed = true;
+            changes.color.sourceValue = sourceStyle.color;
+            changes.color.targetValue = targetStyle.color;
+            changes.hasChanges = true;
+            console.log('DEBUG: Color change detected:', sourceStyle.color, '->', targetStyle.color);
+          }
+          
+          if (sourceStyle.justifyContent !== targetStyle.justifyContent) {
+            changes.justifyContent.changed = true;
+            changes.justifyContent.sourceValue = sourceStyle.justifyContent;
+            changes.justifyContent.targetValue = targetStyle.justifyContent;
+            changes.hasChanges = true;
+          }
+          
+          if (sourceStyle.alignItems !== targetStyle.alignItems) {
+            changes.alignItems.changed = true;
+            changes.alignItems.sourceValue = sourceStyle.alignItems;
+            changes.alignItems.targetValue = targetStyle.alignItems;
+            changes.hasChanges = true;
+          }
+          
+          // Check width changes
+          const sourceWidth = parseFloat(sourceStyle.width) || sourceElement.offsetWidth;
+          const targetWidth = parseFloat(targetStyle.width) || targetElement.offsetWidth;
+          
+          if (Math.abs(sourceWidth - targetWidth) > 1) {
+            changes.width.changed = true;
+            changes.width.sourceValue = sourceWidth;
+            changes.width.targetValue = targetWidth;
+            changes.hasChanges = true;
+            console.log('DEBUG: Width change detected:', sourceWidth, '->', targetWidth);
+          }
+          
+          // Check height changes
+          const sourceHeight = parseFloat(sourceStyle.height) || sourceElement.offsetHeight;
+          const targetHeight = parseFloat(targetStyle.height) || targetElement.offsetHeight;
+          
+          if (Math.abs(sourceHeight - targetHeight) > 1) {
+            changes.height.changed = true;
+            changes.height.sourceValue = sourceHeight;
+            changes.height.targetValue = targetHeight;
+            changes.hasChanges = true;
+            console.log('DEBUG: Height change detected:', sourceHeight, '->', targetHeight);
+          }
+        } catch (error) {
+          console.log('DEBUG: Error detecting property changes:', error);
+        }
+
+        return changes;
+      }
+      
+      // Helper function to find elements with property changes between variants
+      function findElementsWithPropertyChanges(targetVariant, currentVariant) {
+        if (!currentVariant) return [];
+        
+        const targetElements = targetVariant.querySelectorAll('[data-figma-id]');
+        const sourceElements = currentVariant.querySelectorAll('[data-figma-id]');
+        const sourceElementMap = new Map();
+        const elementsToAnimate = [];
+
+        // Build source element map by name
+        sourceElements.forEach(function(sourceElement) {
+          const sourceName = sourceElement.getAttribute('data-figma-name') || sourceElement.getAttribute('data-figma-id');
+          if (sourceName) {
+            sourceElementMap.set(sourceName, sourceElement);
+          }
+        });
+
+        // Analyze each target element for property changes
+        targetElements.forEach(function(element) {
+          const targetName = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
+          const sourceElement = sourceElementMap.get(targetName);
+          
+          if (sourceElement) {
+            const changes = detectPropertyChanges(element, sourceElement);
+            
+            if (changes.hasChanges) {
+              elementsToAnimate.push({
+                element: element,
+                sourceElement: sourceElement,
+                changes: changes
+              });
+              console.log('DEBUG: Found element with property changes:', targetName, 'changes:', changes);
+            }
+          }
+        });
+        
+        return elementsToAnimate;
+      }
+      
       // Helper function to ensure tap targets are visible after variant transitions
       function ensureTapTargetsVisible(variant) {
         console.log('DEBUG: Ensuring tap targets are visible in variant:', variant.getAttribute('data-figma-id'));
@@ -108,8 +309,8 @@ export function createSmartAnimateHandler(): string {
 
       // Helper function to handle variant switching
       function handleVariantSwitching(sourceElement, destination, allVariants, transitionType, transitionDuration) {
-        if (transitionType === 'SMART_ANIMATE') {
-          console.log('DEBUG: SMART_ANIMATE variant transition started');
+        if (transitionType === 'SMART_ANIMATE' || transitionType === 'BOUNCY') {
+          console.log('DEBUG: SMART_ANIMATE/BOUNCY variant transition started');
           
           // Store original destination dimensions for restoration after animation
           const originalDestinationWidth = destination.style.width;
@@ -164,9 +365,9 @@ export function createSmartAnimateHandler(): string {
             });
           }
           
-          // Animate the changes
-          if (elementsToAnimate.length > 0) {
-            console.log('DEBUG: Starting SMART_ANIMATE for variant transition');
+                      // Animate the changes
+            if (elementsToAnimate.length > 0) {
+              console.log('DEBUG: Starting SMART_ANIMATE/BOUNCY for variant transition');
             
             // Animate each element with changes
             elementsToAnimate.forEach(({ element, sourceElement, changes }) => {
@@ -186,6 +387,16 @@ export function createSmartAnimateHandler(): string {
                 if (changes.positionY && changes.positionY.changed) {
                   element.style.position = 'absolute';
                   element.style.top = changes.positionY.sourceValue + 'px';
+                }
+                
+                // Apply initial size state
+                if (changes.width && changes.width.changed) {
+                  element.style.width = changes.width.sourceValue + 'px';
+                  console.log('DEBUG: Setting initial width:', changes.width.sourceValue + 'px');
+                }
+                if (changes.height && changes.height.changed) {
+                  element.style.height = changes.height.sourceValue + 'px';
+                  console.log('DEBUG: Setting initial height:', changes.height.sourceValue + 'px');
                 }
                 
                 // Calculate correct end position for elements moving to the right (off-screen positions)
@@ -209,19 +420,43 @@ export function createSmartAnimateHandler(): string {
                 
                 // Animate to target state
                 setTimeout(() => {
+                  // Get the easing function based on the transition type
+                  const easingFunction = getEasingFunction(transitionType);
+                  console.log('DEBUG: Using easing function:', easingFunction, 'for transition type:', transitionType);
+                  
                   if (changes.backgroundColor && changes.backgroundColor.changed) {
-                    element.style.transition = \`background-color \${parseFloat(transitionDuration || '0.3')}s ease-out\`;
+                    element.style.transition = \`background-color \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`;
                     element.style.backgroundColor = changes.backgroundColor.targetValue;
                   }
                   
                   if (changes.positionX && changes.positionX.changed) {
-                    element.style.transition = \`left \${parseFloat(transitionDuration || '0.3')}s ease-out\`;
-                    element.style.left = changes.positionX.targetValue + 'px';
+                    if (transitionType === 'BOUNCY') {
+                      // Use bouncy animation for position changes
+                      const startPos = changes.positionX.sourceValue;
+                      const endPos = changes.positionX.targetValue;
+                      const duration = parseFloat(transitionDuration || '0.3');
+                      applyBouncyAnimation(element, startPos, endPos, duration);
+                    } else {
+                      element.style.transition = \`left \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`;
+                      element.style.left = changes.positionX.targetValue + 'px';
+                    }
                   }
                   
                   if (changes.positionY && changes.positionY.changed) {
-                    element.style.transition = \`top \${parseFloat(transitionDuration || '0.3')}s ease-out\`;
+                    element.style.transition = \`top \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`;
                     element.style.top = changes.positionY.targetValue + 'px';
+                  }
+                  
+                  if (changes.width && changes.width.changed) {
+                    element.style.transition = \`width \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`;
+                    element.style.width = changes.width.targetValue + 'px';
+                    console.log('DEBUG: Animating width to:', changes.width.targetValue + 'px');
+                  }
+                  
+                  if (changes.height && changes.height.changed) {
+                    element.style.transition = \`height \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`;
+                    element.style.height = changes.height.targetValue + 'px';
+                    console.log('DEBUG: Animating height to:', changes.height.targetValue + 'px');
                   }
                 }, 50);
               }
@@ -441,9 +676,9 @@ export function createSmartAnimateHandler(): string {
                 isTransitionInProgress = false;
                 console.log('DEBUG: Transition lock released');
               }, parseFloat(transitionDuration || '300'));
-            } else if (transitionType === 'SMART_ANIMATE') {
+            } else if (transitionType === 'SMART_ANIMATE' || transitionType === 'BOUNCY') {
               // Smart animate transition - sophisticated implementation
-              console.log('DEBUG: SMART_ANIMATE transition started');
+              console.log('DEBUG: SMART_ANIMATE/BOUNCY transition started');
               
               // Store original destination dimensions for restoration after animation
               // This ensures we respect the designer's Figma dimensions after animation completes
