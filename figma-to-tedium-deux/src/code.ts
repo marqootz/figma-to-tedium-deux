@@ -58,14 +58,9 @@ figma.ui.onmessage = async (msg) => {
     .variant-hidden {
       display: none !important;
     }
-    /* Hide all COMPONENT children of COMPONENT_SET by default to prevent flash */
-    [data-figma-type="COMPONENT_SET"] > [data-figma-type="COMPONENT"] {
-      display: none;
-    }
-    /* Show only the first COMPONENT child by default */
-    [data-figma-type="COMPONENT_SET"] > [data-figma-type="COMPONENT"]:first-child {
-      display: flex;
-    }
+    /* Let JavaScript handle component visibility instead of CSS rules */
+    /* This allows the variant handler to properly manage which components are visible */
+    /* Components will be shown/hidden by the JavaScript variant switching logic */
     /* Dissolve transition overrides */
     .dissolve-source, .dissolve-target {
       display: block !important;
