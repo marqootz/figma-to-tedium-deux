@@ -123,21 +123,28 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
   
   // --- POSITIONING (only if not ignoring layout) ---
   if ((node as any).layoutPositioning !== 'ABSOLUTE') {
-    // Simplified approach: Any element that has a positioned parent should be positioned at 0px
-    // This covers all levels of nesting and ensures proper positioning hierarchy
+    // Comprehensive approach: Any element that should be positioned at 0px
+    // This includes top-level elements, children of positioned containers, and certain node types
+    const isTopLevel = !parentNode;
     const hasPositionedParent = parentNode && 
                                (parentNode.type === 'COMPONENT_SET' || 
                                 parentNode.type === 'COMPONENT' || 
                                 parentNode.type === 'INSTANCE');
-    const isTopLevel = !parentNode;
     
-    if (isTopLevel || hasPositionedParent) {
-      // Top-level elements and any children of positioned containers should be positioned at 0px
+    // Also handle INSTANCE and COMPONENT_SET elements that should be positioned at 0px
+    const shouldBePositionedAtZero = isTopLevel || 
+                                    hasPositionedParent || 
+                                    node.type === 'INSTANCE' || 
+                                    node.type === 'COMPONENT_SET' ||
+                                    node.type === 'COMPONENT';
+    
+    if (shouldBePositionedAtZero) {
+      // These elements should be positioned at 0px in their HTML context
       sizingStyles.left = '0px';
       sizingStyles.top = '0px';
-      console.log(`[SIZING DEBUG] Applied 0px positioning to ${isTopLevel ? 'top-level' : 'child of positioned container'} element ${node.id} (parent: ${parentNode?.type})`);
+      console.log(`[SIZING DEBUG] Applied 0px positioning to ${isTopLevel ? 'top-level' : 'positioned element'} ${node.type} ${node.id} (parent: ${parentNode?.type})`);
     } else {
-      // Only elements that are NOT children of positioned containers use Figma coordinates
+      // Only elements that are NOT positioned containers use Figma coordinates
       if (node.x !== undefined) {
         sizingStyles.left = `${node.x}px`;
       }

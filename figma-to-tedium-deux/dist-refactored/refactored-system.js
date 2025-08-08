@@ -2005,21 +2005,27 @@ function computeSizingStyles(node, parentNode) {
     // Note: FIXED vertical sizing keeps the explicit height value (already set above)
     // --- POSITIONING (only if not ignoring layout) ---
     if (node.layoutPositioning !== 'ABSOLUTE') {
-        // Simplified approach: Any element that has a positioned parent should be positioned at 0px
-        // This covers all levels of nesting and ensures proper positioning hierarchy
+        // Comprehensive approach: Any element that should be positioned at 0px
+        // This includes top-level elements, children of positioned containers, and certain node types
+        var isTopLevel = !parentNode;
         var hasPositionedParent = parentNode &&
             (parentNode.type === 'COMPONENT_SET' ||
                 parentNode.type === 'COMPONENT' ||
                 parentNode.type === 'INSTANCE');
-        var isTopLevel = !parentNode;
-        if (isTopLevel || hasPositionedParent) {
-            // Top-level elements and any children of positioned containers should be positioned at 0px
+        // Also handle INSTANCE and COMPONENT_SET elements that should be positioned at 0px
+        var shouldBePositionedAtZero = isTopLevel ||
+            hasPositionedParent ||
+            node.type === 'INSTANCE' ||
+            node.type === 'COMPONENT_SET' ||
+            node.type === 'COMPONENT';
+        if (shouldBePositionedAtZero) {
+            // These elements should be positioned at 0px in their HTML context
             sizingStyles.left = '0px';
             sizingStyles.top = '0px';
-            console.log("[SIZING DEBUG] Applied 0px positioning to ".concat(isTopLevel ? 'top-level' : 'child of positioned container', " element ").concat(node.id, " (parent: ").concat(parentNode === null || parentNode === void 0 ? void 0 : parentNode.type, ")"));
+            console.log("[SIZING DEBUG] Applied 0px positioning to ".concat(isTopLevel ? 'top-level' : 'positioned element', " ").concat(node.type, " ").concat(node.id, " (parent: ").concat(parentNode === null || parentNode === void 0 ? void 0 : parentNode.type, ")"));
         }
         else {
-            // Only elements that are NOT children of positioned containers use Figma coordinates
+            // Only elements that are NOT positioned containers use Figma coordinates
             if (node.x !== undefined) {
                 sizingStyles.left = "".concat(node.x, "px");
             }
