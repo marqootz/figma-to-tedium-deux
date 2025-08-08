@@ -274,19 +274,33 @@ export function createSmartAnimateHandler(): string {
         destination.style.top = '';
         destination.style.left = '';
         
-        // Clean up animated elements - restore proper layout
+        // Clean up animated elements - restore original positioning
         elementsToAnimate.forEach(({ element }) => {
           const calculatedEndPosition = element.getAttribute('data-calculated-end-position');
+          const originalPosition = element.getAttribute('data-original-position');
+          const originalLeft = element.getAttribute('data-original-left');
+          const originalTop = element.getAttribute('data-original-top');
+          
           if (calculatedEndPosition) {
             // For elements that were recalculated, we need to restore the proper layout
-            // Remove absolute positioning and let the parent's flexbox handle positioning
+            // Remove relative positioning and let the parent's flexbox handle positioning
             element.style.position = '';
             element.style.left = '';
             element.style.top = '';
             console.log('DEBUG: Restored flexbox layout for element with calculated position:', element.getAttribute('data-figma-id'));
+          } else {
+            // Restore original positioning values
+            if (originalPosition !== null) element.style.position = originalPosition;
+            if (originalLeft !== null) element.style.left = originalLeft;
+            if (originalTop !== null) element.style.top = originalTop;
+            console.log('DEBUG: Restored original positioning for element:', element.getAttribute('data-figma-id'));
           }
+          
           // Remove stored data
           element.removeAttribute('data-calculated-end-position');
+          element.removeAttribute('data-original-position');
+          element.removeAttribute('data-original-left');
+          element.removeAttribute('data-original-top');
         });
         
         // Hide all other variants
@@ -379,15 +393,25 @@ export function createSmartAnimateHandler(): string {
                   element.style.backgroundColor = changes.backgroundColor.sourceValue;
                 }
                 
-                // Apply initial position state
+                // Store original positioning before animation
+                const originalPosition = element.style.position;
+                const originalLeft = element.style.left;
+                const originalTop = element.style.top;
+                
+                // Apply initial position state using relative positioning
                 if (changes.positionX && changes.positionX.changed) {
-                  element.style.position = 'absolute';
+                  element.style.position = 'relative';
                   element.style.left = changes.positionX.sourceValue + 'px';
                 }
                 if (changes.positionY && changes.positionY.changed) {
-                  element.style.position = 'absolute';
+                  element.style.position = 'relative';
                   element.style.top = changes.positionY.sourceValue + 'px';
                 }
+                
+                // Store original values for restoration
+                element.setAttribute('data-original-position', originalPosition);
+                element.setAttribute('data-original-left', originalLeft);
+                element.setAttribute('data-original-top', originalTop);
                 
                 // Apply initial size state
                 if (changes.width && changes.width.changed) {
