@@ -1278,7 +1278,48 @@
               
               console.log('DEBUG: This is an instance-to-component transition within a component set');
               
-              // Find the component set that contains the destination
+              // Check if the destination has a data-target attribute (indicating it's a variant reference)
+              const targetId = destination.getAttribute('data-target');
+              const variantProperty = destination.getAttribute('data-variant-property-1');
+              
+              if (targetId && variantProperty) {
+                console.log('DEBUG: Destination has target reference:', {
+                  targetId: targetId,
+                  variantProperty: variantProperty,
+                  destinationId: destination.getAttribute('data-figma-id')
+                });
+                
+                // Find the target component set
+                const targetComponentSet = document.querySelector(`[data-figma-id="${targetId}"]`);
+                if (targetComponentSet && targetComponentSet.getAttribute('data-figma-type') === 'COMPONENT_SET') {
+                  console.log('DEBUG: Found target component set:', targetComponentSet.getAttribute('data-figma-id'));
+                  
+                  // Find the specific variant within the target component set
+                  const targetVariant = targetComponentSet.querySelector(`[data-variant-property-1="${variantProperty}"]`);
+                  if (targetVariant) {
+                    console.log('DEBUG: Found target variant:', targetVariant.getAttribute('data-figma-id'));
+                    
+                    // Get all variants in the target component set
+                    const allVariants = Array.from(targetComponentSet.children).filter(child => 
+                      child.getAttribute('data-figma-type') === 'COMPONENT'
+                    );
+                    
+                    console.log('DEBUG: Found', allVariants.length, 'variants in target component set for switching');
+                    console.log('DEBUG: Variant IDs:', allVariants.map(v => v.getAttribute('data-figma-id')));
+                    
+                    // Handle animation for variant switching to the target variant
+                    handleVariantSwitching(sourceElement, targetVariant, allVariants, transitionType, transitionDuration);
+                    
+                    return; // Exit early for variant switching
+                  } else {
+                    console.log('DEBUG: Target variant not found for property:', variantProperty);
+                  }
+                } else {
+                  console.log('DEBUG: Target component set not found:', targetId);
+                }
+              }
+              
+              // Fallback to original logic if no target reference
               const componentSet = destinationComponentSet;
               const allVariants = Array.from(componentSet.children).filter(child => 
                 child.getAttribute('data-figma-type') === 'COMPONENT'

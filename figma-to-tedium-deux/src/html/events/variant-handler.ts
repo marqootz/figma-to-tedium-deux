@@ -5,6 +5,13 @@ export function createVariantSwitchingHandler(): string {
       const variantButtons = document.querySelectorAll('[data-variant], [data-variant-property-1]');
       variantButtons.forEach(button => {
         button.addEventListener('click', function() {
+          // CRITICAL FIX: Prevent variant handler from running if a reaction transition is in progress
+          // This prevents conflicts between reaction handler and variant handler
+          if (typeof isTransitionInProgress !== 'undefined' && isTransitionInProgress) {
+            console.log('DEBUG: Skipping variant handler - transition in progress');
+            return;
+          }
+          
           const variant = this.getAttribute('data-variant') || this.getAttribute('data-variant-property-1');
           const targetId = this.getAttribute('data-target');
           
