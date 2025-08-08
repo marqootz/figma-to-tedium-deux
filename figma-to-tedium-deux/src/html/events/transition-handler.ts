@@ -1,6 +1,9 @@
 // Transition handling logic
 export function createSmartAnimateHandler(): string {
   return `
+      // Global transition lock to prevent multiple simultaneous transitions
+      let isTransitionInProgress = false;
+      
       // Helper function to ensure tap targets are visible after variant transitions
       function ensureTapTargetsVisible(variant) {
         console.log('DEBUG: Ensuring tap targets are visible in variant:', variant.getAttribute('data-figma-id'));
@@ -27,6 +30,12 @@ export function createSmartAnimateHandler(): string {
 
       // Helper function to handle reaction transitions
       function handleReaction(sourceElement, destinationId, transitionType, transitionDuration) {
+        // Prevent multiple simultaneous transitions
+        if (isTransitionInProgress) {
+          console.log('DEBUG: Transition already in progress, skipping this call');
+          return;
+        }
+        
         if (destinationId) {
           const destination = document.querySelector(\`[data-figma-id="\${destinationId}"]\`);
           if (destination) {
@@ -36,6 +45,10 @@ export function createSmartAnimateHandler(): string {
               destinationId: destinationId,
               destinationType: destination.getAttribute('data-figma-type')
             });
+            
+            // Set transition lock
+            isTransitionInProgress = true;
+            console.log('DEBUG: Transition lock acquired');
             
             // CRITICAL FIX: Check if this is a variant switch within a component set
             // Find the common parent component set for both source and destination
@@ -250,6 +263,10 @@ export function createSmartAnimateHandler(): string {
                       startTimeoutReactionsForNewlyActiveVariant(destination);
                       // Start timeout reactions for nested components within the destination
                       startTimeoutReactionsForNestedComponents(destination);
+                      
+                      // Release transition lock
+                      isTransitionInProgress = false;
+                      console.log('DEBUG: Transition lock released');
                     }, parseFloat(transitionDuration || '0.3') * 1000 + 100);
                   } else {
                     console.log('DEBUG: No animation elements found, performing instant switch');
@@ -269,6 +286,10 @@ export function createSmartAnimateHandler(): string {
                     startTimeoutReactionsForNewlyActiveVariant(destination);
                     // Start timeout reactions for nested components within the destination
                     startTimeoutReactionsForNestedComponents(destination);
+                    
+                    // Release transition lock
+                    isTransitionInProgress = false;
+                    console.log('DEBUG: Transition lock released');
                   }
                 } else {
                   console.log('DEBUG: No active variant found, performing instant switch');
@@ -287,6 +308,10 @@ export function createSmartAnimateHandler(): string {
                   startTimeoutReactionsForNewlyActiveVariant(destination);
                   // Start timeout reactions for nested components within the destination
                   startTimeoutReactionsForNestedComponents(destination);
+                  
+                  // Release transition lock
+                  isTransitionInProgress = false;
+                  console.log('DEBUG: Transition lock released');
                 }
               } else {
                 // For non-SMART_ANIMATE transitions, perform instant switch
@@ -306,6 +331,10 @@ export function createSmartAnimateHandler(): string {
                 startTimeoutReactionsForNewlyActiveVariant(destination);
                 // Start timeout reactions for nested components within the destination
                 startTimeoutReactionsForNestedComponents(destination);
+                
+                // Release transition lock
+                isTransitionInProgress = false;
+                console.log('DEBUG: Transition lock released');
               }
               
               return; // Exit early for variant switching
@@ -503,6 +532,10 @@ export function createSmartAnimateHandler(): string {
                     startTimeoutReactionsForNewlyActiveVariant(destination);
                     // Start timeout reactions for nested components within the destination
                     startTimeoutReactionsForNestedComponents(destination);
+                    
+                    // Release transition lock
+                    isTransitionInProgress = false;
+                    console.log('DEBUG: Transition lock released');
                   }, parseFloat(transitionDuration || '0.3') * 1000 + 100);
                 } else {
                   console.log('DEBUG: No animation elements found, performing instant switch');
@@ -522,6 +555,10 @@ export function createSmartAnimateHandler(): string {
                   startTimeoutReactionsForNewlyActiveVariant(destination);
                   // Start timeout reactions for nested components within the destination
                   startTimeoutReactionsForNestedComponents(destination);
+                  
+                  // Release transition lock
+                  isTransitionInProgress = false;
+                  console.log('DEBUG: Transition lock released');
                 }
               } else {
                 // For non-SMART_ANIMATE transitions, perform instant switch
@@ -541,6 +578,10 @@ export function createSmartAnimateHandler(): string {
                 startTimeoutReactionsForNewlyActiveVariant(destination);
                 // Start timeout reactions for nested components within the destination
                 startTimeoutReactionsForNestedComponents(destination);
+                
+                // Release transition lock
+                isTransitionInProgress = false;
+                console.log('DEBUG: Transition lock released');
               }
               
               return; // Exit early for variant switching
@@ -576,6 +617,10 @@ export function createSmartAnimateHandler(): string {
               // Start timeout reactions for nested components within the destination
               startTimeoutReactionsForNestedComponents(destination);
               
+              // Release transition lock
+              isTransitionInProgress = false;
+              console.log('DEBUG: Transition lock released');
+              
               return; // Exit early for variant switching
             }
             
@@ -603,6 +648,10 @@ export function createSmartAnimateHandler(): string {
                 startTimeoutReactionsForNewlyActiveVariant(destination);
                 // Start timeout reactions for nested components within the destination
                 startTimeoutReactionsForNestedComponents(destination);
+                
+                // Release transition lock
+                isTransitionInProgress = false;
+                console.log('DEBUG: Transition lock released');
               }, parseFloat(transitionDuration || '300'));
             } else if (transitionType === 'SMART_ANIMATE') {
               // Smart animate transition - sophisticated implementation
@@ -951,13 +1000,17 @@ export function createSmartAnimateHandler(): string {
               destination.classList.remove('variant-hidden');
               destination.style.opacity = '1'; // Ensure destination has opacity 1
               
-                              // Ensure tap targets are visible in the destination variant
-                ensureTapTargetsVisible(destination);
-                
-                // Start timeout reactions for the newly active destination variant
-                startTimeoutReactionsForNewlyActiveVariant(destination);
-                // Start timeout reactions for nested components within the destination
-                startTimeoutReactionsForNestedComponents(destination);
+              // Ensure tap targets are visible in the destination variant
+              ensureTapTargetsVisible(destination);
+              
+              // Start timeout reactions for the newly active destination variant
+              startTimeoutReactionsForNewlyActiveVariant(destination);
+              // Start timeout reactions for nested components within the destination
+              startTimeoutReactionsForNestedComponents(destination);
+              
+              // Release transition lock
+              isTransitionInProgress = false;
+              console.log('DEBUG: Transition lock released');
             }
           }
         }
