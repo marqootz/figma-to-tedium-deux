@@ -70,7 +70,16 @@ export function createSmartAnimateHandler(): string {
           justifyContent: { changed: false, sourceValue: null, targetValue: null },
           alignItems: { changed: false, sourceValue: null, targetValue: null },
           width: { changed: false, sourceValue: null, targetValue: null },
-          height: { changed: false, sourceValue: null, targetValue: null }
+          height: { changed: false, sourceValue: null, targetValue: null },
+          paddingLeft: { changed: false, sourceValue: null, targetValue: null },
+          paddingRight: { changed: false, sourceValue: null, targetValue: null },
+          paddingTop: { changed: false, sourceValue: null, targetValue: null },
+          paddingBottom: { changed: false, sourceValue: null, targetValue: null },
+          marginLeft: { changed: false, sourceValue: null, targetValue: null },
+          marginRight: { changed: false, sourceValue: null, targetValue: null },
+          marginTop: { changed: false, sourceValue: null, targetValue: null },
+          marginBottom: { changed: false, sourceValue: null, targetValue: null },
+          opacity: { changed: false, sourceValue: null, targetValue: null }
         };
 
         try {
@@ -84,7 +93,7 @@ export function createSmartAnimateHandler(): string {
                                       elementName === 'Frame 60' ||
                                       elementType === 'FRAME' && (elementName.includes('bg') || elementName.includes('Frame'));
           
-          // Check if element is part of auto layout (should ignore position changes)
+          // Check if element is part of auto layout (should ignore position changes but allow other changes)
           const isPartOfAutoLayout = targetElement.getAttribute('data-layout-positioning') === 'AUTO' && 
                                     targetElement.parentElement && 
                                     targetElement.parentElement.getAttribute('data-layout-mode');
@@ -93,6 +102,7 @@ export function createSmartAnimateHandler(): string {
             console.log('DEBUG: Skipping position animation for static layout element:', elementName);
           } else if (isPartOfAutoLayout) {
             console.log('DEBUG: Skipping position animation for auto layout element:', elementName);
+            // Note: We still check for padding, margin, and opacity changes even for auto layout elements
           } else {
             // Check position changes by comparing the computed styles
             const sourceStyle = window.getComputedStyle(sourceElement);
@@ -123,7 +133,9 @@ export function createSmartAnimateHandler(): string {
             }
           }
 
-          // Check style changes
+          // Check style changes (for all elements, including auto layout)
+          const sourceStyle = window.getComputedStyle(sourceElement);
+          const targetStyle = window.getComputedStyle(targetElement);
           const sourceBg = sourceStyle.backgroundColor || 'rgba(0, 0, 0, 0)';
           const targetBg = targetStyle.backgroundColor || 'rgba(0, 0, 0, 0)';
           
@@ -179,6 +191,99 @@ export function createSmartAnimateHandler(): string {
             changes.height.targetValue = targetHeight;
             changes.hasChanges = true;
             console.log('DEBUG: Height change detected:', sourceHeight, '->', targetHeight);
+          }
+          
+          // Check padding changes
+          const sourcePaddingLeft = parseFloat(sourceStyle.paddingLeft) || 0;
+          const targetPaddingLeft = parseFloat(targetStyle.paddingLeft) || 0;
+          if (Math.abs(sourcePaddingLeft - targetPaddingLeft) > 1) {
+            changes.paddingLeft.changed = true;
+            changes.paddingLeft.sourceValue = sourcePaddingLeft;
+            changes.paddingLeft.targetValue = targetPaddingLeft;
+            changes.hasChanges = true;
+            console.log('DEBUG: Padding left change detected:', sourcePaddingLeft, '->', targetPaddingLeft);
+          }
+          
+          const sourcePaddingRight = parseFloat(sourceStyle.paddingRight) || 0;
+          const targetPaddingRight = parseFloat(targetStyle.paddingRight) || 0;
+          if (Math.abs(sourcePaddingRight - targetPaddingRight) > 1) {
+            changes.paddingRight.changed = true;
+            changes.paddingRight.sourceValue = sourcePaddingRight;
+            changes.paddingRight.targetValue = targetPaddingRight;
+            changes.hasChanges = true;
+            console.log('DEBUG: Padding right change detected:', sourcePaddingRight, '->', targetPaddingRight);
+          }
+          
+          const sourcePaddingTop = parseFloat(sourceStyle.paddingTop) || 0;
+          const targetPaddingTop = parseFloat(targetStyle.paddingTop) || 0;
+          if (Math.abs(sourcePaddingTop - targetPaddingTop) > 1) {
+            changes.paddingTop.changed = true;
+            changes.paddingTop.sourceValue = sourcePaddingTop;
+            changes.paddingTop.targetValue = targetPaddingTop;
+            changes.hasChanges = true;
+            console.log('DEBUG: Padding top change detected:', sourcePaddingTop, '->', targetPaddingTop);
+          }
+          
+          const sourcePaddingBottom = parseFloat(sourceStyle.paddingBottom) || 0;
+          const targetPaddingBottom = parseFloat(targetStyle.paddingBottom) || 0;
+          if (Math.abs(sourcePaddingBottom - targetPaddingBottom) > 1) {
+            changes.paddingBottom.changed = true;
+            changes.paddingBottom.sourceValue = sourcePaddingBottom;
+            changes.paddingBottom.targetValue = targetPaddingBottom;
+            changes.hasChanges = true;
+            console.log('DEBUG: Padding bottom change detected:', sourcePaddingBottom, '->', targetPaddingBottom);
+          }
+          
+          // Check margin changes
+          const sourceMarginLeft = parseFloat(sourceStyle.marginLeft) || 0;
+          const targetMarginLeft = parseFloat(targetStyle.marginLeft) || 0;
+          if (Math.abs(sourceMarginLeft - targetMarginLeft) > 1) {
+            changes.marginLeft.changed = true;
+            changes.marginLeft.sourceValue = sourceMarginLeft;
+            changes.marginLeft.targetValue = targetMarginLeft;
+            changes.hasChanges = true;
+            console.log('DEBUG: Margin left change detected:', sourceMarginLeft, '->', targetMarginLeft);
+          }
+          
+          const sourceMarginRight = parseFloat(sourceStyle.marginRight) || 0;
+          const targetMarginRight = parseFloat(targetStyle.marginRight) || 0;
+          if (Math.abs(sourceMarginRight - targetMarginRight) > 1) {
+            changes.marginRight.changed = true;
+            changes.marginRight.sourceValue = sourceMarginRight;
+            changes.marginRight.targetValue = targetMarginRight;
+            changes.hasChanges = true;
+            console.log('DEBUG: Margin right change detected:', sourceMarginRight, '->', targetMarginRight);
+          }
+          
+          const sourceMarginTop = parseFloat(sourceStyle.marginTop) || 0;
+          const targetMarginTop = parseFloat(targetStyle.marginTop) || 0;
+          if (Math.abs(sourceMarginTop - targetMarginTop) > 1) {
+            changes.marginTop.changed = true;
+            changes.marginTop.sourceValue = sourceMarginTop;
+            changes.marginTop.targetValue = targetMarginTop;
+            changes.hasChanges = true;
+            console.log('DEBUG: Margin top change detected:', sourceMarginTop, '->', targetMarginTop);
+          }
+          
+          const sourceMarginBottom = parseFloat(sourceStyle.marginBottom) || 0;
+          const targetMarginBottom = parseFloat(targetStyle.marginBottom) || 0;
+          if (Math.abs(sourceMarginBottom - targetMarginBottom) > 1) {
+            changes.marginBottom.changed = true;
+            changes.marginBottom.sourceValue = sourceMarginBottom;
+            changes.marginBottom.targetValue = targetMarginBottom;
+            changes.hasChanges = true;
+            console.log('DEBUG: Margin bottom change detected:', sourceMarginBottom, '->', targetMarginBottom);
+          }
+          
+          // Check opacity changes
+          const sourceOpacity = parseFloat(sourceStyle.opacity) || 1;
+          const targetOpacity = parseFloat(targetStyle.opacity) || 1;
+          if (Math.abs(sourceOpacity - targetOpacity) > 0.01) {
+            changes.opacity.changed = true;
+            changes.opacity.sourceValue = sourceOpacity;
+            changes.opacity.targetValue = targetOpacity;
+            changes.hasChanges = true;
+            console.log('DEBUG: Opacity change detected:', sourceOpacity, '->', targetOpacity);
           }
         } catch (error) {
           console.log('DEBUG: Error detecting property changes:', error);
@@ -412,6 +517,7 @@ export function createSmartAnimateHandler(): string {
                 // Apply initial state (matching source)
                 if (changes.backgroundColor && changes.backgroundColor.changed) {
                   element.style.backgroundColor = changes.backgroundColor.sourceValue;
+                  console.log('DEBUG: Applied initial background color:', changes.backgroundColor.sourceValue);
                 }
                 
                 // Store original positioning before animation
@@ -423,10 +529,12 @@ export function createSmartAnimateHandler(): string {
                 if (changes.positionX && changes.positionX.changed) {
                   element.style.position = 'relative';
                   element.style.left = changes.positionX.sourceValue + 'px';
+                  console.log('DEBUG: Applied initial position X:', changes.positionX.sourceValue + 'px');
                 }
                 if (changes.positionY && changes.positionY.changed) {
                   element.style.position = 'relative';
                   element.style.top = changes.positionY.sourceValue + 'px';
+                  console.log('DEBUG: Applied initial position Y:', changes.positionY.sourceValue + 'px');
                 }
                 
                 // Store original values for restoration
@@ -442,6 +550,48 @@ export function createSmartAnimateHandler(): string {
                 if (changes.height && changes.height.changed) {
                   element.style.height = changes.height.sourceValue + 'px';
                   console.log('DEBUG: Setting initial height:', changes.height.sourceValue + 'px');
+                }
+                
+                // Apply initial padding state
+                if (changes.paddingLeft && changes.paddingLeft.changed) {
+                  element.style.paddingLeft = changes.paddingLeft.sourceValue + 'px';
+                  console.log('DEBUG: Setting initial padding left:', changes.paddingLeft.sourceValue + 'px');
+                }
+                if (changes.paddingRight && changes.paddingRight.changed) {
+                  element.style.paddingRight = changes.paddingRight.sourceValue + 'px';
+                  console.log('DEBUG: Setting initial padding right:', changes.paddingRight.sourceValue + 'px');
+                }
+                if (changes.paddingTop && changes.paddingTop.changed) {
+                  element.style.paddingTop = changes.paddingTop.sourceValue + 'px';
+                  console.log('DEBUG: Setting initial padding top:', changes.paddingTop.sourceValue + 'px');
+                }
+                if (changes.paddingBottom && changes.paddingBottom.changed) {
+                  element.style.paddingBottom = changes.paddingBottom.sourceValue + 'px';
+                  console.log('DEBUG: Setting initial padding bottom:', changes.paddingBottom.sourceValue + 'px');
+                }
+                
+                // Apply initial margin state
+                if (changes.marginLeft && changes.marginLeft.changed) {
+                  element.style.marginLeft = changes.marginLeft.sourceValue + 'px';
+                  console.log('DEBUG: Setting initial margin left:', changes.marginLeft.sourceValue + 'px');
+                }
+                if (changes.marginRight && changes.marginRight.changed) {
+                  element.style.marginRight = changes.marginRight.sourceValue + 'px';
+                  console.log('DEBUG: Setting initial margin right:', changes.marginRight.sourceValue + 'px');
+                }
+                if (changes.marginTop && changes.marginTop.changed) {
+                  element.style.marginTop = changes.marginTop.sourceValue + 'px';
+                  console.log('DEBUG: Setting initial margin top:', changes.marginTop.sourceValue + 'px');
+                }
+                if (changes.marginBottom && changes.marginBottom.changed) {
+                  element.style.marginBottom = changes.marginBottom.sourceValue + 'px';
+                  console.log('DEBUG: Setting initial margin bottom:', changes.marginBottom.sourceValue + 'px');
+                }
+                
+                // Apply initial opacity state
+                if (changes.opacity && changes.opacity.changed) {
+                  element.style.opacity = changes.opacity.sourceValue;
+                  console.log('DEBUG: Setting initial opacity:', changes.opacity.sourceValue);
                 }
                 
                 // Calculate correct end position for elements moving to the right (off-screen positions)
@@ -463,14 +613,71 @@ export function createSmartAnimateHandler(): string {
                   }
                 }
                 
-                // Animate to target state
+                // Animate to target state using a small delay to ensure initial state is applied
                 setTimeout(() => {
+                  // Force a reflow to ensure initial state is applied
+                  element.offsetHeight;
+                  
+                  // Clear any existing transitions to prevent conflicts
+                  element.style.transition = 'none';
+                  element.offsetHeight; // Force reflow after clearing transitions
+                  
                   // Get the easing function based on the transition type
                   const easingFunction = getEasingFunction(transitionType);
                   console.log('DEBUG: Using easing function:', easingFunction, 'for transition type:', transitionType);
                   
+                  // Build transition string for all properties that will animate
+                  const transitionProperties = [];
                   if (changes.backgroundColor && changes.backgroundColor.changed) {
-                    element.style.transition = \`background-color \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`;
+                    transitionProperties.push(\`background-color \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.positionX && changes.positionX.changed && transitionType !== 'BOUNCY') {
+                    transitionProperties.push(\`left \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.positionY && changes.positionY.changed) {
+                    transitionProperties.push(\`top \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.width && changes.width.changed) {
+                    transitionProperties.push(\`width \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.height && changes.height.changed) {
+                    transitionProperties.push(\`height \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.paddingLeft && changes.paddingLeft.changed) {
+                    transitionProperties.push(\`padding-left \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.paddingRight && changes.paddingRight.changed) {
+                    transitionProperties.push(\`padding-right \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.paddingTop && changes.paddingTop.changed) {
+                    transitionProperties.push(\`padding-top \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.paddingBottom && changes.paddingBottom.changed) {
+                    transitionProperties.push(\`padding-bottom \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.marginLeft && changes.marginLeft.changed) {
+                    transitionProperties.push(\`margin-left \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.marginRight && changes.marginRight.changed) {
+                    transitionProperties.push(\`margin-right \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.marginTop && changes.marginTop.changed) {
+                    transitionProperties.push(\`margin-top \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.marginBottom && changes.marginBottom.changed) {
+                    transitionProperties.push(\`margin-bottom \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  if (changes.opacity && changes.opacity.changed) {
+                    transitionProperties.push(\`opacity \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                  }
+                  
+                  // Apply the combined transition
+                  if (transitionProperties.length > 0) {
+                    element.style.transition = transitionProperties.join(', ');
+                  }
+                  
+                  // Apply target values
+                  if (changes.backgroundColor && changes.backgroundColor.changed) {
                     element.style.backgroundColor = changes.backgroundColor.targetValue;
                   }
                   
@@ -482,28 +689,69 @@ export function createSmartAnimateHandler(): string {
                       const duration = parseFloat(transitionDuration || '0.3');
                       applyBouncyAnimation(element, startPos, endPos, duration);
                     } else {
-                      element.style.transition = \`left \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`;
                       element.style.left = changes.positionX.targetValue + 'px';
                     }
                   }
                   
                   if (changes.positionY && changes.positionY.changed) {
-                    element.style.transition = \`top \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`;
                     element.style.top = changes.positionY.targetValue + 'px';
                   }
                   
                   if (changes.width && changes.width.changed) {
-                    element.style.transition = \`width \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`;
                     element.style.width = changes.width.targetValue + 'px';
                     console.log('DEBUG: Animating width to:', changes.width.targetValue + 'px');
                   }
                   
                   if (changes.height && changes.height.changed) {
-                    element.style.transition = \`height \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`;
                     element.style.height = changes.height.targetValue + 'px';
                     console.log('DEBUG: Animating height to:', changes.height.targetValue + 'px');
                   }
-                }, 50);
+                  
+                  if (changes.paddingLeft && changes.paddingLeft.changed) {
+                    element.style.paddingLeft = changes.paddingLeft.targetValue + 'px';
+                    console.log('DEBUG: Animating padding left to:', changes.paddingLeft.targetValue + 'px');
+                  }
+                  
+                  if (changes.paddingRight && changes.paddingRight.changed) {
+                    element.style.paddingRight = changes.paddingRight.targetValue + 'px';
+                    console.log('DEBUG: Animating padding right to:', changes.paddingRight.targetValue + 'px');
+                  }
+                  
+                  if (changes.paddingTop && changes.paddingTop.changed) {
+                    element.style.paddingTop = changes.paddingTop.targetValue + 'px';
+                    console.log('DEBUG: Animating padding top to:', changes.paddingTop.targetValue + 'px');
+                  }
+                  
+                  if (changes.paddingBottom && changes.paddingBottom.changed) {
+                    element.style.paddingBottom = changes.paddingBottom.targetValue + 'px';
+                    console.log('DEBUG: Animating padding bottom to:', changes.paddingBottom.targetValue + 'px');
+                  }
+                  
+                  if (changes.marginLeft && changes.marginLeft.changed) {
+                    element.style.marginLeft = changes.marginLeft.targetValue + 'px';
+                    console.log('DEBUG: Animating margin left to:', changes.marginLeft.targetValue + 'px');
+                  }
+                  
+                  if (changes.marginRight && changes.marginRight.changed) {
+                    element.style.marginRight = changes.marginRight.targetValue + 'px';
+                    console.log('DEBUG: Animating margin right to:', changes.marginRight.targetValue + 'px');
+                  }
+                  
+                  if (changes.marginTop && changes.marginTop.changed) {
+                    element.style.marginTop = changes.marginTop.targetValue + 'px';
+                    console.log('DEBUG: Animating margin top to:', changes.marginTop.targetValue + 'px');
+                  }
+                  
+                  if (changes.marginBottom && changes.marginBottom.changed) {
+                    element.style.marginBottom = changes.marginBottom.targetValue + 'px';
+                    console.log('DEBUG: Animating margin bottom to:', changes.marginBottom.targetValue + 'px');
+                  }
+                  
+                  if (changes.opacity && changes.opacity.changed) {
+                    element.style.opacity = changes.opacity.targetValue;
+                    console.log('DEBUG: Animating opacity to:', changes.opacity.targetValue);
+                  }
+                }, 16); // Small delay to ensure initial state is applied
               }
             });
             
