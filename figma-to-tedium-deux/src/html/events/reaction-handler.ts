@@ -12,7 +12,19 @@ export function createReactionHandler(): string {
         
         // Handle click, press, and drag reactions
         element.addEventListener('click', function() {
+          console.log('DEBUG: Click event triggered on element:', {
+            id: this.getAttribute('data-figma-id'),
+            name: this.getAttribute('data-figma-name'),
+            type: this.getAttribute('data-figma-type'),
+            trigger: trigger,
+            actionType: actionType,
+            destinationId: destinationId,
+            transitionType: transitionType,
+            transitionDuration: transitionDuration
+          });
+          
           if (trigger.type === 'ON_CLICK' || trigger.type === 'ON_PRESS') {
+            console.log('DEBUG: Processing click reaction for element:', this.getAttribute('data-figma-id'));
             handleReaction(this, destinationId, transitionType, transitionDuration);
           }
         });
