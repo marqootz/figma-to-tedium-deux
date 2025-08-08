@@ -338,6 +338,8 @@ export function figmaNodeToObject(node: any): any {
     'fontName', 'fontFamily', 'fontWeight', 'textAlignHorizontal',
     'letterSpacing', 'lineHeight', 'characters', 'variantProperties',
     'reactions', 'children', 'clipsContent', 'layoutPositioning',
+    // Add vector-specific properties
+    'vectorPaths', 'effects',
     // Add instance-specific properties
     'componentProperties', 'mainComponentId', 'overrides'
   ];

@@ -87,32 +87,38 @@ export function createSmartAnimateHandler(): string {
           const elementName = targetElement.getAttribute('data-figma-name');
           const elementType = targetElement.getAttribute('data-figma-type');
           
-          // Exclude static layout elements from position animation
+          // Exclude only specific static layout elements from position animation
           const isStaticLayoutElement = elementName === 'bg' || 
                                       elementName === 'Frame 59' || 
-                                      elementName === 'Frame 60' ||
-                                      elementType === 'FRAME' && (elementName.includes('bg') || elementName.includes('Frame'));
+                                      elementName === 'Frame 60';
           
           // Check if element is part of auto layout (should ignore position changes but allow other changes)
           const isPartOfAutoLayout = targetElement.getAttribute('data-layout-positioning') === 'AUTO' && 
                                     targetElement.parentElement && 
                                     targetElement.parentElement.getAttribute('data-layout-mode');
           
+          // Check if auto layout element has explicit position values (should animate)
+          const hasExplicitPosition = targetElement.style.left !== '' || targetElement.style.top !== '';
+          
           if (isStaticLayoutElement) {
             console.log('DEBUG: Skipping position animation for static layout element:', elementName);
-          } else if (isPartOfAutoLayout) {
-            console.log('DEBUG: Skipping position animation for auto layout element:', elementName);
+          } else if (isPartOfAutoLayout && !hasExplicitPosition) {
+            console.log('DEBUG: Skipping position animation for auto layout element without explicit position:', elementName);
             // Note: We still check for padding, margin, and opacity changes even for auto layout elements
           } else {
             // Check position changes by comparing the computed styles
             const sourceStyle = window.getComputedStyle(sourceElement);
             const targetStyle = window.getComputedStyle(targetElement);
             
+            console.log('DEBUG: Checking position changes for element:', elementName);
+            console.log('DEBUG: Source element ID:', sourceElement.getAttribute('data-figma-id'));
+            console.log('DEBUG: Target element ID:', targetElement.getAttribute('data-figma-id'));
+            
             // Check left position changes (only for non-static, non-auto-layout elements)
             const sourceLeft = parseFloat(sourceStyle.left) || 0;
             const targetLeft = parseFloat(targetStyle.left) || 0;
             
-            if (Math.abs(sourceLeft - targetLeft) > 5) { // Increased threshold
+            if (Math.abs(sourceLeft - targetLeft) > 1) { // Reduced threshold for better sensitivity
               changes.positionX.changed = true;
               changes.positionX.sourceValue = sourceLeft;
               changes.positionX.targetValue = targetLeft;
@@ -124,7 +130,7 @@ export function createSmartAnimateHandler(): string {
             const sourceTop = parseFloat(sourceStyle.top) || 0;
             const targetTop = parseFloat(targetStyle.top) || 0;
             
-            if (Math.abs(sourceTop - targetTop) > 5) { // Increased threshold
+            if (Math.abs(sourceTop - targetTop) > 1) { // Reduced threshold for better sensitivity
               changes.positionY.changed = true;
               changes.positionY.sourceValue = sourceTop;
               changes.positionY.targetValue = targetTop;
@@ -525,16 +531,16 @@ export function createSmartAnimateHandler(): string {
                 const originalLeft = element.style.left;
                 const originalTop = element.style.top;
                 
-                // Apply initial position state using relative positioning
+                // Apply initial position state using absolute positioning for variant transitions
                 if (changes.positionX && changes.positionX.changed) {
-                  element.style.position = 'relative';
+                  element.style.position = 'absolute';
                   element.style.left = changes.positionX.sourceValue + 'px';
-                  console.log('DEBUG: Applied initial position X:', changes.positionX.sourceValue + 'px');
+                  console.log('DEBUG: Applied initial position X:', changes.positionX.sourceValue + 'px', 'for element:', element.getAttribute('data-figma-name'));
                 }
                 if (changes.positionY && changes.positionY.changed) {
-                  element.style.position = 'relative';
+                  element.style.position = 'absolute';
                   element.style.top = changes.positionY.sourceValue + 'px';
-                  console.log('DEBUG: Applied initial position Y:', changes.positionY.sourceValue + 'px');
+                  console.log('DEBUG: Applied initial position Y:', changes.positionY.sourceValue + 'px', 'for element:', element.getAttribute('data-figma-name'));
                 }
                 
                 // Store original values for restoration
@@ -618,6 +624,9 @@ export function createSmartAnimateHandler(): string {
                   // Force a reflow to ensure initial state is applied
                   element.offsetHeight;
                   
+                  // Add a small delay to ensure the initial position is visible before animating
+                  setTimeout(() => {
+                  
                   // Clear any existing transitions to prevent conflicts
                   element.style.transition = 'none';
                   element.offsetHeight; // Force reflow after clearing transitions
@@ -636,6 +645,7 @@ export function createSmartAnimateHandler(): string {
                   }
                   if (changes.positionY && changes.positionY.changed) {
                     transitionProperties.push(\`top \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
+                    console.log('DEBUG: Added top transition for element:', element.getAttribute('data-figma-name'));
                   }
                   if (changes.width && changes.width.changed) {
                     transitionProperties.push(\`width \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
@@ -695,6 +705,7 @@ export function createSmartAnimateHandler(): string {
                   
                   if (changes.positionY && changes.positionY.changed) {
                     element.style.top = changes.positionY.targetValue + 'px';
+                    console.log('DEBUG: Applied target top position:', changes.positionY.targetValue + 'px', 'for element:', element.getAttribute('data-figma-name'));
                   }
                   
                   if (changes.width && changes.width.changed) {
@@ -751,7 +762,8 @@ export function createSmartAnimateHandler(): string {
                     element.style.opacity = changes.opacity.targetValue;
                     console.log('DEBUG: Animating opacity to:', changes.opacity.targetValue);
                   }
-                }, 16); // Small delay to ensure initial state is applied
+                }, 50); // Small delay to ensure initial position is visible before animating
+              }, 16); // Small delay to ensure initial state is applied
               }
             });
             

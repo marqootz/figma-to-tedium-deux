@@ -150,9 +150,32 @@ export function encodeSVGToBase64(svg: string): string {
 }
 
 export async function convertVectorToSVG(node: any): Promise<string> {
-  const bounds = node.absoluteRenderBounds;
-  if (!bounds) {
-    console.warn('No bounds found for vector node');
+  console.log('DEBUG: Converting vector to SVG:', {
+    nodeId: node.id,
+    nodeName: node.name,
+    nodeType: node.type,
+    hasVectorPaths: !!node.vectorPaths,
+    vectorPathsLength: node.vectorPaths?.length || 0,
+    hasFills: !!node.fills,
+    fillsLength: node.fills?.length || 0,
+    hasBounds: !!node.absoluteRenderBounds,
+    hasWidth: !!node.width,
+    hasHeight: !!node.height,
+    availableProperties: Object.keys(node).filter(key => !key.startsWith('_'))
+  });
+  
+  // Use width/height from node if bounds are not available
+  const width = node.width || (node.absoluteRenderBounds ? node.absoluteRenderBounds.width : 0);
+  const height = node.height || (node.absoluteRenderBounds ? node.absoluteRenderBounds.height : 0);
+  
+  if (!width || !height) {
+    console.warn('No valid dimensions found for vector node:', {
+      nodeId: node.id,
+      nodeName: node.name,
+      width: node.width,
+      height: node.height,
+      bounds: node.absoluteRenderBounds
+    });
     return '';
   }
 
@@ -174,11 +197,21 @@ export async function convertVectorToSVG(node: any): Promise<string> {
   }
   
   if (!node.vectorPaths || !Array.isArray(node.vectorPaths)) {
-    console.warn('No vector paths found for vector');
+    console.warn('No vector paths found for vector:', {
+      nodeId: node.id,
+      nodeName: node.name,
+      vectorPaths: node.vectorPaths
+    });
     return '';
   }
   
   const paths = node.vectorPaths.map((path: any, index: number) => {
+    console.log('DEBUG: Processing vector path:', {
+      pathIndex: index,
+      pathData: path.data,
+      pathDataLength: path.data?.length || 0
+    });
+    
     const fill = styles.fills.length === 1 ? styles.fills[0] : (styles.fills[index] || 'none');
     const stroke = styles.strokes.length === 1 ? styles.strokes[0] : (styles.strokes[index] || 'none');
     const strokeWidth = styles.strokeWeight || 0;
@@ -188,9 +221,15 @@ export async function convertVectorToSVG(node: any): Promise<string> {
     try {
       if (/^[A-Za-z0-9+/=]+$/.test(path.data)) {
         decodedPathData = base64Decode(path.data);
+        console.log('DEBUG: Decoded base64 path data:', {
+          originalLength: path.data?.length || 0,
+          decodedLength: decodedPathData?.length || 0,
+          firstChars: decodedPathData?.substring(0, 50) || 'empty'
+        });
       }
       
       if (!decodedPathData || decodedPathData.trim() === '') {
+        console.warn('Empty decoded path data for path index:', index);
         return '';
       }
       
@@ -202,6 +241,7 @@ export async function convertVectorToSVG(node: any): Promise<string> {
       }
       
     } catch (error) {
+      console.warn('Error decoding path data:', error);
       decodedPathData = path.data;
     }
     
