@@ -123,6 +123,9 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
   
   // --- POSITIONING (only if not ignoring layout) ---
   if ((node as any).layoutPositioning !== 'ABSOLUTE') {
+    // Check if element has explicit Figma coordinates
+    const hasExplicitCoordinates = node.x !== undefined || node.y !== undefined;
+    
     // Comprehensive approach: Any element that should be positioned at 0px
     // This includes top-level elements, children of positioned containers, and certain node types
     const isTopLevel = !parentNode;
@@ -138,19 +141,24 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
                                     node.type === 'COMPONENT_SET' ||
                                     node.type === 'COMPONENT';
     
+    // Top-level elements and certain node types should ALWAYS get position: relative + 0px
+    // regardless of whether they have explicit coordinates
     if (shouldBePositionedAtZero) {
-      // These elements should be positioned at 0px in their HTML context
+      // These elements get position: relative + 0px coordinates
+      sizingStyles.position = 'relative';
       sizingStyles.left = '0px';
       sizingStyles.top = '0px';
-      console.log(`[SIZING DEBUG] Applied 0px positioning to ${isTopLevel ? 'top-level' : 'positioned element'} ${node.type} ${node.id} (parent: ${parentNode?.type})`);
-    } else {
-      // Only elements that are NOT positioned containers use Figma coordinates
+      console.log(`[SIZING DEBUG] Applied position: relative + 0px to ${isTopLevel ? 'top-level' : 'positioned element'} ${node.type} ${node.id} (parent: ${parentNode?.type})`);
+    } else if (hasExplicitCoordinates) {
+      // Elements with explicit coordinates get NO position property + their coordinates
+      // This means they use position: static (default) + their Figma coordinates
       if (node.x !== undefined) {
         sizingStyles.left = `${node.x}px`;
       }
       if (node.y !== undefined) {
         sizingStyles.top = `${node.y}px`;
       }
+      console.log(`[SIZING DEBUG] Applied position: static + explicit coordinates to ${node.type} ${node.id}: left: ${node.x}px, top: ${node.y}px`);
     }
   }
   
