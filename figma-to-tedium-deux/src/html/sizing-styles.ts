@@ -123,18 +123,21 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
   
   // --- POSITIONING (only if not ignoring layout) ---
   if ((node as any).layoutPositioning !== 'ABSOLUTE') {
-    // Special case: Top-level elements and their direct children should be positioned at 0px
-    // This prevents them from being positioned off-screen using Figma coordinates
+    // Simplified approach: Any element that has a positioned parent should be positioned at 0px
+    // This covers all levels of nesting and ensures proper positioning hierarchy
+    const hasPositionedParent = parentNode && 
+                               (parentNode.type === 'COMPONENT_SET' || 
+                                parentNode.type === 'COMPONENT' || 
+                                parentNode.type === 'INSTANCE');
     const isTopLevel = !parentNode;
-    const isDirectChildOfTopLevel = parentNode && !(parentNode as any).parent;
     
-    if (isTopLevel || isDirectChildOfTopLevel) {
-      // Top-level elements and their direct children should be positioned at 0px in their HTML context
+    if (isTopLevel || hasPositionedParent) {
+      // Top-level elements and any children of positioned containers should be positioned at 0px
       sizingStyles.left = '0px';
       sizingStyles.top = '0px';
-      console.log(`[SIZING DEBUG] Applied 0px positioning to ${isTopLevel ? 'top-level' : 'direct child of top-level'} element ${node.id}`);
+      console.log(`[SIZING DEBUG] Applied 0px positioning to ${isTopLevel ? 'top-level' : 'child of positioned container'} element ${node.id} (parent: ${parentNode?.type})`);
     } else {
-      // Child elements can use their Figma coordinates relative to their parent
+      // Only elements that are NOT children of positioned containers use Figma coordinates
       if (node.x !== undefined) {
         sizingStyles.left = `${node.x}px`;
       }

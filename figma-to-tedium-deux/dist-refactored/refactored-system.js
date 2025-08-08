@@ -2005,18 +2005,21 @@ function computeSizingStyles(node, parentNode) {
     // Note: FIXED vertical sizing keeps the explicit height value (already set above)
     // --- POSITIONING (only if not ignoring layout) ---
     if (node.layoutPositioning !== 'ABSOLUTE') {
-        // Special case: Top-level elements and their direct children should be positioned at 0px
-        // This prevents them from being positioned off-screen using Figma coordinates
+        // Simplified approach: Any element that has a positioned parent should be positioned at 0px
+        // This covers all levels of nesting and ensures proper positioning hierarchy
+        var hasPositionedParent = parentNode &&
+            (parentNode.type === 'COMPONENT_SET' ||
+                parentNode.type === 'COMPONENT' ||
+                parentNode.type === 'INSTANCE');
         var isTopLevel = !parentNode;
-        var isDirectChildOfTopLevel = parentNode && !parentNode.parent;
-        if (isTopLevel || isDirectChildOfTopLevel) {
-            // Top-level elements and their direct children should be positioned at 0px in their HTML context
+        if (isTopLevel || hasPositionedParent) {
+            // Top-level elements and any children of positioned containers should be positioned at 0px
             sizingStyles.left = '0px';
             sizingStyles.top = '0px';
-            console.log("[SIZING DEBUG] Applied 0px positioning to ".concat(isTopLevel ? 'top-level' : 'direct child of top-level', " element ").concat(node.id));
+            console.log("[SIZING DEBUG] Applied 0px positioning to ".concat(isTopLevel ? 'top-level' : 'child of positioned container', " element ").concat(node.id, " (parent: ").concat(parentNode === null || parentNode === void 0 ? void 0 : parentNode.type, ")"));
         }
         else {
-            // Child elements can use their Figma coordinates relative to their parent
+            // Only elements that are NOT children of positioned containers use Figma coordinates
             if (node.x !== undefined) {
                 sizingStyles.left = "".concat(node.x, "px");
             }
