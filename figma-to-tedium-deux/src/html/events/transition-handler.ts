@@ -364,7 +364,7 @@ export function createSmartAnimateHandler(): string {
         destination.style.position = 'absolute';
         destination.style.top = '0';
         destination.style.left = '0';
-        destination.style.opacity = '1';
+        destination.style.opacity = '1'; // Keep visible but elements will be positioned
         
         // Force reflows and ensure tap targets are visible
         destination.offsetHeight;
