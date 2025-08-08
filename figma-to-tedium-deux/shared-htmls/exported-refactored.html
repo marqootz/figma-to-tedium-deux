@@ -867,32 +867,53 @@
         };
 
         try {
-          // Check position changes by comparing the computed styles
-          const sourceStyle = window.getComputedStyle(sourceElement);
-          const targetStyle = window.getComputedStyle(targetElement);
+          // Check if this is a static layout element that shouldn't animate
+          const elementName = targetElement.getAttribute('data-figma-name');
+          const elementType = targetElement.getAttribute('data-figma-type');
           
-          // Check left position changes
-          const sourceLeft = parseFloat(sourceStyle.left) || 0;
-          const targetLeft = parseFloat(targetStyle.left) || 0;
+          // Exclude static layout elements from position animation
+          const isStaticLayoutElement = elementName === 'bg' || 
+                                      elementName === 'Frame 59' || 
+                                      elementName === 'Frame 60' ||
+                                      elementType === 'FRAME' && (elementName.includes('bg') || elementName.includes('Frame'));
           
-          if (Math.abs(sourceLeft - targetLeft) > 1) {
-            changes.positionX.changed = true;
-            changes.positionX.sourceValue = sourceLeft;
-            changes.positionX.targetValue = targetLeft;
-            changes.hasChanges = true;
-            console.log('DEBUG: Position X change detected:', sourceLeft, '->', targetLeft);
-          }
+          // Check if element is part of auto layout (should ignore position changes)
+          const isPartOfAutoLayout = targetElement.getAttribute('data-layout-positioning') === 'AUTO' && 
+                                    targetElement.parentElement && 
+                                    targetElement.parentElement.getAttribute('data-layout-mode');
           
-          // Check top position changes
-          const sourceTop = parseFloat(sourceStyle.top) || 0;
-          const targetTop = parseFloat(targetStyle.top) || 0;
-          
-          if (Math.abs(sourceTop - targetTop) > 1) {
-            changes.positionY.changed = true;
-            changes.positionY.sourceValue = sourceTop;
-            changes.positionY.targetValue = targetTop;
-            changes.hasChanges = true;
-            console.log('DEBUG: Position Y change detected:', sourceTop, '->', targetTop);
+          if (isStaticLayoutElement) {
+            console.log('DEBUG: Skipping position animation for static layout element:', elementName);
+          } else if (isPartOfAutoLayout) {
+            console.log('DEBUG: Skipping position animation for auto layout element:', elementName);
+          } else {
+            // Check position changes by comparing the computed styles
+            const sourceStyle = window.getComputedStyle(sourceElement);
+            const targetStyle = window.getComputedStyle(targetElement);
+            
+            // Check left position changes (only for non-static, non-auto-layout elements)
+            const sourceLeft = parseFloat(sourceStyle.left) || 0;
+            const targetLeft = parseFloat(targetStyle.left) || 0;
+            
+            if (Math.abs(sourceLeft - targetLeft) > 5) { // Increased threshold
+              changes.positionX.changed = true;
+              changes.positionX.sourceValue = sourceLeft;
+              changes.positionX.targetValue = targetLeft;
+              changes.hasChanges = true;
+              console.log('DEBUG: Position X change detected:', sourceLeft, '->', targetLeft, 'for element:', elementName);
+            }
+            
+            // Check top position changes (only for non-static, non-auto-layout elements)
+            const sourceTop = parseFloat(sourceStyle.top) || 0;
+            const targetTop = parseFloat(targetStyle.top) || 0;
+            
+            if (Math.abs(sourceTop - targetTop) > 5) { // Increased threshold
+              changes.positionY.changed = true;
+              changes.positionY.sourceValue = sourceTop;
+              changes.positionY.targetValue = targetTop;
+              changes.hasChanges = true;
+              console.log('DEBUG: Position Y change detected:', sourceTop, '->', targetTop, 'for element:', elementName);
+            }
           }
 
           // Check style changes
