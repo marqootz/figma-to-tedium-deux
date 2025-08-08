@@ -14,13 +14,13 @@ export function createSmartAnimateHandler(): string {
           // Ensure tap targets are visible and clickable
           if (computedStyle.display === 'none') {
             // The issue is that the parent variant has variant-hidden class
-            // We need to force the display with !important to override the inherited display: none
-            target.style.setProperty('display', 'flex', 'important');
-            console.log('DEBUG: Restored tap target display to flex with !important:', target.getAttribute('data-figma-id'));
+            // We need to force the display to override the inherited display: none
+            target.style.setProperty('display', 'flex');
+            console.log('DEBUG: Restored tap target display to flex:', target.getAttribute('data-figma-id'));
           }
           if (computedStyle.visibility === 'hidden') {
-            target.style.setProperty('visibility', 'visible', 'important');
-            console.log('DEBUG: Restored tap target visibility with !important:', target.getAttribute('data-figma-id'));
+            target.style.setProperty('visibility', 'visible');
+            console.log('DEBUG: Restored tap target visibility:', target.getAttribute('data-figma-id'));
           }
         });
       }

@@ -5,6 +5,8 @@ export function computeLayoutStyles(node: FigmaNode): ComputedStyles {
   const layoutStyles: ComputedStyles = {};
   
   if (node.layoutMode) {
+    // Set display: flex for flexbox properties to work, but without !important
+    // so CSS classes can override it
     layoutStyles.display = 'flex';
     
     // Flex direction

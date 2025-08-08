@@ -53,7 +53,7 @@ figma.ui.onmessage = async (msg) => {
     [data-figma-id]:not([style*="width:"]):not([style*="height:"]) { width: 100%; height: 100%; }
     /* Variant visibility classes */
     .variant-active {
-      display: block !important;
+      display: flex !important;
     }
     .variant-hidden {
       display: none !important;
