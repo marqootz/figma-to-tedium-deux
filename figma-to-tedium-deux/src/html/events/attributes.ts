@@ -57,8 +57,9 @@ export function generateVariantAttributes(node: FigmaNode, parentNode?: FigmaNod
       attributes[`data-variant-${cleanKey}`] = escapeHtmlAttribute(safeToString(value));
     });
     
-    // Add data-target attribute to point to the parent component set
+    // Add data-target attribute to point to the immediate parent component set
     // This allows variant buttons to know which component set to target for switching
+    // For nested components, this will point to their immediate parent, not the top-level
     if (parentNode && (parentNode.type === 'COMPONENT_SET' || parentNode.type === 'COMPONENT')) {
       attributes['data-target'] = parentNode.id;
     }
