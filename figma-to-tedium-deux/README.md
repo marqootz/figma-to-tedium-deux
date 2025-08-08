@@ -63,8 +63,12 @@ generator.ts (entry point)
 ### Build Commands
 ```bash
 npm run build          # Production build
+npm run build:refactored  # Build refactored system
+npm run build:all      # Build all components
 npm run dev           # Development build with watch
+npm run dev:refactored # Development build for refactored system
 npm run build:css     # Build CSS assets
+npm run verify        # Verify plugin components
 ```
 
 ### Adding New Features
@@ -96,6 +100,24 @@ npm run build:css     # Build CSS assets
 - **Absolute Positioning**: `layoutPositioning === 'ABSOLUTE'` → `position: absolute`
 - **Coordinate Positioning**: Uses `x` and `y` coordinates for precise placement
 - **Parent Relative**: Positioned absolutely with respect to parent container
+
+## Plugin Installation
+
+The plugin is now built and ready to use in Figma!
+
+### Quick Start
+1. **Open Figma**
+2. **Go to Plugins > Development > Import plugin from manifest...**
+3. **Select the `manifest.json` file from this directory**
+4. **The plugin will be available in your development plugins**
+
+### Plugin Features
+- **Export HTML**: Convert Figma designs to HTML with embedded styles
+- **Export JSON**: Export design data as JSON for further processing
+- **Refactored System**: Advanced export system with modular architecture
+- **Font Embedding**: Automatic font loading and embedding
+- **Event Handling**: Support for Figma interactions and animations
+- **Responsive Design**: Maintains layout and styling across devices
 
 ## Gradient Border Support
 

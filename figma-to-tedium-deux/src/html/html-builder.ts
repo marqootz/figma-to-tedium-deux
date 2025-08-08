@@ -15,67 +15,22 @@ export async function buildComponentSetHTMLAsync(node: FigmaNode, overrideData: 
   if (componentSetComponents.length > 0) {
     console.log(`Building HTML for component set with ${componentSetComponents.length} components`);
     
-    // Generate HTML for all components in the set
+    // Process each component in the 1:1 Figma structure
     const componentHTMLs = await Promise.all(
       componentSetComponents.map(async (component, index) => {
-        // IMPORTANT: Don't call buildComponentSetHTMLAsync recursively on components created from instances
-        // This prevents infinite recursion
-        if (component.isInstanceComponent) {
-          console.log('Processing instance component directly, avoiding recursion');
-          // Process the component directly without checking for component sets again
-          let componentHTML = await processNodeDirectly(component, overrideData, parentNode);
-          
-          // For component set variants, ensure they all start at the same position (top: 0)
-          // This is crucial for SMART_ANIMATE to work properly
-          if (componentHTML.includes('style="')) {
-            // For component set variants, ensure they start at the same position for SMART_ANIMATE
-            // but respect their original Figma dimensions for design fidelity
-            // This balances animation smoothness with design accuracy
-            componentHTML = componentHTML.replace(
-              /style="([^"]*)"/,
-              (match, styleContent) => {
-                // Remove any top positioning to ensure variants start at the same position
-                // but keep the original width/height from Figma to respect designer intent
-                const updatedStyle = styleContent
-                  .replace(/top:\s*[^;]+;?\s*/g, '') // Remove any top positioning
-                  .replace(/position:\s*[^;]+;?\s*/g, '') // Remove any position
-                  + '; top: 0; position: absolute;'; // No forced 100% width/height
-                return `style="${updatedStyle}"`;
-              }
-            );
-          }
-          
-          // Add visibility control classes for variants
-          if (index === 0) {
-            // First variant should be visible initially
-            return componentHTML.replace('<div', '<div class="variant-active"');
-          } else {
-            // Other variants should be hidden initially
-            return componentHTML.replace('<div', '<div class="variant-hidden"');
-          }
-        }
-        return await buildComponentSetHTMLAsync(component, overrideData, parentNode);
+        console.log(`Processing component ${index}:`, {
+          id: component.id,
+          name: component.name,
+          type: component.type
+        });
+        
+        // Process each component normally - they're already in the correct structure
+        return await processNodeDirectly(component, overrideData, parentNode);
       })
     );
     
-    // Wrap all components in a component set container
-    // Use the instance's actual dimensions for the container to respect Figma design intent
-    // This ensures the container matches what the designer specified in Figma
-    const containerWidth = node.width ? `${node.width}px` : '100%';
-    const containerHeight = node.height ? `${node.height}px` : '100%';
-    
-    const containerAttributes = [
-      `data-figma-type="COMPONENT_SET"`,
-      `data-figma-id="${node.id}"`,
-      `data-figma-name="${node.name}"`,
-      `style="position: relative; width: ${containerWidth}; height: ${containerHeight};"`
-    ];
-    
-    const containerOpenTag = `<div ${containerAttributes.join(' ')}>`;
-    const containerCloseTag = '</div>';
-    
-    // Return all components wrapped in the container
-    return `${containerOpenTag}${componentHTMLs.join('\n')}${containerCloseTag}`;
+    // Return all components in their proper order
+    return componentHTMLs.join('\n');
   }
   
   // Process the node directly

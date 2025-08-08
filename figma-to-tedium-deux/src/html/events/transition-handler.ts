@@ -30,6 +30,490 @@ export function createSmartAnimateHandler(): string {
         if (destinationId) {
           const destination = document.querySelector(\`[data-figma-id="\${destinationId}"]\`);
           if (destination) {
+            console.log('DEBUG: handleReaction called:', {
+              sourceId: sourceElement.getAttribute('data-figma-id'),
+              sourceType: sourceElement.getAttribute('data-figma-type'),
+              destinationId: destinationId,
+              destinationType: destination.getAttribute('data-figma-type')
+            });
+            
+            // CRITICAL FIX: Check if this is a variant switch within a component set
+            // Find the common parent component set for both source and destination
+            const sourceComponentSet = sourceElement.closest('[data-figma-type="COMPONENT_SET"]');
+            const destinationComponentSet = destination.closest('[data-figma-type="COMPONENT_SET"]');
+            
+            console.log('DEBUG: Component set detection:', {
+              sourceComponentSetId: sourceComponentSet?.getAttribute('data-figma-id'),
+              sourceComponentSetName: sourceComponentSet?.getAttribute('data-figma-name'),
+              destinationComponentSetId: destinationComponentSet?.getAttribute('data-figma-id'),
+              destinationComponentSetName: destinationComponentSet?.getAttribute('data-figma-name'),
+              sameComponentSet: sourceComponentSet === destinationComponentSet
+            });
+            
+            // CRITICAL FIX: Handle the case where source is an INSTANCE and destination is a COMPONENT
+            // This happens when the instance has a reaction that targets a component within its child component set
+            if (sourceElement.getAttribute('data-figma-type') === 'INSTANCE' && 
+                destination.getAttribute('data-figma-type') === 'COMPONENT' && 
+                destinationComponentSet) {
+              
+              console.log('DEBUG: This is an instance-to-component transition within a component set');
+              
+              // Find the component set that contains the destination
+              const componentSet = destinationComponentSet;
+              const allVariants = Array.from(componentSet.children).filter(child => 
+                child.getAttribute('data-figma-type') === 'COMPONENT'
+              );
+              
+              console.log('DEBUG: Found', allVariants.length, 'variants in component set for switching');
+              console.log('DEBUG: Variant IDs:', allVariants.map(v => v.getAttribute('data-figma-id')));
+              
+              // Handle animation for variant switching
+              if (transitionType === 'SMART_ANIMATE') {
+                console.log('DEBUG: SMART_ANIMATE variant transition started');
+                
+                // Find the currently active variant to animate from
+                const activeVariant = allVariants.find(variant => 
+                  variant.classList.contains('variant-active')
+                );
+                
+                if (activeVariant) {
+                  console.log('DEBUG: Animating from active variant:', activeVariant.getAttribute('data-figma-id'));
+                  
+                  // Store original destination dimensions for restoration after animation
+                  const originalDestinationWidth = destination.style.width;
+                  const originalDestinationHeight = destination.style.height;
+                  
+                  // Ensure destination is visible and positioned before analysis
+                  destination.classList.add('variant-active');
+                  destination.classList.remove('variant-hidden');
+                  destination.style.visibility = 'visible';
+                  destination.style.display = 'flex';
+                  destination.style.position = 'relative';
+                  destination.style.top = '0';
+                  destination.style.left = '0';
+                  destination.style.opacity = '1';
+                  
+                  // Force a reflow to ensure the destination is properly rendered before analysis
+                  destination.offsetHeight;
+                  
+                  // Immediately ensure tap targets are visible in the destination variant
+                  ensureTapTargetsVisible(destination);
+                  
+                  // Force a reflow to ensure the destination is properly rendered
+                  destination.offsetHeight;
+                  
+                  // Double-check tap targets are visible after reflow
+                  ensureTapTargetsVisible(destination);
+                  
+                  // Hide source element during animation to prevent visual conflicts
+                  activeVariant.style.opacity = '0';
+                  
+                  // Find elements with property changes
+                  const elementsToAnimate = findElementsWithPropertyChanges(destination, activeVariant);
+                  console.log('DEBUG: Found', elementsToAnimate.length, 'elements to animate in variant transition');
+                  
+                  // If no elements found, try a different approach - look for background color changes
+                  if (elementsToAnimate.length === 0) {
+                    console.log('DEBUG: No elements found for animation, checking for background color changes');
+                    const sourceFrames = activeVariant.querySelectorAll('[data-figma-type="FRAME"]');
+                    const targetFrames = destination.querySelectorAll('[data-figma-type="FRAME"]');
+                    
+                    sourceFrames.forEach((sourceFrame, index) => {
+                      if (targetFrames[index]) {
+                        const sourceStyle = window.getComputedStyle(sourceFrame);
+                        const targetStyle = window.getComputedStyle(targetFrames[index]);
+                        
+                        if (sourceStyle.backgroundColor !== targetStyle.backgroundColor) {
+                          console.log('DEBUG: Found background color change:', sourceStyle.backgroundColor, '->', targetStyle.backgroundColor);
+                          elementsToAnimate.push({
+                            element: targetFrames[index],
+                            sourceElement: sourceFrame,
+                            changes: {
+                              hasChanges: true,
+                              positionX: { changed: false, sourceValue: null, targetValue: null },
+                              positionY: { changed: false, sourceValue: null, targetValue: null },
+                              backgroundColor: {
+                                changed: true,
+                                sourceValue: sourceStyle.backgroundColor,
+                                targetValue: targetStyle.backgroundColor
+                              },
+                              color: { changed: false, sourceValue: null, targetValue: null },
+                              justifyContent: { changed: false, sourceValue: null, targetValue: null },
+                              alignItems: { changed: false, sourceValue: null, targetValue: null },
+                              width: { changed: false, sourceValue: null, targetValue: null },
+                              height: { changed: false, sourceValue: null, targetValue: null },
+                              opacity: { changed: false, sourceValue: null, targetValue: null },
+                              transform: { changed: false, sourceValue: null, targetValue: null }
+                            }
+                          });
+                        }
+                      }
+                    });
+                  }
+                  
+                  // Animate the changes
+                  if (elementsToAnimate.length > 0) {
+                    console.log('DEBUG: Starting SMART_ANIMATE for variant transition');
+                    
+                    // Animate each element with changes
+                    elementsToAnimate.forEach(({ element, sourceElement, changes }) => {
+                      if (changes.hasChanges) {
+                        console.log('DEBUG: Animating element:', element.getAttribute('data-figma-id'));
+                        
+                        // Apply initial state (matching source)
+                        if (changes.backgroundColor && changes.backgroundColor.changed) {
+                          element.style.backgroundColor = changes.backgroundColor.sourceValue;
+                        }
+                        
+                        // Apply initial position state
+                        if (changes.positionX && changes.positionX.changed) {
+                          element.style.position = 'absolute';
+                          element.style.left = changes.positionX.sourceValue + 'px';
+                        }
+                        if (changes.positionY && changes.positionY.changed) {
+                          element.style.position = 'absolute';
+                          element.style.top = changes.positionY.sourceValue + 'px';
+                        }
+                        
+                        // Animate to target state
+                        setTimeout(() => {
+                          if (changes.backgroundColor && changes.backgroundColor.changed) {
+                            element.style.transition = \`background-color \${parseFloat(transitionDuration || '0.3')}s ease-out\`;
+                            element.style.backgroundColor = changes.backgroundColor.targetValue;
+                          }
+                          
+                          if (changes.positionX && changes.positionX.changed) {
+                            element.style.transition = \`left \${parseFloat(transitionDuration || '0.3')}s ease-out\`;
+                            element.style.left = changes.positionX.targetValue + 'px';
+                          }
+                          
+                          if (changes.positionY && changes.positionY.changed) {
+                            element.style.transition = \`top \${parseFloat(transitionDuration || '0.3')}s ease-out\`;
+                            element.style.top = changes.positionY.targetValue + 'px';
+                          }
+                        }, 50);
+                      }
+                    });
+                    
+                    // Restore destination dimensions after animation
+                    setTimeout(() => {
+                      destination.style.width = originalDestinationWidth;
+                      destination.style.height = originalDestinationHeight;
+                      destination.style.position = '';
+                      destination.style.top = '';
+                      destination.style.left = '';
+                      
+                      // Hide all other variants
+                      allVariants.forEach(variant => {
+                        if (variant !== destination) {
+                          variant.classList.add('variant-hidden');
+                          variant.classList.remove('variant-active');
+                          variant.style.opacity = '1'; // Reset opacity
+                        }
+                      });
+                      
+                      // Start timeout reactions for the newly active destination variant
+                      startTimeoutReactionsForNewlyActiveVariant(destination);
+                      // Start timeout reactions for nested components within the destination
+                      startTimeoutReactionsForNestedComponents(destination);
+                    }, parseFloat(transitionDuration || '0.3') * 1000 + 100);
+                  } else {
+                    console.log('DEBUG: No animation elements found, performing instant switch');
+                    
+                    // Hide all variants in the component set
+                    allVariants.forEach(variant => {
+                      variant.classList.add('variant-hidden');
+                      variant.classList.remove('variant-active');
+                      variant.style.opacity = '1'; // Reset opacity
+                    });
+                    
+                    // Show the destination variant
+                    destination.classList.add('variant-active');
+                    destination.classList.remove('variant-hidden');
+                    
+                    // Start timeout reactions for the newly active destination variant
+                    startTimeoutReactionsForNewlyActiveVariant(destination);
+                    // Start timeout reactions for nested components within the destination
+                    startTimeoutReactionsForNestedComponents(destination);
+                  }
+                } else {
+                  console.log('DEBUG: No active variant found, performing instant switch');
+                  
+                  // Hide all variants in the component set
+                  allVariants.forEach(variant => {
+                    variant.classList.add('variant-hidden');
+                    variant.classList.remove('variant-active');
+                  });
+                  
+                  // Show the destination variant
+                  destination.classList.add('variant-active');
+                  destination.classList.remove('variant-hidden');
+                  
+                  // Start timeout reactions for the newly active destination variant
+                  startTimeoutReactionsForNewlyActiveVariant(destination);
+                  // Start timeout reactions for nested components within the destination
+                  startTimeoutReactionsForNestedComponents(destination);
+                }
+              } else {
+                // For non-SMART_ANIMATE transitions, perform instant switch
+                console.log('DEBUG: Performing instant variant switch');
+                
+                // Hide all variants in the component set
+                allVariants.forEach(variant => {
+                  variant.classList.add('variant-hidden');
+                  variant.classList.remove('variant-active');
+                });
+                
+                // Show the destination variant
+                destination.classList.add('variant-active');
+                destination.classList.remove('variant-hidden');
+                
+                // Start timeout reactions for the newly active destination variant
+                startTimeoutReactionsForNewlyActiveVariant(destination);
+                // Start timeout reactions for nested components within the destination
+                startTimeoutReactionsForNestedComponents(destination);
+              }
+              
+              return; // Exit early for variant switching
+            }
+            
+            // CRITICAL FIX: Handle the case where source is a COMPONENT and destination is a COMPONENT
+            // This happens when a component has a reaction that targets another component in the same component set
+            if (sourceElement.getAttribute('data-figma-type') === 'COMPONENT' && 
+                destination.getAttribute('data-figma-type') === 'COMPONENT' && 
+                sourceComponentSet && destinationComponentSet && sourceComponentSet === destinationComponentSet) {
+              
+              console.log('DEBUG: This is a component-to-component transition within the same component set');
+              
+              // Find the component set that contains both source and destination
+              const componentSet = sourceComponentSet;
+              const allVariants = Array.from(componentSet.children).filter(child => 
+                child.getAttribute('data-figma-type') === 'COMPONENT'
+              );
+              
+              console.log('DEBUG: Found', allVariants.length, 'variants in component set for switching');
+              console.log('DEBUG: Variant IDs:', allVariants.map(v => v.getAttribute('data-figma-id')));
+              
+              // Handle animation for variant switching
+              if (transitionType === 'SMART_ANIMATE') {
+                console.log('DEBUG: SMART_ANIMATE component-to-component transition started');
+                
+                // Store original destination dimensions for restoration after animation
+                const originalDestinationWidth = destination.style.width;
+                const originalDestinationHeight = destination.style.height;
+                
+                // Ensure destination is visible and positioned before analysis
+                destination.classList.add('variant-active');
+                destination.classList.remove('variant-hidden');
+                destination.style.visibility = 'visible';
+                destination.style.display = 'flex';
+                destination.style.position = 'relative';
+                destination.style.top = '0';
+                destination.style.left = '0';
+                destination.style.opacity = '1';
+                
+                // Force a reflow to ensure the destination is properly rendered before analysis
+                destination.offsetHeight;
+                
+                // Immediately ensure tap targets are visible in the destination variant
+                ensureTapTargetsVisible(destination);
+                
+                // Force a reflow to ensure the destination is properly rendered
+                destination.offsetHeight;
+                
+                // Double-check tap targets are visible after reflow
+                ensureTapTargetsVisible(destination);
+                
+                // Hide source element during animation to prevent visual conflicts
+                sourceElement.style.opacity = '0';
+                
+                // Find elements with property changes
+                const elementsToAnimate = findElementsWithPropertyChanges(destination, sourceElement);
+                console.log('DEBUG: Found', elementsToAnimate.length, 'elements to animate in component transition');
+                
+                // If no elements found, try a different approach - look for background color changes
+                if (elementsToAnimate.length === 0) {
+                  console.log('DEBUG: No elements found for animation, checking for background color changes');
+                  const sourceFrames = sourceElement.querySelectorAll('[data-figma-type="FRAME"]');
+                  const targetFrames = destination.querySelectorAll('[data-figma-type="FRAME"]');
+                  
+                  sourceFrames.forEach((sourceFrame, index) => {
+                    if (targetFrames[index]) {
+                      const sourceStyle = window.getComputedStyle(sourceFrame);
+                      const targetStyle = window.getComputedStyle(targetFrames[index]);
+                      
+                      if (sourceStyle.backgroundColor !== targetStyle.backgroundColor) {
+                        console.log('DEBUG: Found background color change:', sourceStyle.backgroundColor, '->', targetStyle.backgroundColor);
+                        elementsToAnimate.push({
+                          element: targetFrames[index],
+                          sourceElement: sourceFrame,
+                          changes: {
+                            hasChanges: true,
+                            positionX: { changed: false, sourceValue: null, targetValue: null },
+                            positionY: { changed: false, sourceValue: null, targetValue: null },
+                            backgroundColor: {
+                              changed: true,
+                              sourceValue: sourceStyle.backgroundColor,
+                              targetValue: targetStyle.backgroundColor
+                            },
+                            color: { changed: false, sourceValue: null, targetValue: null },
+                            justifyContent: { changed: false, sourceValue: null, targetValue: null },
+                            alignItems: { changed: false, sourceValue: null, targetValue: null },
+                            width: { changed: false, sourceValue: null, targetValue: null },
+                            height: { changed: false, sourceValue: null, targetValue: null },
+                            opacity: { changed: false, sourceValue: null, targetValue: null },
+                            transform: { changed: false, sourceValue: null, targetValue: null }
+                          }
+                        });
+                      }
+                    }
+                  });
+                }
+                
+                // Animate the changes
+                if (elementsToAnimate.length > 0) {
+                  console.log('DEBUG: Starting SMART_ANIMATE for component transition');
+                  
+                  // Animate each element with changes
+                  elementsToAnimate.forEach(({ element, sourceElement, changes }) => {
+                    if (changes.hasChanges) {
+                      console.log('DEBUG: Animating element:', element.getAttribute('data-figma-id'));
+                      
+                      // Apply initial state (matching source)
+                      if (changes.backgroundColor && changes.backgroundColor.changed) {
+                        element.style.backgroundColor = changes.backgroundColor.sourceValue;
+                      }
+                      
+                      // Apply initial position state
+                      if (changes.positionX && changes.positionX.changed) {
+                        element.style.position = 'absolute';
+                        element.style.left = changes.positionX.sourceValue + 'px';
+                      }
+                      if (changes.positionY && changes.positionY.changed) {
+                        element.style.position = 'absolute';
+                        element.style.top = changes.positionY.sourceValue + 'px';
+                      }
+                      
+                      // Animate to target state
+                      setTimeout(() => {
+                        if (changes.backgroundColor && changes.backgroundColor.changed) {
+                          element.style.transition = \`background-color \${parseFloat(transitionDuration || '0.3')}s ease-out\`;
+                          element.style.backgroundColor = changes.backgroundColor.targetValue;
+                        }
+                        
+                        if (changes.positionX && changes.positionX.changed) {
+                          element.style.transition = \`left \${parseFloat(transitionDuration || '0.3')}s ease-out\`;
+                          element.style.left = changes.positionX.targetValue + 'px';
+                        }
+                        
+                        if (changes.positionY && changes.positionY.changed) {
+                          element.style.transition = \`top \${parseFloat(transitionDuration || '0.3')}s ease-out\`;
+                          element.style.top = changes.positionY.targetValue + 'px';
+                        }
+                      }, 50);
+                    }
+                  });
+                  
+                  // Restore destination dimensions after animation
+                  setTimeout(() => {
+                    destination.style.width = originalDestinationWidth;
+                    destination.style.height = originalDestinationHeight;
+                    destination.style.position = '';
+                    destination.style.top = '';
+                    destination.style.left = '';
+                    
+                    // Hide all other variants
+                    allVariants.forEach(variant => {
+                      if (variant !== destination) {
+                        variant.classList.add('variant-hidden');
+                        variant.classList.remove('variant-active');
+                        variant.style.opacity = '1'; // Reset opacity
+                      }
+                    });
+                    
+                    // Start timeout reactions for the newly active destination variant
+                    startTimeoutReactionsForNewlyActiveVariant(destination);
+                    // Start timeout reactions for nested components within the destination
+                    startTimeoutReactionsForNestedComponents(destination);
+                  }, parseFloat(transitionDuration || '0.3') * 1000 + 100);
+                } else {
+                  console.log('DEBUG: No animation elements found, performing instant switch');
+                  
+                  // Hide all variants in the component set (including the source)
+                  allVariants.forEach(variant => {
+                    variant.classList.add('variant-hidden');
+                    variant.classList.remove('variant-active');
+                    variant.style.opacity = '1'; // Reset opacity
+                  });
+                  
+                  // Show the destination variant
+                  destination.classList.add('variant-active');
+                  destination.classList.remove('variant-hidden');
+                  
+                  // Start timeout reactions for the newly active destination variant
+                  startTimeoutReactionsForNewlyActiveVariant(destination);
+                  // Start timeout reactions for nested components within the destination
+                  startTimeoutReactionsForNestedComponents(destination);
+                }
+              } else {
+                // For non-SMART_ANIMATE transitions, perform instant switch
+                console.log('DEBUG: Performing instant component-to-component switch');
+                
+                // Hide all variants in the component set (including the source)
+                allVariants.forEach(variant => {
+                  variant.classList.add('variant-hidden');
+                  variant.classList.remove('variant-active');
+                });
+                
+                // Show the destination variant
+                destination.classList.add('variant-active');
+                destination.classList.remove('variant-hidden');
+                
+                // Start timeout reactions for the newly active destination variant
+                startTimeoutReactionsForNewlyActiveVariant(destination);
+                // Start timeout reactions for nested components within the destination
+                startTimeoutReactionsForNestedComponents(destination);
+              }
+              
+              return; // Exit early for variant switching
+            }
+            
+            if (sourceComponentSet && destinationComponentSet && sourceComponentSet === destinationComponentSet) {
+              console.log('DEBUG: This is a variant switch within component set:', sourceComponentSet.getAttribute('data-figma-id'));
+              
+              // This is a variant switch - handle it properly by switching variants within the component set
+              const componentSet = sourceComponentSet;
+              const allVariants = Array.from(componentSet.children).filter(child => 
+                child.getAttribute('data-figma-type') === 'COMPONENT' &&
+                (child.getAttribute('data-variant') || child.getAttribute('data-variant-property-1'))
+              );
+              
+              console.log('DEBUG: Found', allVariants.length, 'variants in component set for switching');
+              console.log('DEBUG: Variant IDs:', allVariants.map(v => v.getAttribute('data-figma-id')));
+              
+              // Hide all variants in the component set
+              allVariants.forEach(variant => {
+                variant.classList.add('variant-hidden');
+                variant.classList.remove('variant-active');
+                console.log('DEBUG: Hidden variant:', variant.getAttribute('data-figma-id'));
+              });
+              
+              // Show the destination variant
+              destination.classList.add('variant-active');
+              destination.classList.remove('variant-hidden');
+              console.log('DEBUG: Activated destination variant:', destination.getAttribute('data-figma-id'));
+              
+              // Start timeout reactions for the newly active destination variant
+              startTimeoutReactionsForNewlyActiveVariant(destination);
+              // Start timeout reactions for nested components within the destination
+              startTimeoutReactionsForNestedComponents(destination);
+              
+              return; // Exit early for variant switching
+            }
+            
+            // Original logic for non-variant transitions
+            console.log('DEBUG: This is a non-variant transition - falling back to original logic');
+            
             // Immediately hide the source element to prevent multiple variants being visible
             sourceElement.classList.add('variant-hidden');
             sourceElement.classList.remove('variant-active');
@@ -48,7 +532,9 @@ export function createSmartAnimateHandler(): string {
                 ensureTapTargetsVisible(destination);
                 
                 // Start timeout reactions for the newly active destination variant
-                startTimeoutReactionsForActiveVariants();
+                startTimeoutReactionsForNewlyActiveVariant(destination);
+                // Start timeout reactions for nested components within the destination
+                startTimeoutReactionsForNestedComponents(destination);
               }, parseFloat(transitionDuration || '300'));
             } else if (transitionType === 'SMART_ANIMATE') {
               // Smart animate transition - sophisticated implementation
@@ -64,13 +550,9 @@ export function createSmartAnimateHandler(): string {
               destination.classList.remove('variant-hidden');
               destination.style.visibility = 'visible';
               destination.style.display = 'flex';
-              destination.style.position = 'absolute';
+              destination.style.position = 'relative';
               destination.style.top = '0';
               destination.style.left = '0';
-              // Temporarily set to 100% for smooth animation
-              // This ensures variants have identical dimensions during transition for seamless animation
-              destination.style.width = '100%';
-              destination.style.height = '100%';
               destination.style.opacity = '1';
               
               // Force a reflow to ensure the destination is properly rendered before analysis
@@ -154,7 +636,9 @@ export function createSmartAnimateHandler(): string {
                   // Ensure tap targets are visible in the destination variant
                   ensureTapTargetsVisible(destination);
                   
-                  startTimeoutReactionsForActiveVariants();
+                  startTimeoutReactionsForNewlyActiveVariant(destination);
+                  // Start timeout reactions for nested components within the destination
+                  startTimeoutReactionsForNestedComponents(destination);
                 }, parseFloat(transitionDuration || '300') * 1000 + 100);
                 
                 return; // Exit early for fade transition
@@ -387,7 +871,9 @@ export function createSmartAnimateHandler(): string {
                 console.log('DEBUG: SMART_ANIMATE transition completed');
                 
                 // Start timeout reactions for the newly active destination variant
-                startTimeoutReactionsForActiveVariants();
+                startTimeoutReactionsForNewlyActiveVariant(destination);
+                // Start timeout reactions for nested components within the destination
+                startTimeoutReactionsForNestedComponents(destination);
               }, parseFloat(transitionDuration || '300') * 1000 + 100);
               
             } else {
@@ -397,11 +883,13 @@ export function createSmartAnimateHandler(): string {
               destination.classList.remove('variant-hidden');
               destination.style.opacity = '1'; // Ensure destination has opacity 1
               
-              // Ensure tap targets are visible in the destination variant
-              ensureTapTargetsVisible(destination);
-              
-              // Start timeout reactions for the newly active destination variant
-              startTimeoutReactionsForActiveVariants();
+                              // Ensure tap targets are visible in the destination variant
+                ensureTapTargetsVisible(destination);
+                
+                // Start timeout reactions for the newly active destination variant
+                startTimeoutReactionsForNewlyActiveVariant(destination);
+                // Start timeout reactions for nested components within the destination
+                startTimeoutReactionsForNestedComponents(destination);
             }
           }
         }

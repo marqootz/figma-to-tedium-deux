@@ -90,19 +90,99 @@ export async function getComponentSetFromInstance(instance: any): Promise<any[]>
         }
         
         if (componentSet && (componentSet as any).type === 'COMPONENT_SET') {
-          console.log('Found component set, getting all variants...');
+          console.log('Found component set, creating 1:1 Figma structure...');
           
-          // Get all children of the component set (these are the variants)
+          // 1. Create the INSTANCE node (with its actual properties)
+          const instanceNode = {
+            id: instance.id,
+            name: instance.name,
+            type: 'INSTANCE',
+            x: instance.x,
+            y: instance.y,
+            width: instance.width,
+            height: instance.height,
+            opacity: instance.opacity,
+            fills: instance.fills,
+            strokes: instance.strokes,
+            strokeWeight: instance.strokeWeight,
+            cornerRadius: instance.cornerRadius,
+            layoutMode: instance.layoutMode,
+            primaryAxisAlignItems: instance.primaryAxisAlignItems,
+            counterAxisAlignItems: instance.counterAxisAlignItems,
+            itemSpacing: instance.itemSpacing,
+            layoutSizingHorizontal: instance.layoutSizingHorizontal,
+            layoutSizingVertical: instance.layoutSizingVertical,
+            paddingLeft: instance.paddingLeft,
+            paddingRight: instance.paddingRight,
+            paddingTop: instance.paddingTop,
+            paddingBottom: instance.paddingBottom,
+            fontSize: instance.fontSize,
+            fontName: instance.fontName,
+            fontFamily: instance.fontFamily,
+            fontWeight: instance.fontWeight,
+            textAlignHorizontal: instance.textAlignHorizontal,
+            letterSpacing: instance.letterSpacing,
+            lineHeight: instance.lineHeight,
+            characters: instance.characters,
+            reactions: instance.reactions,
+            children: instance.children,
+            clipsContent: instance.clipsContent,
+            layoutPositioning: instance.layoutPositioning,
+            componentProperties: instance.componentProperties,
+            mainComponentId: instance.mainComponentId,
+            overrides: instance.overrides
+          };
+          
+          // 2. Create the COMPONENT_SET node (with 100% sizing) as a child of the instance
+          const componentSetNode = {
+            id: (componentSet as any).id,
+            name: (componentSet as any).name,
+            type: 'COMPONENT_SET',
+            x: (componentSet as any).x,
+            y: (componentSet as any).y,
+            width: (componentSet as any).width,
+            height: (componentSet as any).height,
+            opacity: (componentSet as any).opacity,
+            fills: (componentSet as any).fills,
+            strokes: (componentSet as any).strokes,
+            strokeWeight: (componentSet as any).strokeWeight,
+            cornerRadius: (componentSet as any).cornerRadius,
+            layoutMode: (componentSet as any).layoutMode,
+            primaryAxisAlignItems: (componentSet as any).primaryAxisAlignItems,
+            counterAxisAlignItems: (componentSet as any).counterAxisAlignItems,
+            itemSpacing: (componentSet as any).itemSpacing,
+            layoutSizingHorizontal: 'FILL', // Force 100% width
+            layoutSizingVertical: 'FILL',   // Force 100% height
+            paddingLeft: (componentSet as any).paddingLeft,
+            paddingRight: (componentSet as any).paddingRight,
+            paddingTop: (componentSet as any).paddingTop,
+            paddingBottom: (componentSet as any).paddingBottom,
+            fontSize: (componentSet as any).fontSize,
+            fontName: (componentSet as any).fontName,
+            fontFamily: (componentSet as any).fontFamily,
+            fontWeight: (componentSet as any).fontWeight,
+            textAlignHorizontal: (componentSet as any).textAlignHorizontal,
+            letterSpacing: (componentSet as any).letterSpacing,
+            lineHeight: (componentSet as any).lineHeight,
+            characters: (componentSet as any).characters,
+            reactions: (componentSet as any).reactions,
+            children: (componentSet as any).children,
+            clipsContent: (componentSet as any).clipsContent,
+            layoutPositioning: (componentSet as any).layoutPositioning,
+            componentProperties: (componentSet as any).componentProperties,
+            mainComponentId: (componentSet as any).mainComponentId,
+            overrides: (componentSet as any).overrides
+          };
+          
+          // 3. Create child component nodes from variants as children of the component set
+          const childComponents: any[] = [];
           const variants = (componentSet as any).children || [];
           console.log('Found', variants.length, 'variants in component set');
           
-          // Create a component for each variant
           variants.forEach((variant: any, index: number) => {
             console.log('Processing variant', index, ':', variant.name);
             
-            // Create a component representation of this variant
-            const componentFromVariant = {
-              // Copy all the essential properties from the variant
+            const childComponent = {
               id: variant.id,
               name: variant.name,
               type: variant.type,
@@ -139,44 +219,38 @@ export async function getComponentSetFromInstance(instance: any): Promise<any[]>
               layoutPositioning: variant.layoutPositioning,
               componentProperties: variant.componentProperties,
               mainComponentId: variant.mainComponentId,
-              overrides: variant.overrides,
-              // Mark this as a component from a variant
-              isInstanceComponent: true,
-              // Apply the variant properties based on the variant's name or properties
-              variantProperties: {
-                'Property 1': variant.name.toLowerCase().includes('start') ? 'start' : 'end'
-              }
+              overrides: variant.overrides
             };
             
-            console.log('Created component from variant with properties:', {
-              id: componentFromVariant.id,
-              name: componentFromVariant.name,
-              type: componentFromVariant.type,
-              variantProperties: componentFromVariant.variantProperties,
-              hasReactions: !!componentFromVariant.reactions,
-              hasChildren: !!componentFromVariant.children
-            });
-            
-            components.push(componentFromVariant);
+            childComponents.push(childComponent);
           });
+          
+          // 4. Set up the proper hierarchy: instance -> component set -> children
+          componentSetNode.children = childComponents;
+          instanceNode.children = [componentSetNode];
+          
+          console.log('Created 1:1 Figma structure with proper hierarchy:', {
+            instanceNode: {
+              id: instanceNode.id,
+              name: instanceNode.name,
+              type: instanceNode.type,
+              hasChildren: !!instanceNode.children
+            },
+            componentSetNode: {
+              id: componentSetNode.id,
+              name: componentSetNode.name,
+              type: componentSetNode.type,
+              layoutSizingHorizontal: componentSetNode.layoutSizingHorizontal,
+              layoutSizingVertical: componentSetNode.layoutSizingVertical,
+              hasChildren: !!componentSetNode.children
+            },
+            childComponentsCount: childComponents.length
+          });
+          
+          // Return only the instance node (which contains the component set as a child)
+          components.push(instanceNode);
         } else {
           console.log('Could not find component set, falling back to instance processing');
-          
-          // Safely get the component property value, handling symbols
-          let propertyValue = 'start'; // default value
-          try {
-            const property1 = instance.componentProperties['Property 1'];
-            if (property1 && typeof property1 === 'object' && 'value' in property1) {
-              propertyValue = String(property1.value);
-            } else if (typeof property1 === 'string') {
-              propertyValue = property1;
-            } else if (typeof property1 === 'symbol') {
-              propertyValue = property1.toString();
-            }
-          } catch (error) {
-            console.warn('Error accessing component property value:', error);
-            propertyValue = 'start'; // fallback
-          }
           
           // Fallback: process the instance as a single component
           const componentFromInstance = {
@@ -217,26 +291,19 @@ export async function getComponentSetFromInstance(instance: any): Promise<any[]>
             layoutPositioning: instance.layoutPositioning,
             componentProperties: instance.componentProperties,
             mainComponentId: instance.mainComponentId,
-            overrides: instance.overrides,
-            // Mark this as a component from an instance
-            isInstanceComponent: true,
-            // Apply the variant properties
-            variantProperties: {
-              'Property 1': propertyValue
-            }
+            overrides: instance.overrides
           };
           
           console.log('Created component from instance with properties:', {
             id: componentFromInstance.id,
             name: componentFromInstance.name,
             type: componentFromInstance.type,
-            variantProperties: componentFromInstance.variantProperties,
             hasReactions: !!componentFromInstance.reactions,
             hasChildren: !!componentFromInstance.children
           });
           
           components.push(componentFromInstance);
-          console.log('Created component from instance with variant:', componentFromInstance.variantProperties);
+          console.log('Created component from instance with variant:', componentFromInstance.componentProperties);
         }
       } else {
         console.log('Instance does not have componentProperties, treating as regular instance');

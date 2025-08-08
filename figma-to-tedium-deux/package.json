@@ -9,6 +9,8 @@
     "dev": "webpack --mode=development --watch",
     "dev:refactored": "webpack --config webpack-refactored.config.js --mode=development --watch",
     "build:css": "node scripts/build-css.js",
+    "build:all": "node scripts/build-all.js",
+    "verify": "node scripts/verify-plugin.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["figma", "plugin", "html", "tedium", "refactored"],

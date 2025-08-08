@@ -50,6 +50,14 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
   const isSpecificComponent = node.type === 'COMPONENT' && 
                              (node.id === '6421:585' || node.id === '6421:587');
   
+  // Method 4: Check if this is a nested component set container (instance with parent)
+  // Nested component set containers should use their actual instance dimensions, not forced 100%
+  // This ONLY applies to the container, not the variant nodes inside it
+  const isNestedComponentSetContainer = node.type === 'INSTANCE' && parentNode !== undefined;
+  
+  // Method 5: Check if this is any component set (should always have 100% sizing)
+  const isAnyComponentSet = node.type === 'COMPONENT_SET';
+  
   // Debug logging
   console.log(`[SIZING DEBUG] Node ${node.id} (${node.type}):`, {
     nodeType: node.type,
@@ -60,37 +68,58 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
     parentHasParent: !!(parentNode as any)?.parent,
     isFirstComponentSet,
     isComponentOfFirstSet,
-    isSpecificComponent
+    isSpecificComponent,
+    isNestedComponentSetContainer,
+    isAnyComponentSet,
+    instanceWidth: node.width,
+    instanceHeight: node.height
   });
   
-  if (isFirstComponentSet || isComponentOfFirstSet || isSpecificComponent) {
-    // Force 100% width and height for the first component set and its components
+  if (isFirstComponentSet || isComponentOfFirstSet || isSpecificComponent || isAnyComponentSet) {
+    // Force 100% width and height for component sets and their components
     // This takes precedence over any other sizing logic
     sizingStyles.width = '100%';
     sizingStyles.height = '100%';
     console.log(`[SIZING DEBUG] Applied 100% sizing to node ${node.id}`);
-  } else {
-    // --- NORMAL SIZING FOR EVERYTHING ELSE ---
+  } else if (isNestedComponentSetContainer) {
+    // For nested component set containers (instances), use their actual dimensions from Figma
+    // This captures the designer's intent for the nested instance size
+    // This ONLY applies to the container, not the variant nodes inside it
     if (node.width !== undefined) {
       sizingStyles.width = `${node.width}px`;
     }
     if (node.height !== undefined) {
       sizingStyles.height = `${node.height}px`;
     }
-    
-    // Layout sizing
-    if (node.layoutSizingHorizontal === 'FILL') {
-      sizingStyles.width = '100%';
-    } else if (node.layoutSizingHorizontal === 'HUG') {
-      sizingStyles.width = 'fit-content';
+    console.log(`[SIZING DEBUG] Applied instance dimensions to nested component set container ${node.id}: ${node.width}px x ${node.height}px`);
+  } else {
+    // --- NORMAL SIZING FOR EVERYTHING ELSE (including variant nodes) ---
+    if (node.width !== undefined) {
+      sizingStyles.width = `${node.width}px`;
     }
-    
-    if (node.layoutSizingVertical === 'FILL') {
-      sizingStyles.height = '100%';
-    } else if (node.layoutSizingVertical === 'HUG') {
-      sizingStyles.height = 'fit-content';
+    if (node.height !== undefined) {
+      sizingStyles.height = `${node.height}px`;
     }
   }
+  
+  // --- LAYOUT SIZING (applies to ALL nodes, including special cases) ---
+  // Layout sizing values should override basic width/height when present
+  if (node.layoutSizingHorizontal === 'FILL') {
+    sizingStyles.width = '100%';
+    console.log(`[SIZING DEBUG] Applied FILL horizontal sizing to node ${node.id}`);
+  } else if (node.layoutSizingHorizontal === 'HUG') {
+    sizingStyles.width = 'fit-content';
+    console.log(`[SIZING DEBUG] Applied HUG horizontal sizing to node ${node.id}`);
+  }
+  
+  if (node.layoutSizingVertical === 'FILL') {
+    sizingStyles.height = '100%';
+    console.log(`[SIZING DEBUG] Applied FILL vertical sizing to node ${node.id}`);
+  } else if (node.layoutSizingVertical === 'HUG') {
+    sizingStyles.height = 'fit-content';
+    console.log(`[SIZING DEBUG] Applied HUG vertical sizing to node ${node.id}`);
+  }
+  // Note: FIXED vertical sizing keeps the explicit height value (already set above)
   
   // --- POSITIONING (only if not ignoring layout) ---
   if ((node as any).layoutPositioning !== 'ABSOLUTE') {
