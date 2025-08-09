@@ -10,7 +10,7 @@ declare const figma: any;
 declare const __html__: string;
 
 // Main plugin code
-figma.showUI(__html__, { width: 400, height: 300 });
+figma.showUI(__html__, { width: 400, height: 380 });
 
 figma.ui.onmessage = async (msg) => {
   if (msg.type === 'export-html') {
@@ -128,6 +128,29 @@ ${generateEventHandlingJavaScript()}
     } catch (error) {
       console.error('JSON export error:', error);
       figma.notify(`JSON export failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  
+  if (msg.type === 'get-selected-node') {
+    try {
+      console.log('Received get-selected-node message in backend');
+      const selection = figma.currentPage.selection;
+      
+      if (selection.length === 0) {
+        // No node selected
+        figma.ui.postMessage({ type: 'selected-node-info', nodeId: null });
+        return;
+      }
+      
+      // Get the first selected node's ID
+      const selectedNodeId = selection[0].id;
+      console.log('Selected node ID:', selectedNodeId);
+      
+      // Send the node ID back to the UI
+      figma.ui.postMessage({ type: 'selected-node-info', nodeId: selectedNodeId });
+    } catch (error) {
+      console.error('Error getting selected node:', error);
+      figma.ui.postMessage({ type: 'selected-node-info', nodeId: null });
     }
   }
 }; 
