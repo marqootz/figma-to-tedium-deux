@@ -1,6 +1,22 @@
 import { FigmaNode, OverrideData } from '../types';
 import { safeToString, escapeHtmlAttribute, safeAttributeValue } from './utils';
 
+// Function to detect if a frame is a video frame
+export function isVideoFrame(node: FigmaNode): boolean {
+  return typeof node.name === 'string' && node.name.startsWith('[VIDEO]');
+}
+
+// Function to extract video filename from frame name
+export function extractVideoFilename(node: FigmaNode): string | null {
+  if (!isVideoFrame(node)) return null;
+  
+  // Extract the filename after [VIDEO] prefix
+  const match = node.name.match(/^\[VIDEO\]\s*(.+)$/);
+  const extracted = match && match[1] ? match[1].trim() : null;
+  // Return null if the extracted string is empty
+  return extracted && extracted.length > 0 ? extracted : null;
+}
+
 export function getTagName(node: FigmaNode): string {
   switch (node.type) {
     case 'TEXT':
@@ -42,6 +58,15 @@ export function generateNodeAttributes(node: FigmaNode, overrideData: OverrideDa
   // Add data-figma-type attribute
   if (node.type) {
     attributes.push(`data-figma-type="${escapeHtmlAttribute(safeAttributeValue(node.type))}"`);
+  }
+  
+  // Add video-specific attributes for video frames
+  if (isVideoFrame(node)) {
+    attributes.push('data-video-frame="true"');
+    const filename = extractVideoFilename(node);
+    if (filename) {
+      attributes.push(`data-video-filename="${escapeHtmlAttribute(safeAttributeValue(filename))}"`);
+    }
   }
   
   // Add override data attributes
