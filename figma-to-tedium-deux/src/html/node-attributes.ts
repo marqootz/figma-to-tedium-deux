@@ -157,5 +157,13 @@ export function generateNodeAttributes(node: FigmaNode, overrideData: OverrideDa
     attributes.push(`data-layout-positioning="${escapeHtmlAttribute(safeAttributeValue((node as any).layoutPositioning))}"`);
   }
   
+  // Add Figma position attributes for animation detection
+  if (node.x !== undefined && node.x !== null) {
+    attributes.push(`data-figma-x="${safeAttributeValue(node.x)}"`);
+  }
+  if (node.y !== undefined && node.y !== null) {
+    attributes.push(`data-figma-y="${safeAttributeValue(node.y)}"`);
+  }
+  
   return attributes;
 } 

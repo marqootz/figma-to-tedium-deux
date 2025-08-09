@@ -127,12 +127,18 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
     const hasExplicitCoordinates = node.x !== undefined || node.y !== undefined;
     
     // Check if this is a child of an auto-layout frame (should get 0px positioning)
-    // BUT exclude frames that should animate (like Frame 1232 itself)
-    // Children of ANY auto-layout frame should get 0px positioning
+    // Each node looks UP to its parent for positioning guidance
+    // If parent has auto-layout, child gets 0px positioning
+    // If parent has NO auto-layout, child gets explicit coordinates
     const isChildOfAutoLayoutFrame = parentNode && 
                                     parentNode.type === 'FRAME' && 
-                                    parentNode.layoutMode &&
-                                    (node.type !== 'FRAME' || (node.name !== 'Frame 1232')); // Apply to all children of auto-layout frames, but not Frame 1232 itself
+                                    parentNode.layoutMode;
+    
+    // CRITICAL FIX: Check if parent has NO auto-layout (NONE layout mode)
+    // In this case, children should get explicit positioning values
+    const isChildOfNonAutoLayoutFrame = parentNode && 
+                                       parentNode.type === 'FRAME' && 
+                                       parentNode.layoutMode === 'NONE';
     
     // Comprehensive approach: Any element that should be positioned at 0px
     // This includes top-level elements, children of positioned containers, and certain node types
@@ -150,9 +156,18 @@ export function computeSizingStyles(node: FigmaNode, parentNode?: FigmaNode): Co
                                     node.type === 'COMPONENT' ||
                                     isChildOfAutoLayoutFrame;
     
-    // Top-level elements and certain node types should ALWAYS get position: relative + 0px
-    // regardless of whether they have explicit coordinates
-    if (shouldBePositionedAtZero) {
+    // CRITICAL FIX: Handle children of non-auto-layout frames first
+    if (isChildOfNonAutoLayoutFrame && hasExplicitCoordinates) {
+      // Children of frames with NO auto-layout should get explicit positioning
+      sizingStyles.position = 'absolute';
+      if (node.x !== undefined) {
+        sizingStyles.left = `${node.x}px`;
+      }
+      if (node.y !== undefined) {
+        sizingStyles.top = `${node.y}px`;
+      }
+      console.log(`[SIZING DEBUG] Applied explicit positioning to child of non-auto-layout frame ${node.type} ${node.id}: left: ${node.x}px, top: ${node.y}px`);
+    } else if (shouldBePositionedAtZero) {
       // These elements get position: relative + 0px coordinates
       sizingStyles.position = 'relative';
       sizingStyles.left = '0px';

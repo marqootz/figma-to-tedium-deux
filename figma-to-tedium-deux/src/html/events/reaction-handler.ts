@@ -225,6 +225,28 @@ export function createTimeoutHandler(): string {
         const componentSets = document.querySelectorAll('[data-figma-type="COMPONENT_SET"]');
         console.log('DEBUG: Found', componentSets.length, 'component sets');
         
+        // Also check for any elements with reactions
+        const allReactionElements = document.querySelectorAll('[data-has-reactions="true"]');
+        console.log('DEBUG: Found', allReactionElements.length, 'total elements with reactions');
+        
+        // Log details about reaction elements
+        allReactionElements.forEach((element, index) => {
+          const elementId = element.getAttribute('data-figma-id');
+          const elementName = element.getAttribute('data-figma-name');
+          const trigger = JSON.parse(element.getAttribute('data-reaction-trigger') || '{}');
+          const computedStyle = window.getComputedStyle(element);
+          
+          console.log('DEBUG: Reaction element', index + 1, ':', {
+            id: elementId,
+            name: elementName,
+            trigger: trigger,
+            display: computedStyle.display,
+            visibility: computedStyle.visibility,
+            isActive: element.classList.contains('variant-active'),
+            isHidden: element.classList.contains('variant-hidden')
+          });
+        });
+        
         componentSets.forEach(componentSet => {
           const componentSetName = componentSet.getAttribute('data-figma-name');
           const activeVariants = componentSet.querySelectorAll('.variant-active[data-has-reactions="true"]');
@@ -257,14 +279,21 @@ export function createTimeoutHandler(): string {
               if (trigger.type === 'AFTER_TIMEOUT' && !activeTimers.has(elementId)) {
                 console.log('DEBUG: Starting initial timeout reaction for:', elementId, 'name:', elementName, 'timeout:', trigger.timeout, 'in component set:', componentSetName);
                 const timeoutId = setTimeout(() => {
+                  console.log('DEBUG: Timeout triggered for element:', elementId, 'name:', elementName);
                   activeTimers.delete(elementId);
                   const actionType = firstActiveVariant.getAttribute('data-reaction-action-type');
                   const destinationId = firstActiveVariant.getAttribute('data-reaction-destination');
                   const transitionType = firstActiveVariant.getAttribute('data-reaction-transition-type');
                   const transitionDuration = firstActiveVariant.getAttribute('data-reaction-transition-duration');
+                  console.log('DEBUG: Calling handleReaction with:', {
+                    destinationId: destinationId,
+                    transitionType: transitionType,
+                    transitionDuration: transitionDuration
+                  });
                   handleReaction(firstActiveVariant, destinationId, transitionType, transitionDuration);
                 }, (trigger.timeout || 0) * 1000);
                 activeTimers.set(elementId, timeoutId);
+                console.log('DEBUG: Created timeout timer for element:', elementId, 'timeout ID:', timeoutId, 'duration:', (trigger.timeout || 0) * 1000, 'ms');
                 
                 // CRITICAL FIX: Also start timeout reactions for any nested components within this initial variant
                 startTimeoutReactionsForNestedComponents(firstActiveVariant);
@@ -335,7 +364,9 @@ export function createTimeoutHandler(): string {
       
       // Start timeout reactions for the initial visible variant after a short delay
       // to ensure CSS classes and visibility are properly applied
+      console.log('DEBUG: Setting up initial timeout reactions');
       setTimeout(() => {
+        console.log('DEBUG: Starting initial timeout reactions');
         startTimeoutReactionsForInitialVariant();
       }, 100);
   `;

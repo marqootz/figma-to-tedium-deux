@@ -86,62 +86,6 @@ export function createSmartAnimateHandler(): string {
           // Check if this is a static layout element that shouldn't animate
           const elementName = targetElement.getAttribute('data-figma-name');
           const elementType = targetElement.getAttribute('data-figma-type');
-          const isFrame1232 = elementName === 'Frame 1232';
-          
-          if (isFrame1232) {
-            console.log('🔍 FRAME 1232 DETECTED - Starting detailed analysis');
-            console.log('🔍 Frame 1232 - Element ID:', targetElement.getAttribute('data-figma-id'));
-            console.log('🔍 Frame 1232 - Source Element ID:', sourceElement.getAttribute('data-figma-id'));
-            console.log('🔍 Frame 1232 - Target Element ID:', targetElement.getAttribute('data-figma-id'));
-            
-            // Log computed styles for both elements
-            const sourceComputed = window.getComputedStyle(sourceElement);
-            const targetComputed = window.getComputedStyle(targetElement);
-            
-            console.log('🔍 Frame 1232 - Source computed styles:');
-            console.log('  - position:', sourceComputed.position);
-            console.log('  - top:', sourceComputed.top);
-            console.log('  - left:', sourceComputed.left);
-            console.log('  - transform:', sourceComputed.transform);
-            console.log('  - display:', sourceComputed.display);
-            console.log('  - visibility:', sourceComputed.visibility);
-            
-            console.log('🔍 Frame 1232 - Target computed styles:');
-            console.log('  - position:', targetComputed.position);
-            console.log('  - top:', targetComputed.top);
-            console.log('  - left:', targetComputed.left);
-            console.log('  - transform:', targetComputed.transform);
-            console.log('  - display:', targetComputed.display);
-            console.log('  - visibility:', targetComputed.visibility);
-            
-            // Log inline styles
-            console.log('🔍 Frame 1232 - Source inline styles:');
-            console.log('  - style.top:', sourceElement.style.top);
-            console.log('  - style.left:', sourceElement.style.left);
-            console.log('  - style.position:', sourceElement.style.position);
-            
-            console.log('🔍 Frame 1232 - Target inline styles:');
-            console.log('  - style.top:', targetElement.style.top);
-            console.log('  - style.left:', targetElement.style.left);
-            console.log('  - style.position:', targetElement.style.position);
-            
-            // Check for position style issues
-            const sourcePosition = sourceElement.style.position || sourceComputed.position;
-            const targetPosition = targetElement.style.position || targetComputed.position;
-            
-            console.log('🔍 Frame 1232 - Position style analysis:');
-            console.log('  - source position style:', sourcePosition);
-            console.log('  - target position style:', targetPosition);
-            console.log('  - source has position style:', !!sourceElement.style.position);
-            console.log('  - target has position style:', !!targetElement.style.position);
-            
-            if (!sourcePosition || sourcePosition === 'static') {
-              console.log('⚠️ WARNING: Frame 1232 source has no position or is static!');
-            }
-            if (!targetPosition || targetPosition === 'static') {
-              console.log('⚠️ WARNING: Frame 1232 target has no position or is static!');
-            }
-          }
           
           // Exclude only specific static layout elements from position animation
           const isStaticLayoutElement = elementName === 'bg' || 
@@ -162,80 +106,62 @@ export function createSmartAnimateHandler(): string {
           const sourceTop = parseFloat(sourceStyle.top) || 0;
           const targetTop = parseFloat(targetStyle.top) || 0;
           
-          const hasPositionChanges = Math.abs(sourceLeft - targetLeft) > 1 || Math.abs(sourceTop - targetTop) > 1;
+          // CRITICAL FIX: For variant transitions, we need to check the actual Figma positioning
+          // The computed styles might not reflect the actual variant positioning
+          const sourceFigmaX = parseFloat(sourceElement.getAttribute('data-figma-x')) || 0;
+          const targetFigmaX = parseFloat(targetElement.getAttribute('data-figma-x')) || 0;
+          const sourceFigmaY = parseFloat(sourceElement.getAttribute('data-figma-y')) || 0;
+          const targetFigmaY = parseFloat(targetElement.getAttribute('data-figma-y')) || 0;
+          
+          const hasPositionChanges = Math.abs(sourceLeft - targetLeft) > 1 || Math.abs(sourceTop - targetTop) > 1 ||
+                                   Math.abs(sourceFigmaX - targetFigmaX) > 1 || Math.abs(sourceFigmaY - targetFigmaY) > 1;
           const hasExplicitPosition = hasPositionChanges;
           
-          if (isFrame1232) {
-            console.log('🔍 Frame 1232 - Layout analysis:');
-            console.log('  - isStaticLayoutElement:', isStaticLayoutElement);
-            console.log('  - isPartOfAutoLayout:', isPartOfAutoLayout);
-            console.log('  - hasExplicitPosition:', hasExplicitPosition);
-            console.log('  - layout-positioning:', targetElement.getAttribute('data-layout-positioning'));
-            console.log('  - parent layout-mode:', targetElement.parentElement?.getAttribute('data-layout-mode'));
-          }
+
           
-          if (isStaticLayoutElement) {
-            console.log('DEBUG: Skipping position animation for static layout element:', elementName);
-            if (isFrame1232) {
-              console.log('🔍 Frame 1232 - SKIPPED (static layout element)');
-            }
-          } else if (isPartOfAutoLayout && !hasExplicitPosition) {
-            console.log('DEBUG: Skipping position animation for auto layout element without explicit position:', elementName);
-            if (isFrame1232) {
-              console.log('🔍 Frame 1232 - SKIPPED (auto layout without explicit position)');
-            }
+                      if (isStaticLayoutElement) {
+            } else if (isPartOfAutoLayout && !hasExplicitPosition) {
             // Note: We still check for padding, margin, and opacity changes even for auto layout elements
-          } else {
-            // Check position changes by comparing the computed styles
-            // Reuse the already declared sourceStyle and targetStyle variables
+                      } else {
+              // Check position changes by comparing the computed styles
+              // Reuse the already declared sourceStyle and targetStyle variables
+              
+              
+              // Check left position changes (only for non-static, non-auto-layout elements)
+              // Reuse the already calculated sourceLeft and targetLeft
             
-            console.log('DEBUG: Checking position changes for element:', elementName);
-            console.log('DEBUG: Source element ID:', sourceElement.getAttribute('data-figma-id'));
-            console.log('DEBUG: Target element ID:', targetElement.getAttribute('data-figma-id'));
+            // Check for position changes using both computed styles and Figma attributes
+            const sourceFigmaX = parseFloat(sourceElement.getAttribute('data-figma-x')) || 0;
+            const targetFigmaX = parseFloat(targetElement.getAttribute('data-figma-x')) || 0;
+            const sourceFigmaY = parseFloat(sourceElement.getAttribute('data-figma-y')) || 0;
+            const targetFigmaY = parseFloat(targetElement.getAttribute('data-figma-y')) || 0;
             
-            // Check left position changes (only for non-static, non-auto-layout elements)
-            // Reuse the already calculated sourceLeft and targetLeft
+            // Use Figma positioning if available, otherwise fall back to computed styles
+            const actualSourceLeft = sourceFigmaX || sourceLeft;
+            const actualTargetLeft = targetFigmaX || targetLeft;
             
-            if (isFrame1232) {
-              console.log('🔍 Frame 1232 - Position X analysis:');
-              console.log('  - sourceLeft (computed):', sourceLeft);
-              console.log('  - targetLeft (computed):', targetLeft);
-              console.log('  - difference:', Math.abs(sourceLeft - targetLeft));
-              console.log('  - threshold: 1');
-            }
-            
-            if (Math.abs(sourceLeft - targetLeft) > 1) { // Reduced threshold for better sensitivity
-              changes.positionX.changed = true;
-              changes.positionX.sourceValue = sourceLeft;
-              changes.positionX.targetValue = targetLeft;
-              changes.hasChanges = true;
-              console.log('DEBUG: Position X change detected:', sourceLeft, '->', targetLeft, 'for element:', elementName);
-              if (isFrame1232) {
-                console.log('🔍 Frame 1232 - Position X CHANGE DETECTED:', sourceLeft, '->', targetLeft);
+                          if (Math.abs(actualSourceLeft - actualTargetLeft) > 1) { // Reduced threshold for better sensitivity
+                changes.positionX.changed = true;
+                changes.positionX.sourceValue = actualSourceLeft;
+                changes.positionX.targetValue = actualTargetLeft;
+                changes.hasChanges = true;
               }
-            }
             
             // Check top position changes (only for non-static, non-auto-layout elements)
             // Reuse the already calculated sourceTop and targetTop
             
-            if (isFrame1232) {
-              console.log('🔍 Frame 1232 - Position Y analysis:');
-              console.log('  - sourceTop (computed):', sourceTop);
-              console.log('  - targetTop (computed):', targetTop);
-              console.log('  - difference:', Math.abs(sourceTop - targetTop));
-              console.log('  - threshold: 1');
-            }
             
-            if (Math.abs(sourceTop - targetTop) > 1) { // Reduced threshold for better sensitivity
-              changes.positionY.changed = true;
-              changes.positionY.sourceValue = sourceTop;
-              changes.positionY.targetValue = targetTop;
-              changes.hasChanges = true;
-              console.log('DEBUG: Position Y change detected:', sourceTop, '->', targetTop, 'for element:', elementName);
-              if (isFrame1232) {
-                console.log('🔍 Frame 1232 - Position Y CHANGE DETECTED:', sourceTop, '->', targetTop);
+            
+            // Use Figma positioning if available, otherwise fall back to computed styles
+            const actualSourceTop = sourceFigmaY || sourceTop;
+            const actualTargetTop = targetFigmaY || targetTop;
+            
+                          if (Math.abs(actualSourceTop - actualTargetTop) > 1) { // Reduced threshold for better sensitivity
+                changes.positionY.changed = true;
+                changes.positionY.sourceValue = actualSourceTop;
+                changes.positionY.targetValue = actualTargetTop;
+                changes.hasChanges = true;
               }
-            }
           }
 
           // Check style changes (for all elements, including auto layout)
@@ -248,7 +174,6 @@ export function createSmartAnimateHandler(): string {
             changes.backgroundColor.sourceValue = sourceBg;
             changes.backgroundColor.targetValue = targetBg;
             changes.hasChanges = true;
-            console.log('DEBUG: Background color change detected:', sourceBg, '->', targetBg);
           }
           
           if (sourceStyle.color !== targetStyle.color) {
@@ -256,7 +181,6 @@ export function createSmartAnimateHandler(): string {
             changes.color.sourceValue = sourceStyle.color;
             changes.color.targetValue = targetStyle.color;
             changes.hasChanges = true;
-            console.log('DEBUG: Color change detected:', sourceStyle.color, '->', targetStyle.color);
           }
           
           if (sourceStyle.justifyContent !== targetStyle.justifyContent) {
@@ -282,7 +206,6 @@ export function createSmartAnimateHandler(): string {
             changes.width.sourceValue = sourceWidth;
             changes.width.targetValue = targetWidth;
             changes.hasChanges = true;
-            console.log('DEBUG: Width change detected:', sourceWidth, '->', targetWidth);
           }
           
           // Check height changes
@@ -294,7 +217,6 @@ export function createSmartAnimateHandler(): string {
             changes.height.sourceValue = sourceHeight;
             changes.height.targetValue = targetHeight;
             changes.hasChanges = true;
-            console.log('DEBUG: Height change detected:', sourceHeight, '->', targetHeight);
           }
           
           // Check padding changes
@@ -305,7 +227,6 @@ export function createSmartAnimateHandler(): string {
             changes.paddingLeft.sourceValue = sourcePaddingLeft;
             changes.paddingLeft.targetValue = targetPaddingLeft;
             changes.hasChanges = true;
-            console.log('DEBUG: Padding left change detected:', sourcePaddingLeft, '->', targetPaddingLeft);
           }
           
           const sourcePaddingRight = parseFloat(sourceStyle.paddingRight) || 0;
@@ -315,7 +236,6 @@ export function createSmartAnimateHandler(): string {
             changes.paddingRight.sourceValue = sourcePaddingRight;
             changes.paddingRight.targetValue = targetPaddingRight;
             changes.hasChanges = true;
-            console.log('DEBUG: Padding right change detected:', sourcePaddingRight, '->', targetPaddingRight);
           }
           
           const sourcePaddingTop = parseFloat(sourceStyle.paddingTop) || 0;
@@ -325,7 +245,6 @@ export function createSmartAnimateHandler(): string {
             changes.paddingTop.sourceValue = sourcePaddingTop;
             changes.paddingTop.targetValue = targetPaddingTop;
             changes.hasChanges = true;
-            console.log('DEBUG: Padding top change detected:', sourcePaddingTop, '->', targetPaddingTop);
           }
           
           const sourcePaddingBottom = parseFloat(sourceStyle.paddingBottom) || 0;
@@ -335,7 +254,6 @@ export function createSmartAnimateHandler(): string {
             changes.paddingBottom.sourceValue = sourcePaddingBottom;
             changes.paddingBottom.targetValue = targetPaddingBottom;
             changes.hasChanges = true;
-            console.log('DEBUG: Padding bottom change detected:', sourcePaddingBottom, '->', targetPaddingBottom);
           }
           
           // Check margin changes
@@ -346,7 +264,6 @@ export function createSmartAnimateHandler(): string {
             changes.marginLeft.sourceValue = sourceMarginLeft;
             changes.marginLeft.targetValue = targetMarginLeft;
             changes.hasChanges = true;
-            console.log('DEBUG: Margin left change detected:', sourceMarginLeft, '->', targetMarginLeft);
           }
           
           const sourceMarginRight = parseFloat(sourceStyle.marginRight) || 0;
@@ -356,7 +273,6 @@ export function createSmartAnimateHandler(): string {
             changes.marginRight.sourceValue = sourceMarginRight;
             changes.marginRight.targetValue = targetMarginRight;
             changes.hasChanges = true;
-            console.log('DEBUG: Margin right change detected:', sourceMarginRight, '->', targetMarginRight);
           }
           
           const sourceMarginTop = parseFloat(sourceStyle.marginTop) || 0;
@@ -366,7 +282,6 @@ export function createSmartAnimateHandler(): string {
             changes.marginTop.sourceValue = sourceMarginTop;
             changes.marginTop.targetValue = targetMarginTop;
             changes.hasChanges = true;
-            console.log('DEBUG: Margin top change detected:', sourceMarginTop, '->', targetMarginTop);
           }
           
           const sourceMarginBottom = parseFloat(sourceStyle.marginBottom) || 0;
@@ -376,7 +291,6 @@ export function createSmartAnimateHandler(): string {
             changes.marginBottom.sourceValue = sourceMarginBottom;
             changes.marginBottom.targetValue = targetMarginBottom;
             changes.hasChanges = true;
-            console.log('DEBUG: Margin bottom change detected:', sourceMarginBottom, '->', targetMarginBottom);
           }
           
           // Check opacity changes
@@ -387,28 +301,10 @@ export function createSmartAnimateHandler(): string {
             changes.opacity.sourceValue = sourceOpacity;
             changes.opacity.targetValue = targetOpacity;
             changes.hasChanges = true;
-            console.log('DEBUG: Opacity change detected:', sourceOpacity, '->', targetOpacity);
           }
           
-          if (isFrame1232) {
-            console.log('�� Frame 1232 - Final changes summary:');
-            console.log('  - hasChanges:', changes.hasChanges);
-            console.log('  - positionX changed:', changes.positionX.changed);
-            console.log('  - positionY changed:', changes.positionY.changed);
-            console.log('  - backgroundColor changed:', changes.backgroundColor.changed);
-            console.log('  - color changed:', changes.color.changed);
-            console.log('  - justifyContent changed:', changes.justifyContent.changed);
-            console.log('  - alignItems changed:', changes.alignItems.changed);
-            console.log('  - width changed:', changes.width.changed);
-            console.log('  - height changed:', changes.height.changed);
-            console.log('  - opacity changed:', changes.opacity.changed);
-            console.log('🔍 Frame 1232 - Analysis complete');
-          }
         } catch (error) {
-          console.log('DEBUG: Error detecting property changes:', error);
-          if (isFrame1232) {
-            console.log('🔍 Frame 1232 - Error during analysis:', error);
-          }
+          // Error handling for property detection
         }
 
         return changes;
@@ -445,7 +341,6 @@ export function createSmartAnimateHandler(): string {
                 sourceElement: sourceElement,
                 changes: changes
               });
-              console.log('DEBUG: Found element with property changes:', targetName, 'changes:', changes);
             }
           }
         });
@@ -455,24 +350,20 @@ export function createSmartAnimateHandler(): string {
       
       // Helper function to ensure tap targets are visible after variant transitions
       function ensureTapTargetsVisible(variant) {
-        console.log('DEBUG: Ensuring tap targets are visible in variant:', variant.getAttribute('data-figma-id'));
         
         // Find all tap targets (elements with reactions) in the variant
         const tapTargets = variant.querySelectorAll('[data-has-reactions="true"]');
         tapTargets.forEach(target => {
           const computedStyle = window.getComputedStyle(target);
-          console.log('DEBUG: Tap target visibility check:', target.getAttribute('data-figma-id'), 'display:', computedStyle.display, 'visibility:', computedStyle.visibility);
           
           // Ensure tap targets are visible and clickable
           if (computedStyle.display === 'none') {
             // The issue is that the parent variant has variant-hidden class
             // We need to force the display to override the inherited display: none
             target.style.setProperty('display', 'flex');
-            console.log('DEBUG: Restored tap target display to flex:', target.getAttribute('data-figma-id'));
           }
           if (computedStyle.visibility === 'hidden') {
             target.style.setProperty('visibility', 'visible');
-            console.log('DEBUG: Restored tap target visibility:', target.getAttribute('data-figma-id'));
           }
         });
       }
@@ -535,13 +426,11 @@ export function createSmartAnimateHandler(): string {
             element.style.position = '';
             element.style.left = '';
             element.style.top = '';
-            console.log('DEBUG: Restored flexbox layout for element with calculated position:', element.getAttribute('data-figma-id'));
           } else {
             // Restore original positioning values
             if (originalPosition !== null) element.style.position = originalPosition;
             if (originalLeft !== null) element.style.left = originalLeft;
             if (originalTop !== null) element.style.top = originalTop;
-            console.log('DEBUG: Restored original positioning for element:', element.getAttribute('data-figma-id'));
           }
           
           // Remove stored data
@@ -566,13 +455,11 @@ export function createSmartAnimateHandler(): string {
         
         // Release transition lock
         isTransitionInProgress = false;
-        console.log('DEBUG: Transition lock released');
       }
 
       // Helper function to handle variant switching
       function handleVariantSwitching(sourceElement, destination, allVariants, transitionType, transitionDuration) {
         if (transitionType === 'SMART_ANIMATE' || transitionType === 'BOUNCY') {
-          console.log('DEBUG: SMART_ANIMATE/BOUNCY variant transition started');
           
           // Store original destination dimensions for restoration after animation
           const originalDestinationWidth = destination.style.width;
@@ -586,11 +473,9 @@ export function createSmartAnimateHandler(): string {
           
           // Find elements with property changes
           const elementsToAnimate = findElementsWithPropertyChanges(destination, sourceElement);
-          console.log('DEBUG: Found', elementsToAnimate.length, 'elements to animate in variant transition');
           
           // If no elements found, try background color changes
           if (elementsToAnimate.length === 0) {
-            console.log('DEBUG: No elements found for animation, checking for background color changes');
             const sourceFrames = sourceElement.querySelectorAll('[data-figma-type="FRAME"]');
             const targetFrames = destination.querySelectorAll('[data-figma-type="FRAME"]');
             
@@ -600,7 +485,6 @@ export function createSmartAnimateHandler(): string {
                 const targetStyle = window.getComputedStyle(targetFrames[index]);
                 
                 if (sourceStyle.backgroundColor !== targetStyle.backgroundColor) {
-                  console.log('DEBUG: Found background color change:', sourceStyle.backgroundColor, '->', targetStyle.backgroundColor);
                   elementsToAnimate.push({
                     element: targetFrames[index],
                     sourceElement: sourceFrame,
@@ -629,17 +513,14 @@ export function createSmartAnimateHandler(): string {
           
                       // Animate the changes
             if (elementsToAnimate.length > 0) {
-              console.log('DEBUG: Starting SMART_ANIMATE/BOUNCY for variant transition');
             
             // Animate each element with changes
             elementsToAnimate.forEach(({ element, sourceElement, changes }) => {
               if (changes.hasChanges) {
-                console.log('DEBUG: Animating element:', element.getAttribute('data-figma-id'));
                 
                 // Apply initial state (matching source)
                 if (changes.backgroundColor && changes.backgroundColor.changed) {
                   element.style.backgroundColor = changes.backgroundColor.sourceValue;
-                  console.log('DEBUG: Applied initial background color:', changes.backgroundColor.sourceValue);
                 }
                 
                 // Store original positioning before animation
@@ -651,12 +532,10 @@ export function createSmartAnimateHandler(): string {
                 if (changes.positionX && changes.positionX.changed) {
                   element.style.position = 'absolute';
                   element.style.left = changes.positionX.sourceValue + 'px';
-                  console.log('DEBUG: Applied initial position X:', changes.positionX.sourceValue + 'px', 'for element:', element.getAttribute('data-figma-name'));
                 }
                 if (changes.positionY && changes.positionY.changed) {
                   element.style.position = 'absolute';
                   element.style.top = changes.positionY.sourceValue + 'px';
-                  console.log('DEBUG: Applied initial position Y:', changes.positionY.sourceValue + 'px', 'for element:', element.getAttribute('data-figma-name'));
                 }
                 
                 // Store original values for restoration
@@ -667,53 +546,42 @@ export function createSmartAnimateHandler(): string {
                 // Apply initial size state
                 if (changes.width && changes.width.changed) {
                   element.style.width = changes.width.sourceValue + 'px';
-                  console.log('DEBUG: Setting initial width:', changes.width.sourceValue + 'px');
                 }
                 if (changes.height && changes.height.changed) {
                   element.style.height = changes.height.sourceValue + 'px';
-                  console.log('DEBUG: Setting initial height:', changes.height.sourceValue + 'px');
                 }
                 
                 // Apply initial padding state
                 if (changes.paddingLeft && changes.paddingLeft.changed) {
                   element.style.paddingLeft = changes.paddingLeft.sourceValue + 'px';
-                  console.log('DEBUG: Setting initial padding left:', changes.paddingLeft.sourceValue + 'px');
                 }
                 if (changes.paddingRight && changes.paddingRight.changed) {
                   element.style.paddingRight = changes.paddingRight.sourceValue + 'px';
-                  console.log('DEBUG: Setting initial padding right:', changes.paddingRight.sourceValue + 'px');
                 }
                 if (changes.paddingTop && changes.paddingTop.changed) {
                   element.style.paddingTop = changes.paddingTop.sourceValue + 'px';
-                  console.log('DEBUG: Setting initial padding top:', changes.paddingTop.sourceValue + 'px');
                 }
                 if (changes.paddingBottom && changes.paddingBottom.changed) {
                   element.style.paddingBottom = changes.paddingBottom.sourceValue + 'px';
-                  console.log('DEBUG: Setting initial padding bottom:', changes.paddingBottom.sourceValue + 'px');
                 }
                 
                 // Apply initial margin state
                 if (changes.marginLeft && changes.marginLeft.changed) {
                   element.style.marginLeft = changes.marginLeft.sourceValue + 'px';
-                  console.log('DEBUG: Setting initial margin left:', changes.marginLeft.sourceValue + 'px');
                 }
                 if (changes.marginRight && changes.marginRight.changed) {
                   element.style.marginRight = changes.marginRight.sourceValue + 'px';
-                  console.log('DEBUG: Setting initial margin right:', changes.marginRight.sourceValue + 'px');
                 }
                 if (changes.marginTop && changes.marginTop.changed) {
                   element.style.marginTop = changes.marginTop.sourceValue + 'px';
-                  console.log('DEBUG: Setting initial margin top:', changes.marginTop.sourceValue + 'px');
                 }
                 if (changes.marginBottom && changes.marginBottom.changed) {
                   element.style.marginBottom = changes.marginBottom.sourceValue + 'px';
-                  console.log('DEBUG: Setting initial margin bottom:', changes.marginBottom.sourceValue + 'px');
                 }
                 
                 // Apply initial opacity state
                 if (changes.opacity && changes.opacity.changed) {
                   element.style.opacity = changes.opacity.sourceValue;
-                  console.log('DEBUG: Setting initial opacity:', changes.opacity.sourceValue);
                 }
                 
                 // Calculate correct end position for elements moving to the right (off-screen positions)
@@ -730,7 +598,6 @@ export function createSmartAnimateHandler(): string {
                       changes.positionX.targetValue = calculatedEndPosition;
                       // Store the calculated value for cleanup
                       element.setAttribute('data-calculated-end-position', calculatedEndPosition.toString());
-                      console.log('DEBUG: Recalculated end position:', calculatedEndPosition, 'container width:', containerRect.width, 'element width:', elementRect.width);
                     }
                   }
                 }
@@ -749,7 +616,6 @@ export function createSmartAnimateHandler(): string {
                   
                   // Get the easing function based on the transition type
                   const easingFunction = getEasingFunction(transitionType);
-                  console.log('DEBUG: Using easing function:', easingFunction, 'for transition type:', transitionType);
                   
                   // Build transition string for all properties that will animate
                   const transitionProperties = [];
@@ -761,7 +627,6 @@ export function createSmartAnimateHandler(): string {
                   }
                   if (changes.positionY && changes.positionY.changed) {
                     transitionProperties.push(\`top \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
-                    console.log('DEBUG: Added top transition for element:', element.getAttribute('data-figma-name'));
                   }
                   if (changes.width && changes.width.changed) {
                     transitionProperties.push(\`width \${parseFloat(transitionDuration || '0.3')}s \${easingFunction}\`);
@@ -821,62 +686,50 @@ export function createSmartAnimateHandler(): string {
                   
                   if (changes.positionY && changes.positionY.changed) {
                     element.style.top = changes.positionY.targetValue + 'px';
-                    console.log('DEBUG: Applied target top position:', changes.positionY.targetValue + 'px', 'for element:', element.getAttribute('data-figma-name'));
                   }
                   
                   if (changes.width && changes.width.changed) {
                     element.style.width = changes.width.targetValue + 'px';
-                    console.log('DEBUG: Animating width to:', changes.width.targetValue + 'px');
                   }
                   
                   if (changes.height && changes.height.changed) {
                     element.style.height = changes.height.targetValue + 'px';
-                    console.log('DEBUG: Animating height to:', changes.height.targetValue + 'px');
                   }
                   
                   if (changes.paddingLeft && changes.paddingLeft.changed) {
                     element.style.paddingLeft = changes.paddingLeft.targetValue + 'px';
-                    console.log('DEBUG: Animating padding left to:', changes.paddingLeft.targetValue + 'px');
                   }
                   
                   if (changes.paddingRight && changes.paddingRight.changed) {
                     element.style.paddingRight = changes.paddingRight.targetValue + 'px';
-                    console.log('DEBUG: Animating padding right to:', changes.paddingRight.targetValue + 'px');
                   }
                   
                   if (changes.paddingTop && changes.paddingTop.changed) {
                     element.style.paddingTop = changes.paddingTop.targetValue + 'px';
-                    console.log('DEBUG: Animating padding top to:', changes.paddingTop.targetValue + 'px');
                   }
                   
                   if (changes.paddingBottom && changes.paddingBottom.changed) {
                     element.style.paddingBottom = changes.paddingBottom.targetValue + 'px';
-                    console.log('DEBUG: Animating padding bottom to:', changes.paddingBottom.targetValue + 'px');
                   }
                   
                   if (changes.marginLeft && changes.marginLeft.changed) {
                     element.style.marginLeft = changes.marginLeft.targetValue + 'px';
-                    console.log('DEBUG: Animating margin left to:', changes.marginLeft.targetValue + 'px');
                   }
                   
                   if (changes.marginRight && changes.marginRight.changed) {
                     element.style.marginRight = changes.marginRight.targetValue + 'px';
-                    console.log('DEBUG: Animating margin right to:', changes.marginRight.targetValue + 'px');
                   }
                   
                   if (changes.marginTop && changes.marginTop.changed) {
                     element.style.marginTop = changes.marginTop.targetValue + 'px';
-                    console.log('DEBUG: Animating margin top to:', changes.marginTop.targetValue + 'px');
                   }
                   
                   if (changes.marginBottom && changes.marginBottom.changed) {
                     element.style.marginBottom = changes.marginBottom.targetValue + 'px';
-                    console.log('DEBUG: Animating margin bottom to:', changes.marginBottom.targetValue + 'px');
                   }
                   
                   if (changes.opacity && changes.opacity.changed) {
                     element.style.opacity = changes.opacity.targetValue;
-                    console.log('DEBUG: Animating opacity to:', changes.opacity.targetValue);
                   }
                 }, 50); // Small delay to ensure initial position is visible before animating
               }, 16); // Small delay to ensure initial state is applied
@@ -888,58 +741,39 @@ export function createSmartAnimateHandler(): string {
               cleanupAfterAnimation(destination, originalDestinationWidth, originalDestinationHeight, elementsToAnimate, allVariants);
             }, parseFloat(transitionDuration || '0.3') * 1000 + 100);
           } else {
-            console.log('DEBUG: No animation elements found, performing instant switch');
             performInstantVariantSwitch(allVariants, destination);
             
             // Release transition lock
             isTransitionInProgress = false;
-            console.log('DEBUG: Transition lock released');
           }
         } else {
           // For non-SMART_ANIMATE transitions, perform instant switch
-          console.log('DEBUG: Performing instant variant switch');
           performInstantVariantSwitch(allVariants, destination);
           
           // Release transition lock
           isTransitionInProgress = false;
-          console.log('DEBUG: Transition lock released');
         }
       }
 
       // Helper function to handle reaction transitions
       function handleReaction(sourceElement, destinationId, transitionType, transitionDuration) {
+        
         // Prevent multiple simultaneous transitions
         if (isTransitionInProgress) {
-          console.log('DEBUG: Transition already in progress, skipping this call');
           return;
         }
         
         if (destinationId) {
           const destination = document.querySelector(\`[data-figma-id="\${destinationId}"]\`);
           if (destination) {
-            console.log('DEBUG: handleReaction called:', {
-              sourceId: sourceElement.getAttribute('data-figma-id'),
-              sourceType: sourceElement.getAttribute('data-figma-type'),
-              destinationId: destinationId,
-              destinationType: destination.getAttribute('data-figma-type')
-            });
             
             // Set transition lock
             isTransitionInProgress = true;
-            console.log('DEBUG: Transition lock acquired');
             
             // CRITICAL FIX: Check if this is a variant switch within a component set
             // Find the common parent component set for both source and destination
             const sourceComponentSet = sourceElement.closest('[data-figma-type="COMPONENT_SET"]');
             const destinationComponentSet = destination.closest('[data-figma-type="COMPONENT_SET"]');
-            
-            console.log('DEBUG: Component set detection:', {
-              sourceComponentSetId: sourceComponentSet?.getAttribute('data-figma-id'),
-              sourceComponentSetName: sourceComponentSet?.getAttribute('data-figma-name'),
-              destinationComponentSetId: destinationComponentSet?.getAttribute('data-figma-id'),
-              destinationComponentSetName: destinationComponentSet?.getAttribute('data-figma-name'),
-              sameComponentSet: sourceComponentSet === destinationComponentSet
-            });
             
             // CRITICAL FIX: Handle the case where source is an INSTANCE and destination is a COMPONENT
             // This happens when the instance has a reaction that targets a component within its child component set
@@ -947,46 +781,33 @@ export function createSmartAnimateHandler(): string {
                 destination.getAttribute('data-figma-type') === 'COMPONENT' && 
                 destinationComponentSet) {
               
-              console.log('DEBUG: This is an instance-to-component transition within a component set');
-              
               // Check if the destination has a data-target attribute (indicating it's a variant reference)
               const targetId = destination.getAttribute('data-target');
               const variantProperty = destination.getAttribute('data-variant-property-1');
               
               if (targetId && variantProperty) {
-                console.log('DEBUG: Destination has target reference:', {
-                  targetId: targetId,
-                  variantProperty: variantProperty,
-                  destinationId: destination.getAttribute('data-figma-id')
-                });
                 
                 // Find the target component set
                 const targetComponentSet = document.querySelector(\`[data-figma-id="\${targetId}"]\`);
                 if (targetComponentSet && targetComponentSet.getAttribute('data-figma-type') === 'COMPONENT_SET') {
-                  console.log('DEBUG: Found target component set:', targetComponentSet.getAttribute('data-figma-id'));
                   
                   // Find the specific variant within the target component set
                   const targetVariant = targetComponentSet.querySelector(\`[data-variant-property-1="\${variantProperty}"]\`);
                   if (targetVariant) {
-                    console.log('DEBUG: Found target variant:', targetVariant.getAttribute('data-figma-id'));
                     
                     // Get all variants in the target component set
                     const allVariants = Array.from(targetComponentSet.children).filter(child => 
                       child.getAttribute('data-figma-type') === 'COMPONENT'
                     );
                     
-                    console.log('DEBUG: Found', allVariants.length, 'variants in target component set for switching');
-                    console.log('DEBUG: Variant IDs:', allVariants.map(v => v.getAttribute('data-figma-id')));
                     
                     // Handle animation for variant switching to the target variant
                     handleVariantSwitching(sourceElement, targetVariant, allVariants, transitionType, transitionDuration);
                     
                     return; // Exit early for variant switching
                   } else {
-                    console.log('DEBUG: Target variant not found for property:', variantProperty);
                   }
                 } else {
-                  console.log('DEBUG: Target component set not found:', targetId);
                 }
               }
               
@@ -996,8 +817,6 @@ export function createSmartAnimateHandler(): string {
                 child.getAttribute('data-figma-type') === 'COMPONENT'
               );
               
-              console.log('DEBUG: Found', allVariants.length, 'variants in component set for switching');
-              console.log('DEBUG: Variant IDs:', allVariants.map(v => v.getAttribute('data-figma-id')));
               
               // Handle animation for variant switching
               handleVariantSwitching(sourceElement, destination, allVariants, transitionType, transitionDuration);
@@ -1011,16 +830,11 @@ export function createSmartAnimateHandler(): string {
                 destination.getAttribute('data-figma-type') === 'COMPONENT' && 
                 sourceComponentSet && destinationComponentSet && sourceComponentSet === destinationComponentSet) {
               
-              console.log('DEBUG: This is a component-to-component transition within the same component set');
-              
               // Find the component set that contains both source and destination
               const componentSet = sourceComponentSet;
               const allVariants = Array.from(componentSet.children).filter(child => 
                 child.getAttribute('data-figma-type') === 'COMPONENT'
               );
-              
-              console.log('DEBUG: Found', allVariants.length, 'variants in component set for switching');
-              console.log('DEBUG: Variant IDs:', allVariants.map(v => v.getAttribute('data-figma-id')));
               
               // Handle animation for variant switching
               handleVariantSwitching(sourceElement, destination, allVariants, transitionType, transitionDuration);
@@ -1029,7 +843,6 @@ export function createSmartAnimateHandler(): string {
             }
             
             if (sourceComponentSet && destinationComponentSet && sourceComponentSet === destinationComponentSet) {
-              console.log('DEBUG: This is a variant switch within component set:', sourceComponentSet.getAttribute('data-figma-id'));
               
               // This is a variant switch - handle it properly by switching variants within the component set
               const componentSet = sourceComponentSet;
@@ -1038,20 +851,16 @@ export function createSmartAnimateHandler(): string {
                 (child.getAttribute('data-variant') || child.getAttribute('data-variant-property-1'))
               );
               
-              console.log('DEBUG: Found', allVariants.length, 'variants in component set for switching');
-              console.log('DEBUG: Variant IDs:', allVariants.map(v => v.getAttribute('data-figma-id')));
               
               // Hide all variants in the component set
               allVariants.forEach(variant => {
                 variant.classList.add('variant-hidden');
                 variant.classList.remove('variant-active');
-                console.log('DEBUG: Hidden variant:', variant.getAttribute('data-figma-id'));
               });
               
               // Show the destination variant
               destination.classList.add('variant-active');
               destination.classList.remove('variant-hidden');
-              console.log('DEBUG: Activated destination variant:', destination.getAttribute('data-figma-id'));
               
               // Start timeout reactions for the newly active destination variant
               startTimeoutReactionsForNewlyActiveVariant(destination);
@@ -1062,14 +871,12 @@ export function createSmartAnimateHandler(): string {
               setTimeout(() => {
                 // Release transition lock
                 isTransitionInProgress = false;
-                console.log('DEBUG: Transition lock released (delayed)');
               }, 100); // 100ms delay to ensure variant handler doesn't interfere
               
               return; // Exit early for variant switching
             }
             
             // Original logic for non-variant transitions
-            console.log('DEBUG: This is a non-variant transition - falling back to original logic');
             
             // Immediately hide the source element to prevent multiple variants being visible
             sourceElement.classList.add('variant-hidden');
@@ -1095,11 +902,9 @@ export function createSmartAnimateHandler(): string {
                 
                 // Release transition lock
                 isTransitionInProgress = false;
-                console.log('DEBUG: Transition lock released');
               }, parseFloat(transitionDuration || '300'));
             } else if (transitionType === 'SMART_ANIMATE' || transitionType === 'BOUNCY') {
               // Smart animate transition - sophisticated implementation
-              console.log('DEBUG: SMART_ANIMATE/BOUNCY transition started');
               
               // Store original destination dimensions for restoration after animation
               // This ensures we respect the designer's Figma dimensions after animation completes
@@ -1134,11 +939,9 @@ export function createSmartAnimateHandler(): string {
               
               // Find elements with property changes
               const elementsToAnimate = findElementsWithPropertyChanges(destination, sourceElement);
-              console.log('DEBUG: Found', elementsToAnimate.length, 'elements to animate');
               
               // If no elements found, try a different approach - look for background color changes
               if (elementsToAnimate.length === 0) {
-                console.log('DEBUG: No elements found for animation, checking for background color changes');
                 const sourceFrames = sourceElement.querySelectorAll('[data-figma-type="FRAME"]');
                 const targetFrames = destination.querySelectorAll('[data-figma-type="FRAME"]');
                 
@@ -1148,7 +951,6 @@ export function createSmartAnimateHandler(): string {
                     const targetStyle = window.getComputedStyle(targetFrames[index]);
                     
                     if (sourceStyle.backgroundColor !== targetStyle.backgroundColor) {
-                      console.log('DEBUG: Found background color change:', sourceStyle.backgroundColor, '->', targetStyle.backgroundColor);
                       elementsToAnimate.push({
                         element: targetFrames[index],
                         sourceElement: sourceFrame,
@@ -1173,7 +975,6 @@ export function createSmartAnimateHandler(): string {
               
               // If still no elements found, create a simple fade transition
               if (elementsToAnimate.length === 0) {
-                console.log('DEBUG: No specific elements found, creating fade transition');
                 // Hide source immediately
                 sourceElement.style.opacity = '0';
                 
@@ -1211,16 +1012,10 @@ export function createSmartAnimateHandler(): string {
                 const sourceElement = item.sourceElement;
                 const changes = item.changes;
                 
-                console.log('DEBUG: Setting up element for animation:', element.getAttribute('data-figma-id'));
-                console.log('DEBUG: Changes detected:', changes);
                 
                 // Log current element state
                 const elementRect = element.getBoundingClientRect();
                 const elementStyle = window.getComputedStyle(element);
-                console.log('DEBUG: Element current state:');
-                console.log('  Position:', elementStyle.left, elementStyle.top);
-                console.log('  Dimensions:', elementRect.width, 'x', elementRect.height);
-                console.log('  Container dimensions:', element.closest('[data-figma-type="COMPONENT_SET"]').getBoundingClientRect());
                 
                 // Store original styles
                 element.setAttribute('data-original-styles', JSON.stringify({
@@ -1247,24 +1042,20 @@ export function createSmartAnimateHandler(): string {
                   // Use the computed style values directly
                   if (changes.positionX && changes.positionX.changed) {
                     element.style.left = changes.positionX.sourceValue + 'px';
-                    console.log('DEBUG: Setting initial left position:', changes.positionX.sourceValue + 'px');
                   }
                   
                   if (changes.positionY && changes.positionY.changed) {
                     element.style.top = changes.positionY.sourceValue + 'px';
-                    console.log('DEBUG: Setting initial top position:', changes.positionY.sourceValue + 'px');
                   }
                 }
                 
                 // For visual changes, start with source element's visual properties
                 if (changes.color && changes.color.changed) {
                   element.style.color = changes.color.sourceValue;
-                  console.log('DEBUG: Setting initial color:', changes.color.sourceValue);
                 }
                 
                 if (changes.backgroundColor && changes.backgroundColor.changed) {
                   element.style.backgroundColor = changes.backgroundColor.sourceValue;
-                  console.log('DEBUG: Setting initial background color:', changes.backgroundColor.sourceValue);
                 }
                 
                 // Also copy any other visual properties that might affect the appearance
@@ -1296,7 +1087,6 @@ export function createSmartAnimateHandler(): string {
                       changes.positionX.targetValue = calculatedEndPosition;
                       // Store the calculated value for cleanup
                       element.setAttribute('data-calculated-end-position', calculatedEndPosition.toString());
-                      console.log('DEBUG: Recalculated end position:', calculatedEndPosition, 'container width:', containerRect.width, 'element width:', elementRect.width);
                     }
                   }
                 }
@@ -1320,7 +1110,6 @@ export function createSmartAnimateHandler(): string {
                 // Add transition with proper easing
                 const duration = transitionDuration || 0.3;
                 element.style.transition = \`all \${duration}s cubic-bezier(0.4, 0.0, 0.2, 1)\`;
-                console.log('DEBUG: Applied transition:', element.style.transition);
               });
               
               // Force a reflow to ensure all initial styles are applied before animation
@@ -1332,7 +1121,6 @@ export function createSmartAnimateHandler(): string {
                   const element = item.element;
                   const changes = item.changes;
                   
-                  console.log('DEBUG: Executing animation for element:', element.getAttribute('data-figma-id'));
                   
                   if ((changes.positionX && changes.positionX.changed) || (changes.positionY && changes.positionY.changed)) {
                     // Use the computed style values directly
@@ -1340,29 +1128,21 @@ export function createSmartAnimateHandler(): string {
                       const startLeft = parseFloat(window.getComputedStyle(element).left) || 0;
                       const endLeft = changes.positionX.targetValue;
                       
-                      console.log('DEBUG: Animation movement:');
-                      console.log('  Starting left position:', startLeft);
-                      console.log('  Target left position:', endLeft);
-                      console.log('  Movement distance:', endLeft - startLeft);
                       
                       element.style.left = endLeft + 'px';
-                      console.log('DEBUG: Animating to left position:', endLeft + 'px');
                     }
                     
                     if (changes.positionY && changes.positionY.changed) {
                       element.style.top = changes.positionY.targetValue + 'px';
-                      console.log('DEBUG: Animating to top position:', changes.positionY.targetValue + 'px');
                     }
                   }
                   
                   if (changes.backgroundColor && changes.backgroundColor.changed) {
                     element.style.backgroundColor = changes.backgroundColor.targetValue;
-                    console.log('DEBUG: Animating background color to:', changes.backgroundColor.targetValue);
                   }
                   
                   if (changes.color && changes.color.changed) {
                     element.style.color = changes.color.targetValue;
-                    console.log('DEBUG: Animating color to:', changes.color.targetValue);
                   }
                   
                   if (changes.justifyContent && changes.justifyContent.changed) {
@@ -1381,7 +1161,6 @@ export function createSmartAnimateHandler(): string {
                   const element = item.element;
                   const originalStyles = JSON.parse(element.getAttribute('data-original-styles') || '{}');
                   
-                  console.log('DEBUG: Cleaning up element:', element.getAttribute('data-figma-id'));
                   
                   // Remove transition
                   element.style.transition = '';
@@ -1397,7 +1176,6 @@ export function createSmartAnimateHandler(): string {
                     element.style.position = '';
                     element.style.left = '';
                     element.style.top = '';
-                    console.log('DEBUG: Restored flexbox layout for element with calculated position');
                   } else if (originalStyles.left) {
                     element.style.left = originalStyles.left;
                   }
@@ -1429,7 +1207,6 @@ export function createSmartAnimateHandler(): string {
                 // Ensure tap targets are visible in the destination variant
                 ensureTapTargetsVisible(destination);
                 
-                console.log('DEBUG: SMART_ANIMATE transition completed');
                 
                 // Start timeout reactions for the newly active destination variant
                 startTimeoutReactionsForNewlyActiveVariant(destination);
@@ -1438,7 +1215,6 @@ export function createSmartAnimateHandler(): string {
                 
                 // Release transition lock
                 isTransitionInProgress = false;
-                console.log('DEBUG: Transition lock released');
               }, parseFloat(transitionDuration || '300') * 1000 + 100);
               
             } else {
@@ -1458,7 +1234,6 @@ export function createSmartAnimateHandler(): string {
               
               // Release transition lock
               isTransitionInProgress = false;
-              console.log('DEBUG: Transition lock released');
             }
           }
         }

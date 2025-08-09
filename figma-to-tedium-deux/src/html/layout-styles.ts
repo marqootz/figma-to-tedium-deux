@@ -23,11 +23,17 @@ export function computeLayoutStyles(node: FigmaNode, parentNode?: FigmaNode): Co
                                   parentNode.type === 'FRAME' && 
                                   parentNode.layoutMode;
   
-  if (isContainerElement || isFrameWithAutoLayout || isChildOfAutoLayoutFrame) {
+  // CRITICAL FIX: Check if parent has NO auto-layout (NONE layout mode)
+  // In this case, children should NOT get position: relative + 0px
+  const isChildOfNonAutoLayoutFrame = parentNode && 
+                                     parentNode.type === 'FRAME' && 
+                                     parentNode.layoutMode === 'NONE';
+  
+  if (isContainerElement || isFrameWithAutoLayout || (isChildOfAutoLayoutFrame && !isChildOfNonAutoLayoutFrame)) {
     layoutStyles.position = 'relative';
     
     // For children of auto-layout frames, also set top/left to 0px
-    if (isChildOfAutoLayoutFrame) {
+    if (isChildOfAutoLayoutFrame && !isChildOfNonAutoLayoutFrame) {
       layoutStyles.top = '0px';
       layoutStyles.left = '0px';
     }

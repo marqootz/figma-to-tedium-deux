@@ -17,13 +17,30 @@ import { createComponentSetInitializer } from './initializer';
 export function generateEventHandlingJavaScript(): string {
   return `
     // Event handling for interactive elements
+    console.log('DEBUG: Event handling JavaScript loaded');
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('DEBUG: DOMContentLoaded event fired');
       ${createVariantSwitchingHandler()}
       ${createReactionHandler()}
       ${createTimeoutHandler()}
       ${createPropertyDetector()}
       ${createSmartAnimateHandler()}
       ${createComponentSetInitializer()}
+      console.log('DEBUG: All event handlers initialized');
     });
+    
+    // Also run immediately if DOM is already loaded
+    if (document.readyState === 'loading') {
+      console.log('DEBUG: DOM still loading, waiting for DOMContentLoaded');
+    } else {
+      console.log('DEBUG: DOM already loaded, running handlers immediately');
+      ${createVariantSwitchingHandler()}
+      ${createReactionHandler()}
+      ${createTimeoutHandler()}
+      ${createPropertyDetector()}
+      ${createSmartAnimateHandler()}
+      ${createComponentSetInitializer()}
+      console.log('DEBUG: All event handlers initialized (immediate)');
+    }
   `;
 }
