@@ -10,7 +10,7 @@ declare const figma: any;
 declare const __html__: string;
 
 // Main plugin code
-figma.showUI(__html__, { width: 400, height: 380 });
+figma.showUI(__html__, { width: 400, height: 340 });
 
 figma.ui.onmessage = async (msg) => {
   if (msg.type === 'export-html') {
