@@ -59,9 +59,12 @@ export function createVariantSwitchingHandler(): string {
                 variantIds: allVariants.map(v => v.getAttribute('data-figma-id'))
               });
               
-              // Reset opacity for all variants in this specific component set instance
+              // CRITICAL FIX: Use smooth opacity transitions instead of display changes to prevent flickering
+              // This ensures smooth transitions between button states without visual jumps
               allVariants.forEach(el => {
-                el.style.opacity = '1'; // Reset opacity to 1 for all variants
+                // Use opacity for smooth transitions instead of display: none
+                el.style.opacity = '0';
+                el.style.transition = 'opacity 0.15s ease-in-out';
                 el.classList.add('variant-hidden');
                 el.classList.remove('variant-active');
                 console.log('Hidden variant:', el.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
@@ -74,7 +77,9 @@ export function createVariantSwitchingHandler(): string {
               );
               
               if (selectedVariant) {
-                selectedVariant.style.opacity = '1'; // Ensure selected variant has opacity 1
+                // Use opacity for smooth transitions instead of display: flex
+                selectedVariant.style.opacity = '1';
+                selectedVariant.style.transition = 'opacity 0.15s ease-in-out';
                 selectedVariant.classList.add('variant-active');
                 selectedVariant.classList.remove('variant-hidden');
                 console.log('Switched to variant:', variant, 'in component set:', componentSet.getAttribute('data-figma-id'), 'instance structure:', {

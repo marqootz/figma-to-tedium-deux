@@ -321,16 +321,19 @@ export function createSmartAnimateHandler(): string {
 
       // Helper function to perform instant variant switch
       function performInstantVariantSwitch(allVariants, destination) {
-        // Hide all variants in the component set
+        // CRITICAL FIX: Use smooth opacity transitions for variant switching to prevent flickering
         allVariants.forEach(variant => {
           variant.classList.add('variant-hidden');
           variant.classList.remove('variant-active');
-          variant.style.opacity = '1'; // Reset opacity
+          variant.style.opacity = '0';
+          variant.style.transition = 'opacity 0.15s ease-in-out';
         });
         
-        // Show the destination variant
+        // Show the destination variant with smooth transition
         destination.classList.add('variant-active');
         destination.classList.remove('variant-hidden');
+        destination.style.opacity = '1';
+        destination.style.transition = 'opacity 0.15s ease-in-out';
         
         // Start timeout reactions
         startTimeoutReactionsForNewlyActiveVariant(destination);
@@ -389,12 +392,13 @@ export function createSmartAnimateHandler(): string {
           element.removeAttribute('data-original-top');
         });
         
-        // Hide all other variants
+        // CRITICAL FIX: Use smooth opacity transitions for variant switching to prevent flickering
         allVariants.forEach(variant => {
           if (variant !== destination) {
             variant.classList.add('variant-hidden');
             variant.classList.remove('variant-active');
-            variant.style.opacity = '1'; // Reset opacity
+            variant.style.opacity = '0';
+            variant.style.transition = 'opacity 0.15s ease-in-out';
           }
         });
         
@@ -874,15 +878,19 @@ export function createSmartAnimateHandler(): string {
               );
               
               
-              // Hide all variants in the component set
+              // CRITICAL FIX: Use smooth opacity transitions for variant switching to prevent flickering
               allVariants.forEach(variant => {
                 variant.classList.add('variant-hidden');
                 variant.classList.remove('variant-active');
+                variant.style.opacity = '0';
+                variant.style.transition = 'opacity 0.15s ease-in-out';
               });
               
-              // Show the destination variant
+              // Show the destination variant with smooth transition
               destination.classList.add('variant-active');
               destination.classList.remove('variant-hidden');
+              destination.style.opacity = '1';
+              destination.style.transition = 'opacity 0.15s ease-in-out';
               
               // Start timeout reactions for the newly active destination variant
               startTimeoutReactionsForNewlyActiveVariant(destination);
