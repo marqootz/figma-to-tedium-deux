@@ -129,9 +129,12 @@
     /* Variant visibility classes */
     .variant-active {
       display: flex !important;
+      opacity: 1 !important;
     }
     .variant-hidden {
-      display: none !important;
+      display: flex !important; /* Keep display flex but use opacity for visibility */
+      opacity: 0 !important;
+      pointer-events: none !important; /* Prevent interaction with hidden variants */
     }
     /* Let JavaScript handle component visibility instead of CSS rules */
     /* This allows the variant handler to properly manage which components are visible */
@@ -268,9 +271,12 @@
                 variantIds: allVariants.map(v => v.getAttribute('data-figma-id'))
               });
               
-              // Reset opacity for all variants in this specific component set instance
+              // CRITICAL FIX: Use smooth opacity transitions instead of display changes to prevent flickering
+              // This ensures smooth transitions between button states without visual jumps
               allVariants.forEach(el => {
-                el.style.opacity = '1'; // Reset opacity to 1 for all variants
+                // Use opacity for smooth transitions instead of display: none
+                el.style.opacity = '0';
+                el.style.transition = 'opacity 0.15s ease-in-out';
                 el.classList.add('variant-hidden');
                 el.classList.remove('variant-active');
                 console.log('Hidden variant:', el.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
@@ -283,7 +289,9 @@
               );
               
               if (selectedVariant) {
-                selectedVariant.style.opacity = '1'; // Ensure selected variant has opacity 1
+                // Use opacity for smooth transitions instead of display: flex
+                selectedVariant.style.opacity = '1';
+                selectedVariant.style.transition = 'opacity 0.15s ease-in-out';
                 selectedVariant.classList.add('variant-active');
                 selectedVariant.classList.remove('variant-hidden');
                 console.log('Switched to variant:', variant, 'in component set:', componentSet.getAttribute('data-figma-id'), 'instance structure:', {
@@ -1232,16 +1240,19 @@
 
       // Helper function to perform instant variant switch
       function performInstantVariantSwitch(allVariants, destination) {
-        // Hide all variants in the component set
+        // CRITICAL FIX: Use smooth opacity transitions for variant switching to prevent flickering
         allVariants.forEach(variant => {
           variant.classList.add('variant-hidden');
           variant.classList.remove('variant-active');
-          variant.style.opacity = '1'; // Reset opacity
+          variant.style.opacity = '0';
+          variant.style.transition = 'opacity 0.15s ease-in-out';
         });
         
-        // Show the destination variant
+        // Show the destination variant with smooth transition
         destination.classList.add('variant-active');
         destination.classList.remove('variant-hidden');
+        destination.style.opacity = '1';
+        destination.style.transition = 'opacity 0.15s ease-in-out';
         
         // Start timeout reactions
         startTimeoutReactionsForNewlyActiveVariant(destination);
@@ -1300,12 +1311,13 @@
           element.removeAttribute('data-original-top');
         });
         
-        // Hide all other variants
+        // CRITICAL FIX: Use smooth opacity transitions for variant switching to prevent flickering
         allVariants.forEach(variant => {
           if (variant !== destination) {
             variant.classList.add('variant-hidden');
             variant.classList.remove('variant-active');
-            variant.style.opacity = '1'; // Reset opacity
+            variant.style.opacity = '0';
+            variant.style.transition = 'opacity 0.15s ease-in-out';
           }
         });
         
@@ -1785,15 +1797,19 @@
               );
               
               
-              // Hide all variants in the component set
+              // CRITICAL FIX: Use smooth opacity transitions for variant switching to prevent flickering
               allVariants.forEach(variant => {
                 variant.classList.add('variant-hidden');
                 variant.classList.remove('variant-active');
+                variant.style.opacity = '0';
+                variant.style.transition = 'opacity 0.15s ease-in-out';
               });
               
-              // Show the destination variant
+              // Show the destination variant with smooth transition
               destination.classList.add('variant-active');
               destination.classList.remove('variant-hidden');
+              destination.style.opacity = '1';
+              destination.style.transition = 'opacity 0.15s ease-in-out';
               
               // Start timeout reactions for the newly active destination variant
               startTimeoutReactionsForNewlyActiveVariant(destination);
@@ -2207,8 +2223,9 @@
             variantIds: Array.from(variants).map(v => v.getAttribute('data-figma-id'))
           });
           
-          // Reset opacity for all variants to ensure clean initial state
+          // CRITICAL FIX: Use smooth opacity transitions for all variants to prevent flickering
           variants.forEach(variant => {
+            variant.style.transition = 'opacity 0.15s ease-in-out';
             variant.style.opacity = '1'; // Ensure all variants start with opacity 1
           });
           
@@ -2217,6 +2234,7 @@
             const singleVariant = variants[0];
             singleVariant.classList.add('variant-active');
             singleVariant.classList.remove('variant-hidden');
+            singleVariant.style.opacity = '1';
             console.log('Set single variant as active:', singleVariant.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
           } else {
             // For multiple variants, the FIRST variant should be active initially (where reactions are)
@@ -2225,10 +2243,12 @@
               if (index === 0) {
                 variant.classList.add('variant-active');
                 variant.classList.remove('variant-hidden');
+                variant.style.opacity = '1';
                 console.log('Set first variant as active (with reactions):', variant.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
               } else {
                 variant.classList.add('variant-hidden');
                 variant.classList.remove('variant-active');
+                variant.style.opacity = '0';
                 console.log('Set variant as hidden:', variant.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
               }
             });
@@ -2303,9 +2323,12 @@
                 variantIds: allVariants.map(v => v.getAttribute('data-figma-id'))
               });
               
-              // Reset opacity for all variants in this specific component set instance
+              // CRITICAL FIX: Use smooth opacity transitions instead of display changes to prevent flickering
+              // This ensures smooth transitions between button states without visual jumps
               allVariants.forEach(el => {
-                el.style.opacity = '1'; // Reset opacity to 1 for all variants
+                // Use opacity for smooth transitions instead of display: none
+                el.style.opacity = '0';
+                el.style.transition = 'opacity 0.15s ease-in-out';
                 el.classList.add('variant-hidden');
                 el.classList.remove('variant-active');
                 console.log('Hidden variant:', el.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
@@ -2318,7 +2341,9 @@
               );
               
               if (selectedVariant) {
-                selectedVariant.style.opacity = '1'; // Ensure selected variant has opacity 1
+                // Use opacity for smooth transitions instead of display: flex
+                selectedVariant.style.opacity = '1';
+                selectedVariant.style.transition = 'opacity 0.15s ease-in-out';
                 selectedVariant.classList.add('variant-active');
                 selectedVariant.classList.remove('variant-hidden');
                 console.log('Switched to variant:', variant, 'in component set:', componentSet.getAttribute('data-figma-id'), 'instance structure:', {
@@ -3267,16 +3292,19 @@
 
       // Helper function to perform instant variant switch
       function performInstantVariantSwitch(allVariants, destination) {
-        // Hide all variants in the component set
+        // CRITICAL FIX: Use smooth opacity transitions for variant switching to prevent flickering
         allVariants.forEach(variant => {
           variant.classList.add('variant-hidden');
           variant.classList.remove('variant-active');
-          variant.style.opacity = '1'; // Reset opacity
+          variant.style.opacity = '0';
+          variant.style.transition = 'opacity 0.15s ease-in-out';
         });
         
-        // Show the destination variant
+        // Show the destination variant with smooth transition
         destination.classList.add('variant-active');
         destination.classList.remove('variant-hidden');
+        destination.style.opacity = '1';
+        destination.style.transition = 'opacity 0.15s ease-in-out';
         
         // Start timeout reactions
         startTimeoutReactionsForNewlyActiveVariant(destination);
@@ -3335,12 +3363,13 @@
           element.removeAttribute('data-original-top');
         });
         
-        // Hide all other variants
+        // CRITICAL FIX: Use smooth opacity transitions for variant switching to prevent flickering
         allVariants.forEach(variant => {
           if (variant !== destination) {
             variant.classList.add('variant-hidden');
             variant.classList.remove('variant-active');
-            variant.style.opacity = '1'; // Reset opacity
+            variant.style.opacity = '0';
+            variant.style.transition = 'opacity 0.15s ease-in-out';
           }
         });
         
@@ -3820,15 +3849,19 @@
               );
               
               
-              // Hide all variants in the component set
+              // CRITICAL FIX: Use smooth opacity transitions for variant switching to prevent flickering
               allVariants.forEach(variant => {
                 variant.classList.add('variant-hidden');
                 variant.classList.remove('variant-active');
+                variant.style.opacity = '0';
+                variant.style.transition = 'opacity 0.15s ease-in-out';
               });
               
-              // Show the destination variant
+              // Show the destination variant with smooth transition
               destination.classList.add('variant-active');
               destination.classList.remove('variant-hidden');
+              destination.style.opacity = '1';
+              destination.style.transition = 'opacity 0.15s ease-in-out';
               
               // Start timeout reactions for the newly active destination variant
               startTimeoutReactionsForNewlyActiveVariant(destination);
@@ -4242,8 +4275,9 @@
             variantIds: Array.from(variants).map(v => v.getAttribute('data-figma-id'))
           });
           
-          // Reset opacity for all variants to ensure clean initial state
+          // CRITICAL FIX: Use smooth opacity transitions for all variants to prevent flickering
           variants.forEach(variant => {
+            variant.style.transition = 'opacity 0.15s ease-in-out';
             variant.style.opacity = '1'; // Ensure all variants start with opacity 1
           });
           
@@ -4252,6 +4286,7 @@
             const singleVariant = variants[0];
             singleVariant.classList.add('variant-active');
             singleVariant.classList.remove('variant-hidden');
+            singleVariant.style.opacity = '1';
             console.log('Set single variant as active:', singleVariant.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
           } else {
             // For multiple variants, the FIRST variant should be active initially (where reactions are)
@@ -4260,10 +4295,12 @@
               if (index === 0) {
                 variant.classList.add('variant-active');
                 variant.classList.remove('variant-hidden');
+                variant.style.opacity = '1';
                 console.log('Set first variant as active (with reactions):', variant.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
               } else {
                 variant.classList.add('variant-hidden');
                 variant.classList.remove('variant-active');
+                variant.style.opacity = '0';
                 console.log('Set variant as hidden:', variant.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
               }
             });

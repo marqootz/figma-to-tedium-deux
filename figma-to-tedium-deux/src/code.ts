@@ -54,12 +54,9 @@ figma.ui.onmessage = async (msg) => {
     /* Variant visibility classes */
     .variant-active {
       display: flex !important;
-      opacity: 1 !important;
     }
     .variant-hidden {
-      display: flex !important; /* Keep display flex but use opacity for visibility */
-      opacity: 0 !important;
-      pointer-events: none !important; /* Prevent interaction with hidden variants */
+      display: none !important;
     }
     /* Let JavaScript handle component visibility instead of CSS rules */
     /* This allows the variant handler to properly manage which components are visible */

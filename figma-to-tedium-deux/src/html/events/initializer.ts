@@ -21,9 +21,8 @@ export function createComponentSetInitializer(): string {
             variantIds: Array.from(variants).map(v => v.getAttribute('data-figma-id'))
           });
           
-          // CRITICAL FIX: Use smooth opacity transitions for all variants to prevent flickering
+          // Reset opacity for all variants to ensure clean initial state
           variants.forEach(variant => {
-            variant.style.transition = 'opacity 0.15s ease-in-out';
             variant.style.opacity = '1'; // Ensure all variants start with opacity 1
           });
           
@@ -32,7 +31,6 @@ export function createComponentSetInitializer(): string {
             const singleVariant = variants[0];
             singleVariant.classList.add('variant-active');
             singleVariant.classList.remove('variant-hidden');
-            singleVariant.style.opacity = '1';
             console.log('Set single variant as active:', singleVariant.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
           } else {
             // For multiple variants, the FIRST variant should be active initially (where reactions are)
@@ -41,12 +39,10 @@ export function createComponentSetInitializer(): string {
               if (index === 0) {
                 variant.classList.add('variant-active');
                 variant.classList.remove('variant-hidden');
-                variant.style.opacity = '1';
                 console.log('Set first variant as active (with reactions):', variant.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
               } else {
                 variant.classList.add('variant-hidden');
                 variant.classList.remove('variant-active');
-                variant.style.opacity = '0';
                 console.log('Set variant as hidden:', variant.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
               }
             });

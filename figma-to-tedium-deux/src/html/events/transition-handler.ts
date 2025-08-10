@@ -321,19 +321,16 @@ export function createSmartAnimateHandler(): string {
 
       // Helper function to perform instant variant switch
       function performInstantVariantSwitch(allVariants, destination) {
-        // CRITICAL FIX: Use smooth opacity transitions for variant switching to prevent flickering
+        // Hide all variants in the component set
         allVariants.forEach(variant => {
           variant.classList.add('variant-hidden');
           variant.classList.remove('variant-active');
-          variant.style.opacity = '0';
-          variant.style.transition = 'opacity 0.15s ease-in-out';
+          variant.style.opacity = '1'; // Reset opacity
         });
         
-        // Show the destination variant with smooth transition
+        // Show the destination variant
         destination.classList.add('variant-active');
         destination.classList.remove('variant-hidden');
-        destination.style.opacity = '1';
-        destination.style.transition = 'opacity 0.15s ease-in-out';
         
         // Start timeout reactions
         startTimeoutReactionsForNewlyActiveVariant(destination);
@@ -392,15 +389,18 @@ export function createSmartAnimateHandler(): string {
           element.removeAttribute('data-original-top');
         });
         
-        // CRITICAL FIX: Use smooth opacity transitions for variant switching to prevent flickering
-        allVariants.forEach(variant => {
-          if (variant !== destination) {
-            variant.classList.add('variant-hidden');
-            variant.classList.remove('variant-active');
-            variant.style.opacity = '0';
-            variant.style.transition = 'opacity 0.15s ease-in-out';
-          }
-        });
+                        // Hide all other variants
+                console.log('DEBUG: Hiding all variants except destination');
+                allVariants.forEach(variant => {
+                  if (variant !== destination) {
+                    console.log('  Hiding variant:', variant.getAttribute('data-figma-name'));
+                    variant.classList.add('variant-hidden');
+                    variant.classList.remove('variant-active');
+                    variant.style.opacity = '1'; // Reset opacity
+                  } else {
+                    console.log('  Keeping destination variant visible:', variant.getAttribute('data-figma-name'));
+                  }
+                });
         
         // Start timeout reactions
         startTimeoutReactionsForNewlyActiveVariant(destination);
@@ -412,11 +412,20 @@ export function createSmartAnimateHandler(): string {
 
       // Helper function to handle variant switching
       function handleVariantSwitching(sourceElement, destination, allVariants, transitionType, transitionDuration) {
+        console.log('=== VARIANT SWITCHING START ===');
         console.log('DEBUG: handleVariantSwitching called');
         console.log('  Source element ID:', sourceElement.getAttribute('data-figma-id'), 'Name:', sourceElement.getAttribute('data-figma-name'));
         console.log('  Destination element ID:', destination.getAttribute('data-figma-id'), 'Name:', destination.getAttribute('data-figma-name'));
         console.log('  Transition type:', transitionType, 'Duration:', transitionDuration);
         console.log('  All variants count:', allVariants.length);
+        console.log('  Transition lock status:', isTransitionInProgress);
+        
+        // Log current variant states
+        allVariants.forEach((variant, index) => {
+          const isActive = variant.classList.contains('variant-active');
+          const isHidden = variant.classList.contains('variant-hidden');
+          console.log('  Variant ' + (index + 1) + ': ' + variant.getAttribute('data-figma-name') + ' - Active: ' + isActive + ', Hidden: ' + isHidden);
+        });
         
         if (transitionType === 'SMART_ANIMATE' || transitionType === 'BOUNCY') {
           
@@ -751,20 +760,23 @@ export function createSmartAnimateHandler(): string {
       // Helper function to handle reaction transitions
       console.log('DEBUG: Defining handleReaction function...');
       function handleReaction(sourceElement, destinationId, transitionType, transitionDuration) {
-        console.log('=== DEBUG: handleReaction function entered ===');
+        console.log('=== REACTION HANDLER START ===');
         console.log('DEBUG: handleReaction called');
         console.log('  Source element ID:', sourceElement.getAttribute('data-figma-id'), 'Name:', sourceElement.getAttribute('data-figma-name'));
         console.log('  Destination ID:', destinationId);
         console.log('  Transition type:', transitionType, 'Duration:', transitionDuration);
         console.log('  Transition in progress:', isTransitionInProgress);
+        console.log('  Timestamp:', new Date().toISOString());
         
         // Prevent multiple simultaneous transitions
         if (isTransitionInProgress) {
           console.log('DEBUG: Transition already in progress, skipping');
+          console.log('=== REACTION HANDLER BLOCKED ===');
           return;
         }
         
         // CRITICAL FIX: Set transition lock immediately to prevent race conditions
+        console.log('DEBUG: Setting transition lock');
         isTransitionInProgress = true;
         
         if (destinationId) {
@@ -878,19 +890,15 @@ export function createSmartAnimateHandler(): string {
               );
               
               
-              // CRITICAL FIX: Use smooth opacity transitions for variant switching to prevent flickering
+              // Hide all variants in the component set
               allVariants.forEach(variant => {
                 variant.classList.add('variant-hidden');
                 variant.classList.remove('variant-active');
-                variant.style.opacity = '0';
-                variant.style.transition = 'opacity 0.15s ease-in-out';
               });
               
-              // Show the destination variant with smooth transition
+              // Show the destination variant
               destination.classList.add('variant-active');
               destination.classList.remove('variant-hidden');
-              destination.style.opacity = '1';
-              destination.style.transition = 'opacity 0.15s ease-in-out';
               
               // Start timeout reactions for the newly active destination variant
               startTimeoutReactionsForNewlyActiveVariant(destination);
@@ -1193,6 +1201,8 @@ export function createSmartAnimateHandler(): string {
               
               // Cleanup phase: Restore original styles after animation
               setTimeout(() => {
+                console.log('=== CLEANUP PHASE START ===');
+                console.log('DEBUG: Starting cleanup phase for animation');
                 elementsToAnimate.forEach(function(item) {
                   const element = item.element;
                   const originalStyles = JSON.parse(element.getAttribute('data-original-styles') || '{}');
@@ -1250,7 +1260,9 @@ export function createSmartAnimateHandler(): string {
                 startTimeoutReactionsForNestedComponents(destination);
                 
                 // Release transition lock
+                console.log('DEBUG: Releasing transition lock (animation cleanup)');
                 isTransitionInProgress = false;
+                console.log('=== VARIANT SWITCHING COMPLETE ===');
               }, parseFloat(transitionDuration || '300') * 1000 + 100);
               
             } else {
@@ -1269,7 +1281,9 @@ export function createSmartAnimateHandler(): string {
               startTimeoutReactionsForNestedComponents(destination);
               
               // Release transition lock
+              console.log('DEBUG: Releasing transition lock (default transition)');
               isTransitionInProgress = false;
+              console.log('=== REACTION HANDLER COMPLETE ===');
             }
           }
         }
