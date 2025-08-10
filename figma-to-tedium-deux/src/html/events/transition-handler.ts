@@ -779,6 +779,14 @@ export function createSmartAnimateHandler(): string {
         console.log('DEBUG: Setting transition lock');
         isTransitionInProgress = true;
         
+        // Safety timeout to prevent transition lock from getting stuck
+        const safetyTimeout = setTimeout(() => {
+          if (isTransitionInProgress) {
+            console.log('WARNING: Transition lock stuck for 5 seconds, forcing release');
+            isTransitionInProgress = false;
+          }
+        }, 5000); // 5 second safety timeout
+        
         if (destinationId) {
           console.log('DEBUG: Looking for destination element with ID:', destinationId);
           const destination = document.querySelector(\`[data-figma-id="\${destinationId}"]\`);
@@ -1261,6 +1269,7 @@ export function createSmartAnimateHandler(): string {
                 
                 // Release transition lock
                 console.log('DEBUG: Releasing transition lock (animation cleanup)');
+                clearTimeout(safetyTimeout);
                 isTransitionInProgress = false;
                 console.log('=== VARIANT SWITCHING COMPLETE ===');
               }, parseFloat(transitionDuration || '300') * 1000 + 100);
@@ -1282,10 +1291,17 @@ export function createSmartAnimateHandler(): string {
               
               // Release transition lock
               console.log('DEBUG: Releasing transition lock (default transition)');
+              clearTimeout(safetyTimeout);
               isTransitionInProgress = false;
               console.log('=== REACTION HANDLER COMPLETE ===');
             }
           }
+        } else {
+          // No destination ID provided - release transition lock and exit
+          console.log('DEBUG: No destination ID provided, releasing transition lock');
+          clearTimeout(safetyTimeout);
+          isTransitionInProgress = false;
+          console.log('=== REACTION HANDLER COMPLETE (NO DESTINATION) ===');
         }
         console.log('=== DEBUG: handleReaction function completed ===');
       }
