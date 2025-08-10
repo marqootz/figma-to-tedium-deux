@@ -170,14 +170,7 @@ export function createSmartAnimateHandler(): string {
       function applyCoordinatedBouncyAnimation(element, startX, endX, startY, endY, duration) {
         const elementId = element.getAttribute('data-figma-id');
         
-        console.log('DEBUG: Coordinated bouncy animation details:');
-        console.log('  Element ID:', elementId);
-        console.log('  Start position:', startX + 'px, ' + startY + 'px');
-        console.log('  End position:', endX + 'px, ' + endY + 'px');
-        console.log('  Duration:', duration, 's');
-        console.log('  Element position before animation:', element.style.position);
-        console.log('  Element left before animation:', element.style.left);
-        console.log('  Element top before animation:', element.style.top);
+        console.log('DEBUG: Starting coordinated bouncy animation:', elementId);
         
         // Calculate the movement distances
         const deltaX = endX - startX;
@@ -221,23 +214,7 @@ export function createSmartAnimateHandler(): string {
           element.style.left = currentX + 'px';
           element.style.top = currentY + 'px';
           
-          // Log frame for debugging
-          const computedStyle = window.getComputedStyle(element);
-          const rect = element.getBoundingClientRect();
-          
-          console.log(\`DEBUG: Coordinated animation frame at \${progress.toFixed(2)} progress (\${elapsed}ms):\`, {
-            elementId: elementId,
-            position: element.style.position,
-            left: element.style.left,
-            top: element.style.top,
-            computedLeft: computedStyle.left,
-            computedTop: computedStyle.top,
-            transform: computedStyle.transform,
-            rectX: rect.x,
-            rectY: rect.y,
-            rectLeft: rect.left,
-            rectTop: rect.top
-          });
+          // Animation frame processing (logging removed for cleaner output)
           
           if (progress < 1) {
             requestAnimationFrame(animate);
@@ -246,11 +223,7 @@ export function createSmartAnimateHandler(): string {
             element.style.left = endX + 'px';
             element.style.top = endY + 'px';
             
-            console.log('DEBUG: Coordinated animation completed for element:', elementId);
-            console.log('DEBUG: Final position - left:', element.style.left, 'top:', element.style.top);
-            console.log('DEBUG: Final element rect:', element.getBoundingClientRect());
-            console.log('DEBUG: Final element style - position:', element.style.position, 'left:', element.style.left, 'top:', element.style.top);
-            console.log('DEBUG: Final computed style - left:', window.getComputedStyle(element).left, 'top:', window.getComputedStyle(element).top);
+            console.log('DEBUG: Coordinated animation completed:', elementId);
           }
         };
         
@@ -262,14 +235,7 @@ export function createSmartAnimateHandler(): string {
       function applyCoordinatedSmoothAnimation(element, startX, endX, startY, endY, duration) {
         const elementId = element.getAttribute('data-figma-id');
         
-        console.log('DEBUG: Coordinated smooth animation details:');
-        console.log('  Element ID:', elementId);
-        console.log('  Start position:', startX + 'px, ' + startY + 'px');
-        console.log('  End position:', endX + 'px, ' + endY + 'px');
-        console.log('  Duration:', duration, 's');
-        console.log('  Element position before animation:', element.style.position);
-        console.log('  Element left before animation:', element.style.left);
-        console.log('  Element top before animation:', element.style.top);
+        console.log('DEBUG: Starting coordinated smooth animation:', elementId);
         
         // Calculate the movement distances
         const deltaX = endX - startX;
@@ -295,23 +261,7 @@ export function createSmartAnimateHandler(): string {
           element.style.left = currentX + 'px';
           element.style.top = currentY + 'px';
           
-          // Log frame for debugging
-          const computedStyle = window.getComputedStyle(element);
-          const rect = element.getBoundingClientRect();
-          
-          console.log(\`DEBUG: Coordinated smooth animation frame at \${progress.toFixed(2)} progress (\${elapsed}ms):\`, {
-            elementId: elementId,
-            position: element.style.position,
-            left: element.style.left,
-            top: element.style.top,
-            computedLeft: computedStyle.left,
-            computedTop: computedStyle.top,
-            transform: computedStyle.transform,
-            rectX: rect.x,
-            rectY: rect.y,
-            rectLeft: rect.left,
-            rectTop: rect.top
-          });
+          // Animation frame processing (logging removed for cleaner output)
           
           if (progress < 1) {
             requestAnimationFrame(animate);
@@ -320,11 +270,7 @@ export function createSmartAnimateHandler(): string {
             element.style.left = endX + 'px';
             element.style.top = endY + 'px';
             
-            console.log('DEBUG: Coordinated smooth animation completed for element:', elementId);
-            console.log('DEBUG: Final position - left:', element.style.left, 'top:', element.style.top);
-            console.log('DEBUG: Final element rect:', element.getBoundingClientRect());
-            console.log('DEBUG: Final element style - position:', element.style.position, 'left:', element.style.left, 'top:', element.style.top);
-            console.log('DEBUG: Final computed style - left:', window.getComputedStyle(element).left, 'top:', window.getComputedStyle(element).top);
+            console.log('DEBUG: Coordinated smooth animation completed:', elementId);
           }
         };
         
