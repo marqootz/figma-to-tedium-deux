@@ -300,6 +300,132 @@ export function createSmartAnimateHandler(): string {
           }
         });
       }
+      
+      // Helper function to recalculate layout for nested component sets
+      function recalculateNestedComponentLayout(variant) {
+        console.log('DEBUG: Recalculating layout for nested components in variant:', variant.getAttribute('data-figma-name'));
+        
+        // Find all nested component sets within this variant
+        const nestedComponentSets = variant.querySelectorAll('[data-figma-type="COMPONENT_SET"]');
+        nestedComponentSets.forEach(componentSet => {
+          const componentSetId = componentSet.getAttribute('data-figma-id');
+          const componentSetName = componentSet.getAttribute('data-figma-name');
+          console.log('DEBUG: Processing nested component set:', componentSetId, 'name:', componentSetName);
+          
+          // Get the active variant within this component set
+          const activeVariant = componentSet.querySelector('.variant-active');
+          if (activeVariant) {
+            console.log('DEBUG: Found active variant in nested component set:', activeVariant.getAttribute('data-figma-name'));
+            
+            // Force a reflow to ensure the component set is properly rendered
+            componentSet.offsetHeight;
+            
+            // Apply layout styles to the component set itself
+            const layoutMode = componentSet.getAttribute('data-layout-mode');
+            const primaryAxisAlign = componentSet.getAttribute('data-primary-axis-align');
+            const counterAxisAlign = componentSet.getAttribute('data-counter-axis-align');
+            const itemSpacing = componentSet.getAttribute('data-item-spacing');
+            
+            if (layoutMode) {
+              componentSet.style.display = 'flex';
+              if (layoutMode === 'HORIZONTAL') {
+                componentSet.style.flexDirection = 'row';
+              } else if (layoutMode === 'VERTICAL') {
+                componentSet.style.flexDirection = 'column';
+              }
+              
+              if (primaryAxisAlign) {
+                switch (primaryAxisAlign) {
+                  case 'MIN': componentSet.style.justifyContent = 'flex-start'; break;
+                  case 'MAX': componentSet.style.justifyContent = 'flex-end'; break;
+                  case 'CENTER': componentSet.style.justifyContent = 'center'; break;
+                  case 'SPACE_BETWEEN': componentSet.style.justifyContent = 'space-between'; break;
+                  case 'SPACE_AROUND': componentSet.style.justifyContent = 'space-around'; break;
+                }
+              }
+              
+              if (counterAxisAlign) {
+                switch (counterAxisAlign) {
+                  case 'MIN': componentSet.style.alignItems = 'flex-start'; break;
+                  case 'MAX': componentSet.style.alignItems = 'flex-end'; break;
+                  case 'CENTER': componentSet.style.alignItems = 'center'; break;
+                  case 'STRETCH': componentSet.style.alignItems = 'stretch'; break;
+                }
+              }
+              
+              if (itemSpacing && itemSpacing !== '0') {
+                componentSet.style.gap = itemSpacing + 'px';
+              }
+            }
+            
+            // Force another reflow after applying styles
+            componentSet.offsetHeight;
+            
+            // Ensure the active variant is properly positioned
+            const activeVariantRect = activeVariant.getBoundingClientRect();
+            const componentSetRect = componentSet.getBoundingClientRect();
+            console.log('DEBUG: Active variant position:', {
+              left: activeVariantRect.left,
+              top: activeVariantRect.top,
+              width: activeVariantRect.width,
+              height: activeVariantRect.height
+            });
+            console.log('DEBUG: Component set position:', {
+              left: componentSetRect.left,
+              top: componentSetRect.top,
+              width: componentSetRect.width,
+              height: componentSetRect.height
+            });
+          }
+        });
+        
+        // Also recalculate layout for any frames with auto-layout
+        const autoLayoutFrames = variant.querySelectorAll('[data-layout-mode]');
+        autoLayoutFrames.forEach(frame => {
+          const frameId = frame.getAttribute('data-figma-id');
+          const frameName = frame.getAttribute('data-figma-name');
+          const layoutMode = frame.getAttribute('data-layout-mode');
+          
+          console.log('DEBUG: Processing auto-layout frame:', frameId, 'name:', frameName, 'layout:', layoutMode);
+          
+          if (layoutMode && layoutMode !== 'NONE') {
+            frame.style.display = 'flex';
+            if (layoutMode === 'HORIZONTAL') {
+              frame.style.flexDirection = 'row';
+            } else if (layoutMode === 'VERTICAL') {
+              frame.style.flexDirection = 'column';
+            }
+            
+            // Apply alignment and spacing if available
+            const primaryAxisAlign = frame.getAttribute('data-primary-axis-align');
+            const counterAxisAlign = frame.getAttribute('data-counter-axis-align');
+            const itemSpacing = frame.getAttribute('data-item-spacing');
+            
+            if (primaryAxisAlign) {
+              switch (primaryAxisAlign) {
+                case 'MIN': frame.style.justifyContent = 'flex-start'; break;
+                case 'MAX': frame.style.justifyContent = 'flex-end'; break;
+                case 'CENTER': frame.style.justifyContent = 'center'; break;
+                case 'SPACE_BETWEEN': frame.style.justifyContent = 'space-between'; break;
+                case 'SPACE_AROUND': frame.style.justifyContent = 'space-around'; break;
+              }
+            }
+            
+            if (counterAxisAlign) {
+              switch (counterAxisAlign) {
+                case 'MIN': frame.style.alignItems = 'flex-start'; break;
+                case 'MAX': frame.style.alignItems = 'flex-end'; break;
+                case 'CENTER': frame.style.alignItems = 'center'; break;
+                case 'STRETCH': frame.style.alignItems = 'stretch'; break;
+              }
+            }
+            
+            if (itemSpacing && itemSpacing !== '0') {
+              frame.style.gap = itemSpacing + 'px';
+            }
+          }
+        });
+      }
 
       // Helper function to setup destination for animation
       function setupDestinationForAnimation(destination) {
@@ -331,6 +457,9 @@ export function createSmartAnimateHandler(): string {
         // Show the destination variant
         destination.classList.add('variant-active');
         destination.classList.remove('variant-hidden');
+        
+        // CRITICAL FIX: Recalculate layout for nested component sets
+        recalculateNestedComponentLayout(destination);
         
         // Start timeout reactions
         startTimeoutReactionsForNewlyActiveVariant(destination);
@@ -938,13 +1067,16 @@ export function createSmartAnimateHandler(): string {
                 destination.classList.remove('variant-hidden');
                 destination.style.opacity = '1';
                 
-                // Ensure tap targets are visible in the destination variant
-                ensureTapTargetsVisible(destination);
-                
-                // Start timeout reactions for the newly active destination variant
-                startTimeoutReactionsForNewlyActiveVariant(destination);
-                // Start timeout reactions for nested components within the destination
-                startTimeoutReactionsForNestedComponents(destination);
+                              // Ensure tap targets are visible in the destination variant
+              ensureTapTargetsVisible(destination);
+              
+              // CRITICAL FIX: Recalculate layout for nested component sets
+              recalculateNestedComponentLayout(destination);
+              
+              // Start timeout reactions for the newly active destination variant
+              startTimeoutReactionsForNewlyActiveVariant(destination);
+              // Start timeout reactions for nested components within the destination
+              startTimeoutReactionsForNestedComponents(destination);
                 
                 // Release transition lock
                 isTransitionInProgress = false;
@@ -1041,12 +1173,15 @@ export function createSmartAnimateHandler(): string {
                   sourceElement.style.opacity = '1';
                   destination.style.opacity = '1';
                   
-                  // Ensure tap targets are visible in the destination variant
-                  ensureTapTargetsVisible(destination);
-                  
-                  startTimeoutReactionsForNewlyActiveVariant(destination);
-                  // Start timeout reactions for nested components within the destination
-                  startTimeoutReactionsForNestedComponents(destination);
+                                  // Ensure tap targets are visible in the destination variant
+                ensureTapTargetsVisible(destination);
+                
+                // CRITICAL FIX: Recalculate layout for nested component sets
+                recalculateNestedComponentLayout(destination);
+                
+                startTimeoutReactionsForNewlyActiveVariant(destination);
+                // Start timeout reactions for nested components within the destination
+                startTimeoutReactionsForNestedComponents(destination);
                 }, parseFloat(transitionDuration || '300') * 1000 + 100);
                 
                 return; // Exit early for fade transition
@@ -1283,6 +1418,9 @@ export function createSmartAnimateHandler(): string {
               
               // Ensure tap targets are visible in the destination variant
               ensureTapTargetsVisible(destination);
+              
+              // CRITICAL FIX: Recalculate layout for nested component sets
+              recalculateNestedComponentLayout(destination);
               
               // Start timeout reactions for the newly active destination variant
               startTimeoutReactionsForNewlyActiveVariant(destination);
