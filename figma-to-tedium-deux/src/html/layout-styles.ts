@@ -5,38 +5,17 @@ export function computeLayoutStyles(node: FigmaNode, parentNode?: FigmaNode): Co
   const layoutStyles: ComputedStyles = {};
   
   // --- POSITIONING LOGIC ---
-  // Determine if this element should get position: relative
+  // All instances and component sets should get position: relative and 0px top/left
+  // This is their default export state, regardless of nesting
   
-  // Case 1: Container elements that establish positioning context
-  const isContainerElement = node.type === 'INSTANCE' || 
-                           node.type === 'COMPONENT_SET' || 
-                           node.type === 'COMPONENT';
+  const isInstanceOrComponentSet = node.type === 'INSTANCE' || 
+                                  node.type === 'COMPONENT_SET' || 
+                                  node.type === 'COMPONENT';
   
-  // Case 2: Frames with auto-layout that have children (need positioning context for children)
-  const isFrameWithAutoLayout = node.type === 'FRAME' && 
-                               node.layoutMode && 
-                               node.children && 
-                               node.children.length > 0;
-  
-  // Case 3: ANY child of an auto-layout frame (needs position: relative + 0px)
-  const isChildOfAutoLayoutFrame = parentNode && 
-                                  parentNode.type === 'FRAME' && 
-                                  parentNode.layoutMode;
-  
-  // CRITICAL FIX: Check if parent has NO auto-layout (NONE layout mode)
-  // In this case, children should NOT get position: relative + 0px
-  const isChildOfNonAutoLayoutFrame = parentNode && 
-                                     parentNode.type === 'FRAME' && 
-                                     parentNode.layoutMode === 'NONE';
-  
-  if (isContainerElement || isFrameWithAutoLayout || (isChildOfAutoLayoutFrame && !isChildOfNonAutoLayoutFrame)) {
+  if (isInstanceOrComponentSet) {
     layoutStyles.position = 'relative';
-    
-    // For children of auto-layout frames, also set top/left to 0px
-    if (isChildOfAutoLayoutFrame && !isChildOfNonAutoLayoutFrame) {
-      layoutStyles.top = '0px';
-      layoutStyles.left = '0px';
-    }
+    layoutStyles.top = '0px';
+    layoutStyles.left = '0px';
   }
   
   // --- AUTO-LAYOUT STYLES ---

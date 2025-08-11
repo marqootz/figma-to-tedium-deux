@@ -43,7 +43,7 @@ export function createPropertyDetector(): string {
             
             if (changes.hasChanges) {
               elementsToAnimate.push({
-                element: element,
+                element: sourceElement,  // Use SOURCE element (from copy) instead of target
                 sourceElement: sourceElement,
                 changes: changes
               });
@@ -140,12 +140,81 @@ export function createPropertyDetector(): string {
           const sourceHasBeenAnimated = sourceElement.style.position === 'absolute' && 
                                        (sourceElement.style.left || sourceElement.style.top);
           
-          // Use Figma position data if available, otherwise fall back to computed styles
-          // Add transform offset to account for any ongoing animations
-          const finalTargetLeft = targetFigmaX > 0 ? targetFigmaX : targetLeft;
-          const finalSourceLeft = sourceHasBeenAnimated ? 
-            (parseFloat(sourceElement.style.left) || 0) + sourceTransformOffset :
-            (sourceFigmaX > 0 ? sourceFigmaX : sourceLeft) + sourceTransformOffset;
+          // Calculate target position by scaling Figma coordinates to actual rendered size
+          // Use SOURCE element's parent (copy) for scaling since we're animating the copy
+          const sourceContainerForScaling = sourceElement.closest('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
+          const targetContainerForScaling = sourceElement.closest('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
+          
+          let finalTargetLeft = 0; // Start with 0, will be calculated below
+          // Always use computed styles for consistency
+          let finalSourceLeft = parseFloat(sourceStyle.left) || 0;
+          
+          // Add transform offset if present
+          finalSourceLeft += sourceTransformOffset;
+          
+          // CRITICAL FIX: Scale position from component set dimensions to instance dimensions
+          // The target element is positioned in the component set (2619.125px) but needs to be scaled to the instance (346px)
+          const targetComputedStyle = window.getComputedStyle(targetElement);
+          let targetContainerX = targetElement.parentElement;
+          
+          // Walk up the DOM tree to find the nearest INSTANCE container
+          while (targetContainerX && targetContainerX.getAttribute('data-figma-type') !== 'INSTANCE') {
+            targetContainerX = targetContainerX.parentElement;
+          }
+          
+          if (targetContainerX) {
+            const containerRectX = targetContainerX.getBoundingClientRect();
+            const targetElementRectX = targetElement.getBoundingClientRect();
+            
+            // Get the original Figma X position from the target element
+            const figmaX = parseFloat(targetElement.getAttribute('data-figma-x')) || 0;
+            
+            // Scale factor: instance width / component set width
+            // From JSON: component set width = 2619.125px, instance width = 346px
+            const componentSetWidth = 2619.125;
+            const instanceWidth = containerRectX.width;
+            const scaleFactor = instanceWidth / componentSetWidth;
+            
+            // Scale the Figma X position to fit within the instance
+            // Account for the object's width to prevent overflow
+            const objectWidth = targetElementRectX.width;
+            const scaledPosition = figmaX * scaleFactor;
+            
+            // Ensure the object doesn't overflow the container
+            finalTargetLeft = Math.min(scaledPosition, instanceWidth - objectWidth);
+            
+            console.log('DEBUG: Position calculation with object size:', {
+              figmaX: figmaX,
+              scaleFactor: scaleFactor,
+              scaledPosition: scaledPosition,
+              objectWidth: objectWidth,
+              instanceWidth: instanceWidth,
+              finalTargetLeft: finalTargetLeft
+            });
+            
+            console.log('DEBUG: Using scaled INSTANCE-relative position calculation:', {
+              targetElementLeft: targetElementRectX.left,
+              containerLeft: containerRectX.left,
+              containerWidth: containerRectX.width,
+              figmaX: figmaX,
+              componentSetWidth: componentSetWidth,
+              scaleFactor: scaleFactor,
+              finalTargetLeft: finalTargetLeft,
+              targetElement: targetElement.getAttribute('data-figma-name') || targetElement.getAttribute('data-figma-id'),
+              containerElement: targetContainerX.tagName + (targetContainerX.className ? '.' + targetContainerX.className : ''),
+              containerType: targetContainerX.getAttribute('data-figma-type'),
+              containerId: targetContainerX.getAttribute('data-figma-id'),
+              targetComputedLeft: targetComputedStyle.left
+            });
+          } else {
+            // Fallback to computed values if no instance found
+            finalTargetLeft = parseFloat(targetComputedStyle.left) || 0;
+            console.log('DEBUG: Using computed values fallback:', {
+              targetComputedLeft: targetComputedStyle.left,
+              finalTargetLeft: finalTargetLeft,
+              targetElement: targetElement.getAttribute('data-figma-name') || targetElement.getAttribute('data-figma-id')
+            });
+          }
           
           console.log('DEBUG: X Position Analysis:');
           console.log('  Source has been animated:', sourceHasBeenAnimated);
@@ -157,7 +226,7 @@ export function createPropertyDetector(): string {
             changes.positionX.sourceValue = finalSourceLeft;
             changes.positionX.targetValue = finalTargetLeft;
             changes.hasChanges = true;
-            console.log('DEBUG: Position X change detected:', finalSourceLeft, '->', finalTargetLeft, '(using Figma data)');
+            console.log('DEBUG: Position X change detected:', finalSourceLeft, '->', finalTargetLeft, '(scaled from Figma coordinates)');
             console.log('DEBUG: Position X change details:');
             console.log('  Source element rect:', sourceElement.getBoundingClientRect());
             console.log('  Target element rect:', targetElement.getBoundingClientRect());
@@ -185,12 +254,77 @@ export function createPropertyDetector(): string {
             console.log('DEBUG: Source element has transform:', sourceTransform, 'translateY offset:', sourceTransformYOffset);
           }
           
-          // Use Figma position data if available, otherwise fall back to computed styles
-          // Add transform offset to account for any ongoing animations
-          const finalTargetTop = targetFigmaY > 0 ? targetFigmaY : targetTop;
-          const finalSourceTop = sourceHasBeenAnimated ? 
-            (parseFloat(sourceElement.style.top) || 0) + sourceTransformYOffset :
-            (sourceFigmaY > 0 ? sourceFigmaY : sourceTop) + sourceTransformYOffset;
+          // Calculate target position by scaling Figma coordinates to actual rendered size
+          let finalTargetTop = 0; // Start with 0, will be calculated below
+          // Always use computed styles for consistency
+          let finalSourceTop = parseFloat(sourceStyle.top) || 0;
+          
+          // Add transform offset if present
+          finalSourceTop += sourceTransformYOffset;
+          
+          // CRITICAL FIX: Scale position from component set dimensions to instance dimensions
+          // The target element is positioned in the component set but needs to be scaled to the instance
+          const targetComputedStyleY = window.getComputedStyle(targetElement);
+          let targetContainerY = targetElement.parentElement;
+          
+          // Walk up the DOM tree to find the nearest INSTANCE container
+          while (targetContainerY && targetContainerY.getAttribute('data-figma-type') !== 'INSTANCE') {
+            targetContainerY = targetContainerY.parentElement;
+          }
+          
+          if (targetContainerY) {
+            const containerRectY = targetContainerY.getBoundingClientRect();
+            const targetElementRectY = targetElement.getBoundingClientRect();
+            
+            // Get the original Figma Y position from the target element
+            const figmaY = parseFloat(targetElement.getAttribute('data-figma-y')) || 0;
+            
+            // Scale factor: instance height / component set height
+            // From JSON: component set height = 214px, instance height = 84px
+            const componentSetHeight = 214;
+            const instanceHeight = containerRectY.height;
+            const scaleFactorY = instanceHeight / componentSetHeight;
+            
+            // Scale the Figma Y position to fit within the instance
+            // Account for the object's height to prevent overflow
+            const objectHeight = targetElementRectY.height;
+            const scaledPositionY = figmaY * scaleFactorY;
+            
+            // Ensure the object doesn't overflow the container
+            finalTargetTop = Math.min(scaledPositionY, instanceHeight - objectHeight);
+            
+            console.log('DEBUG: Y Position calculation with object size:', {
+              figmaY: figmaY,
+              scaleFactorY: scaleFactorY,
+              scaledPositionY: scaledPositionY,
+              objectHeight: objectHeight,
+              instanceHeight: instanceHeight,
+              finalTargetTop: finalTargetTop
+            });
+            
+            console.log('DEBUG: Using scaled INSTANCE-relative position calculation Y:', {
+              targetElementTop: targetElementRectY.top,
+              containerTop: containerRectY.top,
+              containerHeight: containerRectY.height,
+              figmaY: figmaY,
+              componentSetHeight: componentSetHeight,
+              scaleFactorY: scaleFactorY,
+              finalTargetTop: finalTargetTop,
+              targetElement: targetElement.getAttribute('data-figma-name') || targetElement.getAttribute('data-figma-id'),
+              containerElement: targetContainerY.tagName + (targetContainerY.className ? '.' + targetContainerY.className : ''),
+              containerType: targetContainerY.getAttribute('data-figma-type'),
+              containerId: targetContainerY.getAttribute('data-figma-id'),
+              targetComputedTop: targetComputedStyleY.top
+            });
+          } else {
+            // Fallback to computed values if no instance found
+            finalTargetTop = parseFloat(targetComputedStyleY.top) || 0;
+            console.log('DEBUG: Using computed values fallback Y:', {
+              targetComputedTop: targetComputedStyleY.top,
+              finalTargetTop: finalTargetTop,
+              targetElement: targetElement.getAttribute('data-figma-name') || targetElement.getAttribute('data-figma-id')
+            });
+          }
           
           console.log('DEBUG: Y Position Analysis:');
           console.log('  Source computed top:', sourceTop, 'Source Figma Y:', sourceFigmaY, 'Transform offset:', sourceTransformYOffset, 'Final source top:', finalSourceTop);
@@ -201,7 +335,7 @@ export function createPropertyDetector(): string {
             changes.positionY.sourceValue = finalSourceTop;
             changes.positionY.targetValue = finalTargetTop;
             changes.hasChanges = true;
-            console.log('DEBUG: Position Y change detected:', finalSourceTop, '->', finalTargetTop, '(using Figma data)');
+            console.log('DEBUG: Position Y change detected:', finalSourceTop, '->', finalTargetTop, '(scaled from Figma coordinates)');
           } else {
             console.log('DEBUG: No Y position change detected - difference:', Math.abs(finalSourceTop - finalTargetTop));
           }

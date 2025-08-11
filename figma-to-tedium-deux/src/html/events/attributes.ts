@@ -42,14 +42,9 @@ export function generateReactionAttributes(node: FigmaNode): Record<string, stri
             // Map Figma easing types to our transition types
             if (easingType === 'EASE_IN_AND_OUT_BACK' || easingType === 'BOUNCY') {
               transitionType = 'BOUNCY';
-            } else if (easingType === 'EASE_IN_AND_OUT') {
-              transitionType = 'SMART_ANIMATE';
-            } else if (easingType === 'EASE_IN') {
-              transitionType = 'SMART_ANIMATE';
-            } else if (easingType === 'EASE_OUT') {
-              transitionType = 'SMART_ANIMATE';
-            } else if (easingType === 'LINEAR') {
-              transitionType = 'SMART_ANIMATE';
+            } else {
+              // For other easing types, preserve the original easing type
+              transitionType = easingType;
             }
           }
           

@@ -1,22 +1,12 @@
-// Variant switching handler
+// Variant switching handler - instant switching only, no animation
 export function createVariantSwitchingHandler(): string {
   return `
-      // Handle variant switching - support both data-variant and data-variant-property-* attributes
+      // Handle variant switching - instant switching only, no animation
+      // This is a simple slideshow-like system that switches between variants instantly
       const variantButtons = document.querySelectorAll('[data-variant], [data-variant-property-1]');
       variantButtons.forEach(button => {
         button.addEventListener('click', function() {
-          // CRITICAL FIX: Prevent variant handler from running if a reaction transition is in progress
-          // This prevents conflicts between reaction handler and variant handler
-          console.log('DEBUG: Variant handler checking transition lock:', {
-            isTransitionInProgress: typeof isTransitionInProgress !== 'undefined' ? isTransitionInProgress : 'undefined',
-            elementId: this.getAttribute('data-figma-id'),
-            elementType: this.getAttribute('data-figma-type')
-          });
-          
-          if (typeof isTransitionInProgress !== 'undefined' && isTransitionInProgress) {
-            console.log('DEBUG: Skipping variant handler - transition in progress');
-            return;
-          }
+          console.log('DEBUG: Variant switch clicked');
           
           const variant = this.getAttribute('data-variant') || this.getAttribute('data-variant-property-1');
           const targetId = this.getAttribute('data-target');
@@ -24,63 +14,62 @@ export function createVariantSwitchingHandler(): string {
           if (targetId) {
             const target = document.querySelector(\`[data-figma-id="\${targetId}"]\`);
             if (target) {
-              console.log('Variant switch clicked:', { variant, targetId, targetName: target.getAttribute('data-figma-name'), targetType: target.getAttribute('data-figma-type') });
+              console.log('Variant switch:', { variant, targetId, targetName: target.getAttribute('data-figma-name') });
               
               // Find the specific component set that contains this button
-              // This ensures nested components switch their own variants, not the top-level
               let componentSet = target;
               let buttonElement = this;
               
               // Walk up the DOM tree to find the immediate component set parent
-              // With the new 1:1 structure, this should find the COMPONENT_SET that's a child of the INSTANCE
               while (buttonElement && buttonElement.parentElement) {
                 buttonElement = buttonElement.parentElement;
                 if (buttonElement.getAttribute('data-figma-type') === 'COMPONENT_SET') {
                   componentSet = buttonElement;
                   console.log('Found component set for switching:', {
                     id: componentSet.getAttribute('data-figma-id'),
-                    name: componentSet.getAttribute('data-figma-name'),
-                    parentType: componentSet.parentElement?.getAttribute('data-figma-type'),
-                    parentId: componentSet.parentElement?.getAttribute('data-figma-id')
+                    name: componentSet.getAttribute('data-figma-name')
                   });
                   break;
                 }
               }
               
-              // CRITICAL FIX: Only affect variants within this specific component set instance
-              // Use the componentSet's direct children to ensure we don't affect other instances
+              // Get all variants within this specific component set instance
               const allVariants = Array.from(componentSet.children).filter(child => 
                 child.getAttribute('data-figma-type') === 'COMPONENT' &&
                 (child.getAttribute('data-variant') || child.getAttribute('data-variant-property-1'))
               );
               
-              console.log('Found', allVariants.length, 'variants in this component set instance:', {
-                componentSetId: componentSet.getAttribute('data-figma-id'),
-                variantIds: allVariants.map(v => v.getAttribute('data-figma-id'))
+              console.log('Found', allVariants.length, 'variants in component set:', componentSet.getAttribute('data-figma-id'));
+              
+              // INSTANT VARIANT SWITCHING - Hide all variants
+              allVariants.forEach(variant => {
+                variant.classList.add('variant-hidden');
+                variant.classList.remove('variant-active');
+                // Ensure all variants maintain their original positioning (relative with 0px)
+                variant.style.position = 'relative';
+                variant.style.top = '0px';
+                variant.style.left = '0px';
+                console.log('Hidden variant:', variant.getAttribute('data-figma-id'));
               });
               
-              // Reset opacity for all variants in this specific component set instance
-              allVariants.forEach(el => {
-                el.style.opacity = '1'; // Reset opacity to 1 for all variants
-                el.classList.add('variant-hidden');
-                el.classList.remove('variant-active');
-                console.log('Hidden variant:', el.getAttribute('data-figma-id'), 'in component set:', componentSet.getAttribute('data-figma-id'));
-              });
-              
-              // Show selected variant in this specific component set instance
-              const selectedVariant = allVariants.find(el => 
-                el.getAttribute('data-variant') === variant || 
-                el.getAttribute('data-variant-property-1') === variant
+              // Show selected variant instantly
+              const selectedVariant = allVariants.find(v => 
+                v.getAttribute('data-variant') === variant || 
+                v.getAttribute('data-variant-property-1') === variant
               );
               
               if (selectedVariant) {
-                selectedVariant.style.opacity = '1'; // Ensure selected variant has opacity 1
                 selectedVariant.classList.add('variant-active');
                 selectedVariant.classList.remove('variant-hidden');
-                console.log('Switched to variant:', variant, 'in component set:', componentSet.getAttribute('data-figma-id'), 'instance structure:', {
-                  instanceId: componentSet.parentElement?.getAttribute('data-figma-id'),
-                  instanceType: componentSet.parentElement?.getAttribute('data-figma-type')
-                });
+                // Ensure selected variant maintains its original positioning
+                selectedVariant.style.position = 'relative';
+                selectedVariant.style.top = '0px';
+                selectedVariant.style.left = '0px';
+                console.log('Switched to variant:', variant, 'in component set:', componentSet.getAttribute('data-figma-id'));
+                
+                // Start timeout reactions for the newly active variant
+                startTimeoutReactionsForNewlyActiveVariant(selectedVariant);
+                startTimeoutReactionsForNestedComponents(selectedVariant);
               } else {
                 console.log('Selected variant not found:', variant, 'in component set:', componentSet.getAttribute('data-figma-id'));
               }

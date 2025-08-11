@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    html, body { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      width: 100vw; 
+      height: 100vh; 
+      overflow: hidden; 
+    }
+    p { margin: 0; }
+    
+    /* Variant visibility classes */
+    .variant-active {
+      display: flex !important;
+    }
+    .variant-hidden {
+      display: none !important;
+    }
+    
+    /* Test component styles */
+    .test-component {
+      position: relative;
+      top: 0px;
+      left: 0px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Test component set structure -->
+  <div data-figma-type="COMPONENT_SET" data-figma-id="test-component-set" class="test-component">
+    <div data-figma-type="COMPONENT" data-figma-id="variant-1" class="variant-active">
+      <h2>Variant 1 (Active)</h2>
+      <p>This is the first variant</p>
+      <button data-variant="variant-2" data-target="test-component-set">Switch to Variant 2</button>
+    </div>
+    <div data-figma-type="COMPONENT" data-figma-id="variant-2" class="variant-hidden">
+      <h2>Variant 2</h2>
+      <p>This is the second variant</p>
+      <button data-variant="variant-1" data-target="test-component-set">Switch to Variant 1</button>
+    </div>
+  </div>
+
+  <script>
+    // Event handling for interactive elements
+    console.log('DEBUG: Event handling JavaScript loaded');
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DEBUG: DOMContentLoaded event fired');
+      
+      // Variant switching handler - instant switching only, no animation
+      // This is a simple slideshow-like system that switches between variants instantly
+      const variantButtons = document.querySelectorAll('[data-variant], [data-variant-property-1]');
+      variantButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          console.log('DEBUG: Variant switch clicked');
+          
+          const variant = this.getAttribute('data-variant') || this.getAttribute('data-variant-property-1');
+          const targetId = this.getAttribute('data-target');
+          
+          if (targetId) {
+            const target = document.querySelector(`[data-figma-id="${targetId}"]`);
+            if (target) {
+              console.log('Variant switch:', { variant, targetId, targetName: target.getAttribute('data-figma-name') });
+              
+              // Find the specific component set that contains this button
+              let componentSet = target;
+              let buttonElement = this;
+              
+              // Walk up the DOM tree to find the immediate component set parent
+              while (buttonElement && buttonElement.parentElement) {
+                buttonElement = buttonElement.parentElement;
+                if (buttonElement.getAttribute('data-figma-type') === 'COMPONENT_SET') {
+                  componentSet = buttonElement;
+                  console.log('Found component set for switching:', {
+                    id: componentSet.getAttribute('data-figma-id'),
+                    name: componentSet.getAttribute('data-figma-name')
+                  });
+                  break;
+                }
+              }
+              
+              // Get all variants within this specific component set instance
+              const allVariants = Array.from(componentSet.children).filter(child => 
+                child.getAttribute('data-figma-type') === 'COMPONENT' &&
+                (child.getAttribute('data-variant') || child.getAttribute('data-variant-property-1'))
+              );
+              
+              console.log('Found', allVariants.length, 'variants in component set:', componentSet.getAttribute('data-figma-id'));
+              
+              // INSTANT VARIANT SWITCHING - Hide all variants
+              allVariants.forEach(variant => {
+                variant.classList.add('variant-hidden');
+                variant.classList.remove('variant-active');
+                // Ensure all variants maintain their original positioning
+                variant.style.position = 'relative';
+                variant.style.top = '0px';
+                variant.style.left = '0px';
+                console.log('Hidden variant:', variant.getAttribute('data-figma-id'));
+              });
+              
+              // Show selected variant instantly
+              const selectedVariant = allVariants.find(v => 
+                v.getAttribute('data-variant') === variant || 
+                v.getAttribute('data-variant-property-1') === variant
+              );
+              
+              if (selectedVariant) {
+                selectedVariant.classList.add('variant-active');
+                selectedVariant.classList.remove('variant-hidden');
+                // Ensure selected variant maintains its original positioning
+                selectedVariant.style.position = 'relative';
+                selectedVariant.style.top = '0px';
+                selectedVariant.style.left = '0px';
+                console.log('Switched to variant:', variant, 'in component set:', componentSet.getAttribute('data-figma-id'));
+              } else {
+                console.log('Selected variant not found:', variant, 'in component set:', componentSet.getAttribute('data-figma-id'));
+              }
+            }
+          }
+        });
+      });
+      
+      // Initialize component set variants
+      const componentSets = document.querySelectorAll('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
+      componentSets.forEach(componentSet => {
+        const variants = componentSet.querySelectorAll('[data-figma-type="COMPONENT"]');
+        
+        if (variants.length >= 1) {
+          console.log('Initializing component set with', variants.length, 'variants');
+          
+          // For single components, just make them visible
+          if (variants.length === 1) {
+            const singleVariant = variants[0];
+            singleVariant.classList.add('variant-active');
+            singleVariant.classList.remove('variant-hidden');
+            console.log('Set single variant as active:', singleVariant.getAttribute('data-figma-id'));
+          } else {
+            // For multiple variants, the FIRST variant should be active initially
+            variants.forEach((variant, index) => {
+              if (index === 0) {
+                variant.classList.add('variant-active');
+                variant.classList.remove('variant-hidden');
+                console.log('Set first variant as active:', variant.getAttribute('data-figma-id'));
+              } else {
+                variant.classList.add('variant-hidden');
+                variant.classList.remove('variant-active');
+                console.log('Set variant as hidden:', variant.getAttribute('data-figma-id'));
+              }
+            });
+          }
+        }
+      });
+      
+      console.log('DEBUG: All event handlers initialized');
+    });
+    
+    // Also run immediately if DOM is already loaded
+    if (document.readyState === 'loading') {
+      console.log('DEBUG: DOM still loading, waiting for DOMContentLoaded');
+    } else {
+      console.log('DEBUG: DOM already loaded, running handlers immediately');
+      // Same initialization code as above would go here
+      console.log('DEBUG: All event handlers initialized (immediate)');
+    }
+  </script>
+</body>
+</html>
