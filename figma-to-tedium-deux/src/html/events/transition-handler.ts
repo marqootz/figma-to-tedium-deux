@@ -36,32 +36,53 @@ export function createSmartAnimateHandler(): string {
         copy.setAttribute('data-figma-id', sourceElement.getAttribute('data-figma-id') + '-copy');
         copy.setAttribute('data-is-animation-copy', 'true');
         
-        // Immediately reset all internal elements to their original positions
+        // Preserve current animated positions from source element
         const copyElements = copy.querySelectorAll('*');
         copyElements.forEach(element => {
           if (element.hasAttribute('data-figma-id')) {
-            // Reset to original Figma positions (0,0) for animation
-            element.style.position = 'relative';
-            element.style.left = '0px';
-            element.style.top = '0px';
+            const sourceElementId = element.getAttribute('data-figma-id');
+            const sourceElementMatch = sourceElement.querySelector(\`[data-figma-id="\${sourceElementId}"]\`);
             
-            // Force remove any existing inline styles that might interfere
-            element.style.removeProperty('transform');
-            element.style.removeProperty('margin');
-            element.style.removeProperty('padding');
-            
-            // Force the style to be applied by setting it again
-            element.style.setProperty('left', '0px', 'important');
-            element.style.setProperty('top', '0px', 'important');
-            
-            console.log('DEBUG: Reset copy element:', element.getAttribute('data-figma-id'), {
-              position: element.style.position,
-              left: element.style.left,
-              top: element.style.top,
-              computedLeft: window.getComputedStyle(element).left,
-              computedTop: window.getComputedStyle(element).top,
-              elementRect: element.getBoundingClientRect()
-            });
+            if (sourceElementMatch) {
+              // Preserve current animated positions from source
+              const currentLeft = sourceElementMatch.style.left || window.getComputedStyle(sourceElementMatch).left || '0px';
+              const currentTop = sourceElementMatch.style.top || window.getComputedStyle(sourceElementMatch).top || '0px';
+              
+              element.style.position = 'relative';
+              element.style.left = currentLeft;
+              element.style.top = currentTop;
+              
+              // Force remove any existing inline styles that might interfere
+              element.style.removeProperty('transform');
+              element.style.removeProperty('margin');
+              element.style.removeProperty('padding');
+              
+              // Force the style to be applied by setting it again
+              element.style.setProperty('left', currentLeft, 'important');
+              element.style.setProperty('top', currentTop, 'important');
+              
+              console.log('DEBUG: Preserved copy element position:', element.getAttribute('data-figma-id'), {
+                position: element.style.position,
+                left: element.style.left,
+                top: element.style.top,
+                sourceLeft: currentLeft,
+                sourceTop: currentTop,
+                computedLeft: window.getComputedStyle(element).left,
+                computedTop: window.getComputedStyle(element).top,
+                elementRect: element.getBoundingClientRect()
+              });
+            } else {
+              // Fallback to original positions if source element not found
+              element.style.position = 'relative';
+              element.style.left = '0px';
+              element.style.top = '0px';
+              
+              console.log('DEBUG: Reset copy element (no source found):', element.getAttribute('data-figma-id'), {
+                position: element.style.position,
+                left: element.style.left,
+                top: element.style.top
+              });
+            }
           }
         });
         
@@ -238,6 +259,15 @@ export function createSmartAnimateHandler(): string {
                 if (changes.positionY && changes.positionY.changed) {
                   // Set the target position directly (not relative to current position)
                   const targetTop = parseFloat(changes.positionY.targetValue);
+                  
+                  console.log('DEBUG: Position Y animation details:', {
+                    elementId: element.getAttribute('data-figma-id'),
+                    sourceValue: changes.positionY.sourceValue,
+                    targetValue: changes.positionY.targetValue,
+                    parsedTargetTop: targetTop,
+                    currentTop: element.style.top,
+                    easing: getEasingFunction(transitionType)
+                  });
                   
                   element.style.top = targetTop + 'px';
                   console.log('DEBUG: Applied position change to copy:', element.getAttribute('data-figma-id'), 'from:', element.style.top || '0px', 'to:', targetTop + 'px', 'target:', targetTop, 'easing:', getEasingFunction(transitionType));

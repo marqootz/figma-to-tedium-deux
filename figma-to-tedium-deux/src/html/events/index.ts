@@ -3,14 +3,30 @@ export { generateReactionAttributes, generateVariantAttributes } from './attribu
 export { createVariantSwitchingHandler } from './variant-handler';
 export { createReactionHandler, createTimeoutHandler } from './reaction-handler';
 export { createPropertyDetector } from './property-detector';
-export { createSmartAnimateHandler } from './transition-handler';
+// export { createSmartAnimateHandler } from './transition-handler';
+export { createModularSmartAnimateHandler } from './modular-transition-handler';
 export { createComponentSetInitializer } from './initializer';
+
+// Export animation system types and functions
+export {
+  AnimationType,
+  TranslationCondition,
+  AnimationChange,
+  ElementAnimationContext,
+  getAnimationType,
+  getTranslationCondition,
+  detectAnimationChanges,
+  createAnimationContext,
+  applyAnimationChange,
+  getEasingFunction
+} from './animation-system';
 
 // Import all handler functions for use in the main generator
 import { createVariantSwitchingHandler } from './variant-handler';
 import { createReactionHandler, createTimeoutHandler } from './reaction-handler';
 import { createPropertyDetector } from './property-detector';
-import { createSmartAnimateHandler } from './transition-handler';
+// import { createSmartAnimateHandler } from './transition-handler';
+import { createModularSmartAnimateHandler } from './modular-transition-handler';
 import { createComponentSetInitializer } from './initializer';
 
 // Main event handling JavaScript generator
@@ -24,7 +40,7 @@ export function generateEventHandlingJavaScript(): string {
       ${createReactionHandler()}
       ${createTimeoutHandler()}
       ${createPropertyDetector()}
-      ${createSmartAnimateHandler()}
+      ${createModularSmartAnimateHandler()}
       ${createComponentSetInitializer()}
       console.log('DEBUG: All event handlers initialized');
     });
@@ -38,7 +54,7 @@ export function generateEventHandlingJavaScript(): string {
       ${createReactionHandler()}
       ${createTimeoutHandler()}
       ${createPropertyDetector()}
-      ${createSmartAnimateHandler()}
+      ${createModularSmartAnimateHandler()}
       ${createComponentSetInitializer()}
       console.log('DEBUG: All event handlers initialized (immediate)');
     }
