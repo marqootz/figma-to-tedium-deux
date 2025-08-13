@@ -455,7 +455,7 @@ function applyTransformAnimation(
 export function getEasingFunction(animationType: string): string {
   switch (animationType) {
     case 'EASE_IN_AND_OUT_BACK':
-      return 'cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+      return 'ease-in-out'; // Use standard ease-in-out to eliminate back effect
     case 'EASE_IN_AND_OUT':
       return 'ease-in-out';
     case 'EASE_IN':
@@ -465,7 +465,7 @@ export function getEasingFunction(animationType: string): string {
     case 'LINEAR':
       return 'linear';
     case 'BOUNCY':
-      return 'cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+      return 'cubic-bezier(0.68, -0.55, 0.265, 1.55)'; // Bouncy curve
     case 'GENTLE':
       return 'ease-in-out';
     case 'SMART_ANIMATE':

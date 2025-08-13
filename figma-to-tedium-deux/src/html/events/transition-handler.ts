@@ -8,7 +8,7 @@ export function createSmartAnimateHandler(): string {
       function getEasingFunction(animationType) {
         switch (animationType) {
           case 'EASE_IN_AND_OUT_BACK':
-            return 'cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+            return 'ease-in-out';
           case 'EASE_IN_AND_OUT':
             return 'ease-in-out';
           case 'EASE_IN':
@@ -503,14 +503,15 @@ export function createSmartAnimateHandler(): string {
               transitionType: transitionType,
               transitionDuration: transitionDuration,
               isAnimated: transitionType === 'SMART_ANIMATE' || transitionType === 'BOUNCY' || 
-                         transitionType === 'EASE_IN_AND_OUT' || transitionType === 'EASE_IN' || 
-                         transitionType === 'EASE_OUT' || transitionType === 'LINEAR'
+                         transitionType === 'EASE_IN_AND_OUT' || transitionType === 'EASE_IN_AND_OUT_BACK' || 
+                         transitionType === 'EASE_IN' || transitionType === 'EASE_OUT' || 
+                         transitionType === 'LINEAR'
             });
             
             if (transitionType === 'SMART_ANIMATE' || transitionType === 'BOUNCY' || 
-                transitionType === 'EASE_IN_AND_OUT' || transitionType === 'EASE_IN' || 
-                transitionType === 'EASE_OUT' || transitionType === 'LINEAR' || 
-                transitionType === 'GENTLE') {
+                transitionType === 'EASE_IN_AND_OUT' || transitionType === 'EASE_IN_AND_OUT_BACK' || 
+                transitionType === 'EASE_IN' || transitionType === 'EASE_OUT' || 
+                transitionType === 'LINEAR' || transitionType === 'GENTLE') {
               console.log('DEBUG: Using animated variant switching');
               // Handle animated variant switching with copy approach
               handleAnimatedVariantSwitch(sourceElement, destination, allVariants, transitionType, transitionDuration)

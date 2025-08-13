@@ -90,6 +90,8 @@ figma.ui.onmessage = async (msg) => {
 </head>
 <body>
 ${htmlResults.join('\n')}
+<!-- Reference the external refactored-system.js file -->
+<script src="refactored-system.js"></script>
 <script>
 ${generateEventHandlingJavaScript()}
 </script>

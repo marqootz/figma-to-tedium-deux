@@ -432,6 +432,8 @@ ${htmlResults.join('\n')}
   <p><strong>Console:</strong> <span class="success">Open DevTools → Console</span></p>
 </div>
 
+<!-- Reference the external refactored-system.js file -->
+<script src="../dist-refactored/refactored-system.js"></script>
 <script>
 ${eventJavaScript}
 

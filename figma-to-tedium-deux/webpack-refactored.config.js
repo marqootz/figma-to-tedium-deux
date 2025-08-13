@@ -2,7 +2,7 @@ const path = require("path");
 
 module.exports = {
   mode: "production",
-  entry: "./src/code.ts",
+  entry: "./src/browser-entry.ts",
   output: {
     filename: "refactored-system.js",
     path: path.resolve(__dirname, "dist-refactored"),

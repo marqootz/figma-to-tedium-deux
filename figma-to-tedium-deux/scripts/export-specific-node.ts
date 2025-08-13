@@ -308,6 +308,9 @@ async function exportSpecificNode(
       });
     });
     
+    <!-- Reference the external refactored-system.js file -->
+    <script src="refactored-system.js"></script>
+    <script>
     // Enhanced event handling with logging
     ${generateEventHandlingJavaScript()}
     
