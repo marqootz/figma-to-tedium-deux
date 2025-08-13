@@ -413,10 +413,22 @@ export function createModularSmartAnimateHandler(): string {
             
           case AnimationType.TRANSFORM:
             if (translationCondition === TranslationCondition.ABSOLUTE) {
+              const elementName = element.getAttribute('data-figma-name');
+              const isFrame1232 = elementName === 'Frame 1232';
+              
               if (property === 'translateX') {
-                element.style.left = \`\${targetValue}px\`;
+                // For position changes, we need to move relative to the current position
+                const currentLeft = parseFloat(element.style.left) || 0;
+                const newLeft = currentLeft + targetValue;
+                element.style.left = \`\${newLeft}px\`;
               } else if (property === 'translateY') {
-                element.style.top = \`\${targetValue}px\`;
+                // For position changes, we need to move relative to the current position
+                const currentTop = parseFloat(element.style.top) || 0;
+                const newTop = currentTop + targetValue;
+                element.style.top = \`\${newTop}px\`;
+                if (isFrame1232) {
+                  console.log('🎯 Frame 1232 Y:', currentTop, '->', newTop);
+                }
               }
             } else if (translationCondition === TranslationCondition.RELATIVE_PADDING) {
               if (element.parentElement) {
@@ -864,101 +876,11 @@ export function createModularSmartAnimateHandler(): string {
           // Force reflow
           copy.offsetHeight;
           
-          // Log which elements are being animated and their transition properties
-          console.log('DEBUG: Elements being animated:');
-          elementsToAnimate.forEach(({ element }, index) => {
-            const elementName = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
-            const computedStyle = window.getComputedStyle(element);
-            console.log('  Element ' + (index + 1) + ' (' + elementName + '):');
-            console.log('    transition: ' + computedStyle.transition);
-            console.log('    transform: ' + computedStyle.transform);
-            console.log('    left: ' + computedStyle.left);
-            console.log('    top: ' + computedStyle.top);
-            console.log('    opacity: ' + computedStyle.opacity);
-            console.log('    visibility: ' + computedStyle.visibility);
-            console.log('    display: ' + computedStyle.display);
-          });
+
           
-          // Log the visibility properties after applying animations
-          console.log('DEBUG: Copy element visibility properties after applying animations:');
-          const copyNodes = copy.querySelectorAll('[data-figma-id]');
-          copyNodes.forEach((node, index) => {
-            const nodeName = node.getAttribute('data-figma-name') || node.getAttribute('data-figma-id');
-            const computedStyle = window.getComputedStyle(node);
-            const opacity = computedStyle.opacity;
-            const display = computedStyle.display;
-            const visibility = computedStyle.visibility;
-            const position = computedStyle.position;
-            const left = computedStyle.left;
-            const top = computedStyle.top;
-            const transform = computedStyle.transform;
+
             
-            console.log('  Node ' + (index + 1) + ' (' + nodeName + '):');
-            console.log('    opacity: ' + opacity);
-            console.log('    display: ' + display);
-            console.log('    visibility: ' + visibility);
-            console.log('    position: ' + position);
-            console.log('    left: ' + left);
-            console.log('    top: ' + top);
-            console.log('    transform: ' + transform);
-          });
-            
-            // Apply target values
-            requestAnimationFrame(() => {
-              elementsToAnimate.forEach(({ element, sourceElement, changes }) => {
-                // Convert the detected changes to animation changes (same as above)
-                const animationChanges = [];
-                
-                if (changes.positionX && changes.positionX.changed) {
-                  animationChanges.push({
-                    type: AnimationType.TRANSFORM,
-                    property: 'translateX',
-                    sourceValue: changes.positionX.sourceValue,
-                    targetValue: changes.positionX.targetValue,
-                    changed: true,
-                    translationCondition: TranslationCondition.ABSOLUTE
-                  });
-                }
-                
-                if (changes.positionY && changes.positionY.changed) {
-                  animationChanges.push({
-                    type: AnimationType.TRANSFORM,
-                    property: 'translateY',
-                    sourceValue: changes.positionY.sourceValue,
-                    targetValue: changes.positionY.targetValue,
-                    changed: true,
-                    translationCondition: TranslationCondition.ABSOLUTE
-                  });
-                }
-                
-                if (changes.backgroundColor && changes.backgroundColor.changed) {
-                  animationChanges.push({
-                    type: AnimationType.SIMPLE,
-                    property: 'backgroundColor',
-                    sourceValue: changes.backgroundColor.sourceValue,
-                    targetValue: changes.backgroundColor.targetValue,
-                    changed: true
-                  });
-                }
-                
-                if (changes.color && changes.color.changed) {
-                  animationChanges.push({
-                    type: AnimationType.SIMPLE,
-                    property: 'color',
-                    sourceValue: changes.color.sourceValue,
-                    targetValue: changes.color.targetValue,
-                    changed: true
-                  });
-                }
-                
-                // Note: justifyContent and alignItems changes are handled directly above
-                // and only applied if there's an actual position difference
-                
-                animationChanges.forEach(change => {
-                  applyAnimationChange(element, change, duration, easingFunction);
-                });
-              });
-            });
+
             
             // Monitor animation progress using transition end events
             let completedAnimations = 0;
@@ -973,49 +895,43 @@ export function createModularSmartAnimateHandler(): string {
             // Also track which elements have been processed to avoid double-counting
             const processedElements = new Set();
             
-            // Log what transitions we expect to see
+            // Set up transition properties for monitoring
             elementsToAnimate.forEach(({ element, changes }, index) => {
               const elementName = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
-              console.log('DEBUG: Expecting transitions for element', index + 1, '(', elementName, '):');
-              
               const elementProperties = [];
               
               if (changes.positionX && changes.positionX.changed) {
-                console.log('  - positionX transition (left/top)');
                 elementProperties.push('left', 'top');
               }
               if (changes.positionY && changes.positionY.changed) {
-                console.log('  - positionY transition (left/top)');
                 elementProperties.push('left', 'top');
               }
               if (changes.backgroundColor && changes.backgroundColor.changed) {
-                console.log('  - backgroundColor transition');
                 elementProperties.push('background-color');
               }
               if (changes.color && changes.color.changed) {
-                console.log('  - color transition');
                 elementProperties.push('color');
               }
               if (changes.justifyContent && changes.justifyContent.changed) {
-                console.log('  - justifyContent transition (left)');
                 elementProperties.push('left');
               }
               if (changes.alignItems && changes.alignItems.changed) {
-                console.log('  - alignItems transition (top)');
                 elementProperties.push('top');
               }
               
               // Remove duplicates and set the properties
               const uniqueProperties = [...new Set(elementProperties)];
               transitionProperties.set(element, uniqueProperties);
-              console.log('DEBUG: Final transition properties for element', elementName, ':', uniqueProperties);
+              
+              console.log('DEBUG: Element', elementName, 'will transition properties:', uniqueProperties);
             });
             
             const onTransitionEnd = (event) => {
               const targetElement = event.target;
               const propertyName = event.propertyName;
+              const elementName = targetElement.getAttribute('data-figma-name') || targetElement.getAttribute('data-figma-id');
               
-              console.log('DEBUG: Transition end event fired for:', targetElement.getAttribute('data-figma-name') || targetElement.getAttribute('data-figma-id'), 'property:', propertyName);
+              console.log('DEBUG: Transition end event for property:', propertyName, 'on element:', elementName);
               
               // Find which element this transition belongs to
               const animatedElement = elementsToAnimate.find(({ element }) => 
@@ -1040,10 +956,10 @@ export function createModularSmartAnimateHandler(): string {
                   if (updatedProperties.length === 0 && !animatedElements.has(elementKey)) {
                     animatedElements.add(elementKey);
                     completedAnimations++;
-                    console.log('DEBUG: All transitions completed for element:', completedAnimations, '/', totalAnimations, 'for element:', targetElement.getAttribute('data-figma-name') || targetElement.getAttribute('data-figma-id'));
+                    console.log('DEBUG: All transitions completed for element:', completedAnimations, '/', totalAnimations);
                     
                     if (completedAnimations >= totalAnimations) {
-                      console.log('DEBUG: All animations completed');
+                      console.log('🎯 All animations completed');
                       copy.removeEventListener('transitionend', onTransitionEnd);
                       copy.removeEventListener('transitionend', onCopyTransitionEnd);
                       childElements.forEach(child => {
@@ -1087,7 +1003,12 @@ export function createModularSmartAnimateHandler(): string {
                     }
                   }
                 } else {
-                  console.log('DEBUG: Transition end event for element not in our animation list');
+                  // Check if this is a transition on the copy element itself (which contains animated children)
+                  if (targetElement === copy) {
+                    console.log('DEBUG: Transition end event on copy element - this should be handled by onCopyTransitionEnd');
+                  } else {
+                    console.log('DEBUG: Transition end event for element not in our animation list');
+                  }
                 }
               }
             };
@@ -1166,16 +1087,17 @@ export function createModularSmartAnimateHandler(): string {
               const propertyName = event.propertyName;
               console.log('DEBUG: Copy transition end event fired for property:', propertyName);
               
-              // Find which element this transition belongs to by checking if the copy itself is being animated
+              // Since the copy itself isn't animated, we need to find which child element this transition belongs to
+              // The transition end event on the copy usually means one of its animated children has completed
               const animatedElement = elementsToAnimate.find(({ element }) => 
-                element === copy
+                copy.contains(element)
               );
               
               if (animatedElement) {
                 const elementKey = animatedElement.element;
                 const expectedProperties = transitionProperties.get(elementKey) || [];
                 
-                console.log('DEBUG: Found matching animated element (copy), expected properties:', expectedProperties);
+                console.log('DEBUG: Found animated child element in copy, expected properties:', expectedProperties);
                 
                 // Check if this is a property we're expecting to transition
                 if (expectedProperties.includes(propertyName)) {
@@ -1183,13 +1105,13 @@ export function createModularSmartAnimateHandler(): string {
                   const updatedProperties = expectedProperties.filter(p => p !== propertyName);
                   transitionProperties.set(elementKey, updatedProperties);
                   
-                  console.log('DEBUG: Property', propertyName, 'transition completed on copy, remaining properties for this element:', updatedProperties);
+                  console.log('DEBUG: Property', propertyName, 'transition completed on copy child, remaining properties for this element:', updatedProperties);
                   
                   // If all properties for this element have completed, mark the element as done
                   if (updatedProperties.length === 0 && !animatedElements.has(elementKey)) {
                     animatedElements.add(elementKey);
                     completedAnimations++;
-                    console.log('DEBUG: All transitions completed for copy element:', completedAnimations, '/', totalAnimations);
+                    console.log('DEBUG: All transitions completed for copy child element:', completedAnimations, '/', totalAnimations);
                     
                     if (completedAnimations >= totalAnimations) {
                       console.log('DEBUG: All animations completed');
@@ -1207,7 +1129,7 @@ export function createModularSmartAnimateHandler(): string {
                   console.log('DEBUG: Ignoring copy transition for unexpected property:', propertyName);
                 }
               } else {
-                console.log('DEBUG: Copy transition end event but copy not in animation list');
+                console.log('DEBUG: Copy transition end event but no animated children found');
               }
             };
             
@@ -1319,9 +1241,6 @@ export function createModularSmartAnimateHandler(): string {
                 sourceElement: sourceElement,
                 changes: changes
               });
-              console.log('DEBUG: Found element with property changes:', targetName, 'changes:', changes);
-            } else {
-              console.log('DEBUG: No changes detected for element:', targetName);
             }
           } else {
             console.log('DEBUG: No matching source element found for:', targetName);
@@ -1372,15 +1291,7 @@ export function createModularSmartAnimateHandler(): string {
             sourceParent.getAttribute('data-layout-mode') && 
             sourceParent.getAttribute('data-layout-mode') !== 'NONE';
           
-          console.log('DEBUG: 3-Point Analysis for', sourceElement.getAttribute('data-figma-name'), {
-            hasPositionChange: Math.abs(sourceLeft - targetLeft) > 1 || Math.abs(sourceTop - targetTop) > 1,
-            ignoreAutoLayout: ignoreAutoLayout,
-            parentHasAutoLayout: parentHasAutoLayout,
-            sourceLeft: sourceLeft,
-            targetLeft: targetLeft,
-            sourceTop: sourceTop,
-            targetTop: targetTop
-          });
+
           
           // Determine if this node should be animated based on the 3-point logic
           let shouldAnimatePosition = false;
@@ -1413,20 +1324,27 @@ export function createModularSmartAnimateHandler(): string {
           
           // Apply position changes if animation is needed
           if (shouldAnimatePosition) {
+            const elementName = sourceElement.getAttribute('data-figma-name');
+            const isFrame1232 = elementName === 'Frame 1232';
+            
             if (Math.abs(sourceLeft - targetLeft) > 1) {
               changes.positionX.changed = true;
-              changes.positionX.sourceValue = sourceLeft;
-              changes.positionX.targetValue = targetLeft;
+              changes.positionX.sourceValue = 0; // Start from current position (0 since we're animating the copy)
+              changes.positionX.targetValue = targetLeft - sourceLeft; // Calculate the difference to move
               changes.hasChanges = true;
-              console.log('DEBUG: Position X change detected:', sourceLeft, '->', targetLeft, '(', animationType, ')');
+              if (isFrame1232) {
+                console.log('🎯 Frame 1232 X movement:', sourceLeft, '->', targetLeft, 'difference:', targetLeft - sourceLeft);
+              }
             }
             
             if (Math.abs(sourceTop - targetTop) > 1) {
               changes.positionY.changed = true;
-              changes.positionY.sourceValue = sourceTop;
-              changes.positionY.targetValue = targetTop;
+              changes.positionY.sourceValue = 0; // Start from current position (0 since we're animating the copy)
+              changes.positionY.targetValue = targetTop - sourceTop; // Calculate the difference to move
               changes.hasChanges = true;
-              console.log('DEBUG: Position Y change detected:', sourceTop, '->', targetTop, '(', animationType, ')');
+              if (isFrame1232) {
+                console.log('🎯 Frame 1232 Y movement:', sourceTop, '->', targetTop, 'difference:', targetTop - sourceTop);
+              }
             }
           }
 
@@ -1723,63 +1641,11 @@ export function createModularSmartAnimateHandler(): string {
               }
             }
         } else {
-          // Handle case where destinationId is null (final variant in cycle)
-          console.log('DEBUG: Destination ID is null - handling cycle completion');
-          
-          // Find the component set to cycle back to the first variant
-          const sourceComponentSet = sourceElement.closest('[data-figma-type="COMPONENT_SET"]');
-          
-          if (sourceComponentSet) {
-            const allVariants = Array.from(sourceComponentSet.children).filter(child => 
-              child.getAttribute('data-figma-type') === 'COMPONENT'
-            );
-            
-            if (allVariants.length > 0) {
-              // Cycle back to the first variant
-              const firstVariant = allVariants[0];
-              console.log('DEBUG: Cycling back to first variant:', firstVariant.getAttribute('data-figma-id'));
-              
-              const isAnimated = transitionType === 'SMART_ANIMATE' || 
-                                transitionType === 'BOUNCY' || 
-                                transitionType === 'EASE_IN_AND_OUT' || 
-                                transitionType === 'EASE_IN' || 
-                                transitionType === 'EASE_OUT' || 
-                                transitionType === 'LINEAR' || 
-                                transitionType === 'GENTLE';
-              
-              if (isAnimated) {
-                console.log('DEBUG: Using modular animated variant switching for cycle completion');
-                currentTransitionPromise = handleAnimatedVariantSwitch(sourceElement, firstVariant, allVariants, transitionType, transitionDuration)
-                  .then(() => {
-                    clearTimeout(safetyTimeout);
-                    isTransitionInProgress = false;
-                    currentTransitionPromise = null;
-                  })
-                  .catch((error) => {
-                    console.error('Modular animation error during cycle completion:', error);
-                    clearTimeout(safetyTimeout);
-                    isTransitionInProgress = false;
-                    currentTransitionPromise = null;
-                  });
-              } else {
-                console.log('DEBUG: Using instant variant switching for cycle completion');
-                performInstantVariantSwitch(allVariants, firstVariant);
-                clearTimeout(safetyTimeout);
-                isTransitionInProgress = false;
-                currentTransitionPromise = null;
-              }
-            } else {
-              console.log('DEBUG: No variants found in component set for cycling');
-              clearTimeout(safetyTimeout);
-              isTransitionInProgress = false;
-              currentTransitionPromise = null;
-            }
-          } else {
-            console.log('DEBUG: No component set found for cycling');
-            clearTimeout(safetyTimeout);
-            isTransitionInProgress = false;
-            currentTransitionPromise = null;
-          }
+          // Handle case where destinationId is null (final variant - no further transitions)
+          console.log('DEBUG: Destination ID is null - animation cycle complete, stopping at final variant');
+          clearTimeout(safetyTimeout);
+          isTransitionInProgress = false;
+          currentTransitionPromise = null;
         }
       }
       

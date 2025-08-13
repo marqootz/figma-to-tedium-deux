@@ -337,7 +337,7 @@ export function figmaNodeToObject(node: any): any {
     'paddingRight', 'paddingTop', 'paddingBottom', 'fontSize',
     'fontName', 'fontFamily', 'fontWeight', 'textAlignHorizontal',
     'letterSpacing', 'lineHeight', 'characters', 'variantProperties',
-    'reactions', 'children', 'clipsContent', 'layoutPositioning',
+    'children', 'clipsContent', 'layoutPositioning',
     // Add vector-specific properties
     'vectorPaths', 'effects',
     // Add instance-specific properties
@@ -351,6 +351,26 @@ export function figmaNodeToObject(node: any): any {
     if (safeHasProperty(node, prop)) {
       result[prop] = (node as any)[prop];
       console.log(`Copied property ${prop}:`, (node as any)[prop]);
+    }
+  }
+  
+  // Handle reactions separately to filter out null destinationId
+  if (safeHasProperty(node, 'reactions') && (node as any).reactions) {
+    const reactions = (node as any).reactions as any[];
+    const filteredReactions = reactions.filter(reaction => {
+      // Check if reaction has a valid destinationId
+      if (reaction.action && reaction.action.destinationId) {
+        return true;
+      }
+      if (reaction.actions && reaction.actions.length > 0) {
+        return reaction.actions.some((action: any) => action.destinationId);
+      }
+      return false;
+    });
+    
+    if (filteredReactions.length > 0) {
+      result.reactions = filteredReactions;
+      console.log(`Filtered reactions: ${reactions.length} -> ${filteredReactions.length}`);
     }
   }
   

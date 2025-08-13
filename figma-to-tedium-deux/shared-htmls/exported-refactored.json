@@ -23,42 +23,6 @@
       "paddingRight": 0,
       "paddingTop": 0,
       "paddingBottom": 0,
-      "reactions": [
-        {
-          "action": {
-            "type": "NODE",
-            "destinationId": "5533:3911",
-            "navigation": "CHANGE_TO",
-            "transition": {
-              "type": "SMART_ANIMATE",
-              "easing": {
-                "type": "GENTLE"
-              },
-              "duration": 1.0220937728881836
-            },
-            "resetVideoPosition": false
-          },
-          "actions": [
-            {
-              "type": "NODE",
-              "destinationId": "5533:3911",
-              "navigation": "CHANGE_TO",
-              "transition": {
-                "type": "SMART_ANIMATE",
-                "easing": {
-                  "type": "GENTLE"
-                },
-                "duration": 1.0220937728881836
-              },
-              "resetVideoPosition": false
-            }
-          ],
-          "trigger": {
-            "type": "AFTER_TIMEOUT",
-            "timeout": 0.8
-          }
-        }
-      ],
       "children": [
         {
           "id": "5533:3901",
@@ -120,42 +84,6 @@
               "paddingRight": 0,
               "paddingTop": 0,
               "paddingBottom": 0,
-              "reactions": [
-                {
-                  "action": {
-                    "type": "NODE",
-                    "destinationId": "5533:3911",
-                    "navigation": "CHANGE_TO",
-                    "transition": {
-                      "type": "SMART_ANIMATE",
-                      "easing": {
-                        "type": "GENTLE"
-                      },
-                      "duration": 1.0220937728881836
-                    },
-                    "resetVideoPosition": false
-                  },
-                  "actions": [
-                    {
-                      "type": "NODE",
-                      "destinationId": "5533:3911",
-                      "navigation": "CHANGE_TO",
-                      "transition": {
-                        "type": "SMART_ANIMATE",
-                        "easing": {
-                          "type": "GENTLE"
-                        },
-                        "duration": 1.0220937728881836
-                      },
-                      "resetVideoPosition": false
-                    }
-                  ],
-                  "trigger": {
-                    "type": "AFTER_TIMEOUT",
-                    "timeout": 0.8
-                  }
-                }
-              ],
               "children": [
                 {
                   "id": "5533:3903",
@@ -193,7 +121,6 @@
                   "paddingRight": 0,
                   "paddingTop": 0,
                   "paddingBottom": 0,
-                  "reactions": [],
                   "children": [
                     {
                       "id": "5533:3904",
@@ -218,7 +145,6 @@
                       "paddingRight": 0,
                       "paddingTop": 0,
                       "paddingBottom": 0,
-                      "reactions": [],
                       "children": [
                         {
                           "id": "5533:3905",
@@ -243,7 +169,6 @@
                           "paddingRight": 0,
                           "paddingTop": 3.200000286102295,
                           "paddingBottom": 0,
-                          "reactions": [],
                           "children": [
                             {
                               "id": "5533:3906",
@@ -273,7 +198,6 @@
                               "cornerRadius": 0,
                               "layoutSizingHorizontal": "FIXED",
                               "layoutSizingVertical": "FIXED",
-                              "reactions": [],
                               "layoutPositioning": "AUTO",
                               "vectorPaths": [
                                 {
@@ -314,7 +238,6 @@
                           "paddingRight": 0,
                           "paddingTop": 0,
                           "paddingBottom": 0,
-                          "reactions": [],
                           "children": [
                             {
                               "id": "5533:3908",
@@ -344,7 +267,6 @@
                               "cornerRadius": 0,
                               "layoutSizingHorizontal": "FIXED",
                               "layoutSizingVertical": "FIXED",
-                              "reactions": [],
                               "layoutPositioning": "AUTO",
                               "vectorPaths": [
                                 {
@@ -385,7 +307,6 @@
                           "paddingRight": 11.200000762939453,
                           "paddingTop": 0,
                           "paddingBottom": 0,
-                          "reactions": [],
                           "children": [
                             {
                               "id": "5533:3910",
@@ -415,7 +336,6 @@
                               "cornerRadius": 0,
                               "layoutSizingHorizontal": "FIXED",
                               "layoutSizingVertical": "FIXED",
-                              "reactions": [],
                               "layoutPositioning": "AUTO",
                               "vectorPaths": [
                                 {
@@ -448,6 +368,42 @@
               ],
               "clipsContent": false,
               "layoutPositioning": "AUTO",
+              "reactions": [
+                {
+                  "action": {
+                    "type": "NODE",
+                    "destinationId": "5533:3911",
+                    "navigation": "CHANGE_TO",
+                    "transition": {
+                      "type": "SMART_ANIMATE",
+                      "easing": {
+                        "type": "GENTLE"
+                      },
+                      "duration": 1.0220937728881836
+                    },
+                    "resetVideoPosition": false
+                  },
+                  "actions": [
+                    {
+                      "type": "NODE",
+                      "destinationId": "5533:3911",
+                      "navigation": "CHANGE_TO",
+                      "transition": {
+                        "type": "SMART_ANIMATE",
+                        "easing": {
+                          "type": "GENTLE"
+                        },
+                        "duration": 1.0220937728881836
+                      },
+                      "resetVideoPosition": false
+                    }
+                  ],
+                  "trigger": {
+                    "type": "AFTER_TIMEOUT",
+                    "timeout": 0.8
+                  }
+                }
+              ],
               "parentId": "5533:3901"
             },
             {
@@ -473,42 +429,6 @@
               "paddingRight": 0,
               "paddingTop": 0,
               "paddingBottom": 0,
-              "reactions": [
-                {
-                  "action": {
-                    "type": "NODE",
-                    "destinationId": "7335:742",
-                    "navigation": "CHANGE_TO",
-                    "transition": {
-                      "type": "SMART_ANIMATE",
-                      "easing": {
-                        "type": "GENTLE"
-                      },
-                      "duration": 1.0220937728881836
-                    },
-                    "resetVideoPosition": false
-                  },
-                  "actions": [
-                    {
-                      "type": "NODE",
-                      "destinationId": "7335:742",
-                      "navigation": "CHANGE_TO",
-                      "transition": {
-                        "type": "SMART_ANIMATE",
-                        "easing": {
-                          "type": "GENTLE"
-                        },
-                        "duration": 1.0220937728881836
-                      },
-                      "resetVideoPosition": false
-                    }
-                  ],
-                  "trigger": {
-                    "type": "AFTER_TIMEOUT",
-                    "timeout": 0.8
-                  }
-                }
-              ],
               "children": [
                 {
                   "id": "7235:2051",
@@ -546,7 +466,6 @@
                   "paddingRight": 0,
                   "paddingTop": 0,
                   "paddingBottom": 0,
-                  "reactions": [],
                   "children": [
                     {
                       "id": "7235:2052",
@@ -571,7 +490,6 @@
                       "paddingRight": 0,
                       "paddingTop": 0,
                       "paddingBottom": 0,
-                      "reactions": [],
                       "children": [
                         {
                           "id": "7235:2053",
@@ -596,7 +514,6 @@
                           "paddingRight": 0,
                           "paddingTop": 3.200000286102295,
                           "paddingBottom": 0,
-                          "reactions": [],
                           "children": [
                             {
                               "id": "7235:2054",
@@ -626,7 +543,6 @@
                               "cornerRadius": 0,
                               "layoutSizingHorizontal": "FIXED",
                               "layoutSizingVertical": "FIXED",
-                              "reactions": [],
                               "layoutPositioning": "AUTO",
                               "vectorPaths": [
                                 {
@@ -667,7 +583,6 @@
                           "paddingRight": 0,
                           "paddingTop": 0,
                           "paddingBottom": 0,
-                          "reactions": [],
                           "children": [
                             {
                               "id": "7235:2056",
@@ -697,7 +612,6 @@
                               "cornerRadius": 0,
                               "layoutSizingHorizontal": "FIXED",
                               "layoutSizingVertical": "FIXED",
-                              "reactions": [],
                               "layoutPositioning": "AUTO",
                               "vectorPaths": [
                                 {
@@ -738,7 +652,6 @@
                           "paddingRight": 11.200000762939453,
                           "paddingTop": 0,
                           "paddingBottom": 0,
-                          "reactions": [],
                           "children": [
                             {
                               "id": "7235:2058",
@@ -768,7 +681,6 @@
                               "cornerRadius": 0,
                               "layoutSizingHorizontal": "FIXED",
                               "layoutSizingVertical": "FIXED",
-                              "reactions": [],
                               "layoutPositioning": "AUTO",
                               "vectorPaths": [
                                 {
@@ -801,6 +713,42 @@
               ],
               "clipsContent": false,
               "layoutPositioning": "AUTO",
+              "reactions": [
+                {
+                  "action": {
+                    "type": "NODE",
+                    "destinationId": "7335:742",
+                    "navigation": "CHANGE_TO",
+                    "transition": {
+                      "type": "SMART_ANIMATE",
+                      "easing": {
+                        "type": "GENTLE"
+                      },
+                      "duration": 1.0220937728881836
+                    },
+                    "resetVideoPosition": false
+                  },
+                  "actions": [
+                    {
+                      "type": "NODE",
+                      "destinationId": "7335:742",
+                      "navigation": "CHANGE_TO",
+                      "transition": {
+                        "type": "SMART_ANIMATE",
+                        "easing": {
+                          "type": "GENTLE"
+                        },
+                        "duration": 1.0220937728881836
+                      },
+                      "resetVideoPosition": false
+                    }
+                  ],
+                  "trigger": {
+                    "type": "AFTER_TIMEOUT",
+                    "timeout": 0.8
+                  }
+                }
+              ],
               "parentId": "5533:3901"
             },
             {
@@ -826,42 +774,6 @@
               "paddingRight": 0,
               "paddingTop": 0,
               "paddingBottom": 0,
-              "reactions": [
-                {
-                  "action": {
-                    "type": "NODE",
-                    "destinationId": null,
-                    "navigation": "CHANGE_TO",
-                    "transition": {
-                      "type": "SMART_ANIMATE",
-                      "easing": {
-                        "type": "GENTLE"
-                      },
-                      "duration": 1.0220937728881836
-                    },
-                    "resetVideoPosition": false
-                  },
-                  "actions": [
-                    {
-                      "type": "NODE",
-                      "destinationId": null,
-                      "navigation": "CHANGE_TO",
-                      "transition": {
-                        "type": "SMART_ANIMATE",
-                        "easing": {
-                          "type": "GENTLE"
-                        },
-                        "duration": 1.0220937728881836
-                      },
-                      "resetVideoPosition": false
-                    }
-                  ],
-                  "trigger": {
-                    "type": "AFTER_TIMEOUT",
-                    "timeout": 0.8
-                  }
-                }
-              ],
               "children": [
                 {
                   "id": "7335:743",
@@ -899,7 +811,6 @@
                   "paddingRight": 0,
                   "paddingTop": 0,
                   "paddingBottom": 0,
-                  "reactions": [],
                   "children": [
                     {
                       "id": "7335:744",
@@ -924,7 +835,6 @@
                       "paddingRight": 0,
                       "paddingTop": 0,
                       "paddingBottom": 0,
-                      "reactions": [],
                       "children": [
                         {
                           "id": "7335:745",
@@ -949,7 +859,6 @@
                           "paddingRight": 0,
                           "paddingTop": 3.200000286102295,
                           "paddingBottom": 0,
-                          "reactions": [],
                           "children": [
                             {
                               "id": "7335:746",
@@ -979,7 +888,6 @@
                               "cornerRadius": 0,
                               "layoutSizingHorizontal": "FIXED",
                               "layoutSizingVertical": "FIXED",
-                              "reactions": [],
                               "layoutPositioning": "AUTO",
                               "vectorPaths": [
                                 {
@@ -1020,7 +928,6 @@
                           "paddingRight": 0,
                           "paddingTop": 0,
                           "paddingBottom": 0,
-                          "reactions": [],
                           "children": [
                             {
                               "id": "7335:748",
@@ -1050,7 +957,6 @@
                               "cornerRadius": 0,
                               "layoutSizingHorizontal": "FIXED",
                               "layoutSizingVertical": "FIXED",
-                              "reactions": [],
                               "layoutPositioning": "AUTO",
                               "vectorPaths": [
                                 {
@@ -1091,7 +997,6 @@
                           "paddingRight": 11.200000762939453,
                           "paddingTop": 0,
                           "paddingBottom": 0,
-                          "reactions": [],
                           "children": [
                             {
                               "id": "7335:750",
@@ -1121,7 +1026,6 @@
                               "cornerRadius": 0,
                               "layoutSizingHorizontal": "FIXED",
                               "layoutSizingVertical": "FIXED",
-                              "reactions": [],
                               "layoutPositioning": "AUTO",
                               "vectorPaths": [
                                 {
@@ -1172,6 +1076,42 @@
         }
       },
       "overrides": [],
+      "reactions": [
+        {
+          "action": {
+            "type": "NODE",
+            "destinationId": "5533:3911",
+            "navigation": "CHANGE_TO",
+            "transition": {
+              "type": "SMART_ANIMATE",
+              "easing": {
+                "type": "GENTLE"
+              },
+              "duration": 1.0220937728881836
+            },
+            "resetVideoPosition": false
+          },
+          "actions": [
+            {
+              "type": "NODE",
+              "destinationId": "5533:3911",
+              "navigation": "CHANGE_TO",
+              "transition": {
+                "type": "SMART_ANIMATE",
+                "easing": {
+                  "type": "GENTLE"
+                },
+                "duration": 1.0220937728881836
+              },
+              "resetVideoPosition": false
+            }
+          ],
+          "trigger": {
+            "type": "AFTER_TIMEOUT",
+            "timeout": 0.8
+          }
+        }
+      ],
       "parentId": "5533:3016"
     }
   ]
