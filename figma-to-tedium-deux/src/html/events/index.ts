@@ -34,6 +34,23 @@ export function generateEventHandlingJavaScript(): string {
   return `
     // Event handling for interactive elements
     console.log('DEBUG: Event handling JavaScript loaded');
+    
+    // Global function for testing event handlers
+    window.handleFigmaEvent = function(eventType, elementId) {
+      console.log('DEBUG: Manual event trigger:', eventType, elementId);
+      const element = document.querySelector(\`[data-figma-id="\${elementId}"]\`);
+      if (element) {
+        if (eventType === 'click') {
+          element.click();
+        } else if (eventType === 'variant-switch') {
+          const variantButton = element.querySelector('[data-variant], [data-variant-property-1]');
+          if (variantButton) {
+            variantButton.click();
+          }
+        }
+      }
+    };
+    
     document.addEventListener('DOMContentLoaded', function() {
       console.log('DEBUG: DOMContentLoaded event fired');
       ${createVariantSwitchingHandler()}

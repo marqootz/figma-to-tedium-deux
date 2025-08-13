@@ -146,11 +146,26 @@ export function createPropertyDetector(): string {
           const targetContainerForScaling = sourceElement.closest('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
           
           let finalTargetLeft = 0; // Start with 0, will be calculated below
+          let finalTargetTop = 0; // Start with 0, will be calculated below
           // Always use computed styles for consistency
           let finalSourceLeft = parseFloat(sourceStyle.left) || 0;
+          let finalSourceTop = parseFloat(sourceStyle.top) || 0;
           
           // Add transform offset if present
           finalSourceLeft += sourceTransformOffset;
+          
+          // Check if the source element has a transform applied from a previous animation
+          // If so, we need to account for that in the position calculation
+          let sourceTransformYOffset = 0;
+          if (sourceTransform && sourceTransform !== 'none') {
+            // Extract translateY value from transform matrix
+            const matrix = new DOMMatrix(sourceTransform);
+            sourceTransformYOffset = matrix.m42; // m42 is the translateY value
+            console.log('DEBUG: Source element has transform:', sourceTransform, 'translateY offset:', sourceTransformYOffset);
+          }
+          
+          // Add transform offset if present
+          finalSourceTop += sourceTransformYOffset;
           
           // STEP 1-2: Query source and target to observe value differences
           // Check for alignment/justify differences between source and target parents

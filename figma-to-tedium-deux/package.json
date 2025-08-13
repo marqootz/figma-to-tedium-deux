@@ -11,14 +11,25 @@
     "build:css": "node scripts/build-css.js",
     "build:all": "node scripts/build-all.js",
     "verify": "node scripts/verify-plugin.js",
+    "dev:cli": "ts-node --project tsconfig.cli.json scripts/dev-cli.ts",
+    "dev:cli:build": "tsc --project tsconfig.cli.json && node dist-cli/scripts/dev-cli.js",
+    "export-node": "ts-node --project tsconfig.cli.json scripts/export-specific-node.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["figma", "plugin", "html", "tedium", "refactored"],
+  "keywords": [
+    "figma",
+    "plugin",
+    "html",
+    "tedium",
+    "refactored"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@figma/plugin-typings": "^1.82.0",
+    "@types/node": "^24.2.1",
     "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "webpack": "^5.99.9",
     "webpack-cli": "^5.1.4"
