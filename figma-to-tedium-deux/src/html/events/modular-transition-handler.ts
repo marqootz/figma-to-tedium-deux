@@ -413,7 +413,20 @@ export function createModularSmartAnimateHandler(): string {
             
           case AnimationType.TRANSFORM:
             if (translationCondition === TranslationCondition.ABSOLUTE) {
-              if (property === 'translateX') {
+              if (change.isCombinedTransform && property === 'translate') {
+                // Handle combined X and Y transform for simultaneous movement
+                const { x: translateX, y: translateY } = targetValue;
+                
+                // Use CSS transform for hardware-accelerated simultaneous animation
+                element.style.transition = \`transform \${duration}s \${easing}\`;
+                element.style.transform = \`translate(\${translateX}px, \${translateY}px)\`;
+                
+                console.log('DEBUG: Applying combined transform animation:', {
+                  translateX: translateX,
+                  translateY: translateY,
+                  elementName: element.getAttribute('data-figma-name')
+                });
+              } else if (property === 'translateX') {
                 // For additive position changes, add the difference to current position
                 const currentLeft = parseFloat(element.style.left) || 0;
                 const newLeft = currentLeft + targetValue;
@@ -768,26 +781,29 @@ export function createModularSmartAnimateHandler(): string {
               // Convert the detected changes to animation changes
               const animationChanges = [];
               
-              // Handle position changes
-              if (changes.positionX && changes.positionX.changed) {
-                animationChanges.push({
-                  type: AnimationType.TRANSFORM,
-                  property: 'translateX',
-                  sourceValue: changes.positionX.sourceValue,
-                  targetValue: changes.positionX.targetValue,
-                  changed: true,
-                  translationCondition: TranslationCondition.ABSOLUTE
-                });
-              }
+              // Handle position changes - use combined transform for simultaneous X and Y movement
+              const hasPositionX = changes.positionX && changes.positionX.changed;
+              const hasPositionY = changes.positionY && changes.positionY.changed;
               
-              if (changes.positionY && changes.positionY.changed) {
+              if (hasPositionX || hasPositionY) {
+                // Create a single combined transform animation
+                const translateX = hasPositionX ? changes.positionX.targetValue : 0;
+                const translateY = hasPositionY ? changes.positionY.targetValue : 0;
+                
                 animationChanges.push({
                   type: AnimationType.TRANSFORM,
-                  property: 'translateY',
-                  sourceValue: changes.positionY.sourceValue,
-                  targetValue: changes.positionY.targetValue,
+                  property: 'translate',
+                  sourceValue: { x: 0, y: 0 },
+                  targetValue: { x: translateX, y: translateY },
                   changed: true,
-                  translationCondition: TranslationCondition.ABSOLUTE
+                  translationCondition: TranslationCondition.ABSOLUTE,
+                  isCombinedTransform: true
+                });
+                
+                console.log('DEBUG: Created combined transform animation:', {
+                  translateX: translateX,
+                  translateY: translateY,
+                  elementName: element.getAttribute('data-figma-name')
                 });
               }
               
@@ -952,11 +968,18 @@ export function createModularSmartAnimateHandler(): string {
               const elementName = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
               const elementProperties = [];
               
-              if (changes.positionX && changes.positionX.changed) {
-                elementProperties.push('left', 'top');
-              }
-              if (changes.positionY && changes.positionY.changed) {
-                elementProperties.push('left', 'top');
+              // Check for combined transform or individual position changes
+              const hasPositionX = changes.positionX && changes.positionX.changed;
+              const hasPositionY = changes.positionY && changes.positionY.changed;
+              
+              if (hasPositionX || hasPositionY) {
+                // Use transform for combined movement, or individual properties for single-axis movement
+                if (hasPositionX && hasPositionY) {
+                  elementProperties.push('transform'); // Combined transform
+                } else {
+                  if (hasPositionX) elementProperties.push('left');
+                  if (hasPositionY) elementProperties.push('top');
+                }
               }
               if (changes.backgroundColor && changes.backgroundColor.changed) {
                 elementProperties.push('background-color');
