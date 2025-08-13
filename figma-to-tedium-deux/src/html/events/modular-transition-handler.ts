@@ -543,20 +543,21 @@ export function createModularSmartAnimateHandler(): string {
         copy.style.transform = 'translateZ(0)';
         copy.style.willChange = 'transform, left, top';
         
-        // Ensure the copy container doesn't clip its children
-        copy.style.overflow = 'visible';
+        // Preserve original overflow from source element
+        const sourceComputedStyle = window.getComputedStyle(sourceElement);
+        copy.style.overflow = sourceComputedStyle.overflow;
         
         // Ensure the copy and all its children are fully visible
         copy.style.opacity = '1';
         copy.style.visibility = 'visible';
         copy.style.display = 'flex';
 
-        // Ensure all nested elements in the copy are also visible
+        // Ensure all nested elements in the copy are also visible, but preserve their original overflow
         const copyChildren = copy.querySelectorAll('*');
         copyChildren.forEach(child => {
           child.style.opacity = '1';
           child.style.visibility = 'visible';
-          child.style.overflow = 'visible';
+          // Don't override overflow - preserve the original value from the clone
           if (child.style.display === 'none') {
             child.style.display = 'flex';
           }
@@ -654,14 +655,12 @@ export function createModularSmartAnimateHandler(): string {
           }
         });
         
-        // Ensure all elements in the copy are visible after content update
-
-        // Ensure all elements in the copy are visible after content update
+        // Ensure all elements in the copy are visible after content update, but preserve overflow
         const allCopyElements = copy.querySelectorAll('*');
         allCopyElements.forEach(element => {
           element.style.opacity = '1';
           element.style.visibility = 'visible';
-          element.style.overflow = 'visible';
+          // Don't override overflow - preserve the original value from the clone
           if (element.style.display === 'none') {
             element.style.display = 'flex';
           }
