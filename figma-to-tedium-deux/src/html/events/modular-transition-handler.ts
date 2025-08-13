@@ -1649,19 +1649,19 @@ export function createModularSmartAnimateHandler(): string {
               variantNames: allVariants.map(v => v.getAttribute('data-figma-name'))
             });
             
-            // Default to EASE_OUT if no transition type is specified
-            const effectiveTransitionType = transitionType || 'EASE_OUT';
-            const effectiveTransitionDuration = transitionDuration || '0.3';
+            // Check if transition type is null/undefined (instant transition) or a recognized animated type
+            const isAnimated = transitionType === 'SMART_ANIMATE' || 
+                              transitionType === 'BOUNCY' || 
+                              transitionType === 'EASE_IN_AND_OUT' || 
+                              transitionType === 'EASE_IN_AND_OUT_BACK' || 
+                              transitionType === 'EASE_IN' || 
+                              transitionType === 'EASE_OUT' || 
+                              transitionType === 'LINEAR' || 
+                              transitionType === 'GENTLE';
             
-            const isAnimated = effectiveTransitionType === 'SMART_ANIMATE' || 
-                              effectiveTransitionType === 'BOUNCY' || 
-                              effectiveTransitionType === 'EASE_IN_AND_OUT' || 
-                              effectiveTransitionType === 'EASE_IN_AND_OUT_BACK' || 
-                              effectiveTransitionType === 'EASE_IN' || 
-                              effectiveTransitionType === 'EASE_OUT' || 
-                              effectiveTransitionType === 'LINEAR' || 
-                              effectiveTransitionType === 'GENTLE' ||
-                              effectiveTransitionType === 'DISSOLVE';
+            // Only use fallback values if we have a recognized animated transition type
+            const effectiveTransitionType = isAnimated ? (transitionType || 'EASE_OUT') : transitionType;
+            const effectiveTransitionDuration = isAnimated ? (transitionDuration || '0.3') : transitionDuration;
             
             if (isAnimated) {
               console.log('🎬 ANIMATED TRANSITION SELECTED:', {
@@ -1695,12 +1695,21 @@ export function createModularSmartAnimateHandler(): string {
           } else {
             // This is a regular transition (not variant switching)
             if (transitionType === 'DISSOLVE') {
+              console.log('🎭 DISSOLVE TRANSITION SELECTED:', {
+                transitionType: transitionType,
+                transitionDuration: transitionDuration
+              });
+              
+              // Hide source element
               sourceElement.style.opacity = '0';
+              sourceElement.style.visibility = 'hidden';
+              
+              // Show destination after delay
               setTimeout(() => {
-                sourceElement.style.opacity = '1';
                 destination.classList.add('variant-active');
                 destination.classList.remove('variant-hidden');
                 destination.style.opacity = '1';
+                destination.style.visibility = 'visible';
                 
                 startTimeoutReactionsForNewlyActiveVariant(destination);
                 startTimeoutReactionsForNestedComponents(destination);
@@ -1710,10 +1719,15 @@ export function createModularSmartAnimateHandler(): string {
                 currentTransitionPromise = null;
               }, parseFloat(transitionDuration || '300'));
             } else {
-              sourceElement.style.opacity = '1';
+              console.log('⚡ INSTANT TRANSITION SELECTED (non-variant):', {
+                transitionType: transitionType,
+                reason: 'Not a dissolve transition'
+              });
+              
               destination.classList.add('variant-active');
               destination.classList.remove('variant-hidden');
               destination.style.opacity = '1';
+              destination.style.visibility = 'visible';
               
               startTimeoutReactionsForNewlyActiveVariant(destination);
               startTimeoutReactionsForNestedComponents(destination);
