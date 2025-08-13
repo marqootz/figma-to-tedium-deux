@@ -513,26 +513,8 @@ export function createModularSmartAnimateHandler(): string {
         // Make an exact copy - don't manipulate positions
         console.log('DEBUG: Making exact copy of source variant');
         
-        // Debug: Log the computed positions of the source element before copying
+        // Get source elements for copy creation (no detailed logging)
         const sourceElements = sourceElement.querySelectorAll('[data-figma-id]');
-        console.log('DEBUG: Source element computed positions before copying:');
-        sourceElements.forEach((element, index) => {
-          const elementName = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
-          const rect = element.getBoundingClientRect();
-          const parent = element.parentElement;
-          const parentRect = parent ? parent.getBoundingClientRect() : { left: 0, top: 0 };
-          const relativeLeft = rect.left - parentRect.left;
-          const relativeTop = rect.top - parentRect.top;
-          
-          console.log('  Source element', index + 1, '(', elementName, '):', {
-            absoluteLeft: rect.left,
-            absoluteTop: rect.top,
-            relativeLeft: relativeLeft,
-            relativeTop: relativeTop,
-            computedLeft: window.getComputedStyle(element).left,
-            computedTop: window.getComputedStyle(element).top
-          });
-        });
         
         // The copy is already an exact clone, no position manipulation needed
         
@@ -580,44 +562,7 @@ export function createModularSmartAnimateHandler(): string {
           }
         });
 
-        // Debug: Log the initial visibility properties of all nodes in the copy
-        console.log('DEBUG: Copy element visibility properties:');
-        const nodesWithFigmaId = copy.querySelectorAll('[data-figma-id]');
-        console.log('DEBUG: Found', nodesWithFigmaId.length, 'nodes with data-figma-id in copy');
-        
-        nodesWithFigmaId.forEach((node, index) => {
-          const figmaName = node.getAttribute('data-figma-name') || 'Unknown';
-          console.log('  Node', index + 1, '(' + figmaName + '):');
-          console.log('    opacity:', window.getComputedStyle(node).opacity);
-          console.log('    display:', window.getComputedStyle(node).display);
-          console.log('    visibility:', window.getComputedStyle(node).visibility);
-          console.log('    position:', window.getComputedStyle(node).position);
-          console.log('    left:', window.getComputedStyle(node).left);
-          console.log('    top:', window.getComputedStyle(node).top);
-        });
-        
-        // Log the opacity and display properties of each node in the copy
-        console.log('DEBUG: Copy element visibility properties:');
-        const copyNodesForVisibility = copy.querySelectorAll('[data-figma-id]');
-        console.log('DEBUG: Found', copyNodesForVisibility.length, 'nodes with data-figma-id in copy');
-        copyNodesForVisibility.forEach((node, index) => {
-          const nodeName = node.getAttribute('data-figma-name') || node.getAttribute('data-figma-id');
-          const computedStyle = window.getComputedStyle(node);
-          const opacity = computedStyle.opacity;
-          const display = computedStyle.display;
-          const visibility = computedStyle.visibility;
-          const position = computedStyle.position;
-          const left = computedStyle.left;
-          const top = computedStyle.top;
-          
-          console.log('  Node ' + (index + 1) + ' (' + nodeName + '):');
-          console.log('    opacity: ' + opacity);
-          console.log('    display: ' + display);
-          console.log('    visibility: ' + visibility);
-          console.log('    position: ' + position);
-          console.log('    left: ' + left);
-          console.log('    top: ' + top);
-        });
+        // Ensure all nodes in the copy are visible (no detailed logging)
         
         console.log('DEBUG: Copy creation completed');
         return copy;
@@ -645,25 +590,14 @@ export function createModularSmartAnimateHandler(): string {
           const copyElementName = copyElement.getAttribute('data-figma-name') || copyElement.getAttribute('data-figma-id');
           const destinationElement = destinationElementMap.get(copyElementName);
           
-          console.log('DEBUG: Checking content for', copyElementName);
-          console.log('  Copy textContent:', copyElement.textContent);
-          console.log('  Copy innerHTML:', copyElement.innerHTML.substring(0, 200));
-          if (destinationElement) {
-            console.log('  Destination textContent:', destinationElement.textContent);
-            console.log('  Destination innerHTML:', destinationElement.innerHTML.substring(0, 200));
-          }
-          
           if (destinationElement) {
             // Update text content
             if (destinationElement.textContent !== copyElement.textContent) {
-              const oldText = copyElement.textContent;
               copyElement.textContent = destinationElement.textContent;
-              console.log('DEBUG: Updated text content for', copyElementName, 'from', oldText, 'to', destinationElement.textContent);
             }
             
             // Update innerHTML for more complex content, but preserve positioning
             if (destinationElement.innerHTML !== copyElement.innerHTML) {
-              const oldHTML = copyElement.innerHTML;
               
               // CRITICAL FIX: Preserve the positioning of ALL nested elements before updating content
               const allNestedElements = copyElement.querySelectorAll('[data-figma-id]');
@@ -704,12 +638,8 @@ export function createModularSmartAnimateHandler(): string {
                   elementToRestore.style.left = positionData.left;
                   elementToRestore.style.top = positionData.top;
                   elementToRestore.style.transform = positionData.transform;
-                  
-                  console.log('DEBUG: Restored positioning for', elementName, ':', positionData);
                 }
               });
-              
-              console.log('DEBUG: Updated innerHTML for', copyElementName, 'from', oldHTML.substring(0, 100), 'to', destinationElement.innerHTML.substring(0, 100));
             }
             
             // Update specific attributes that might contain content
@@ -719,33 +649,12 @@ export function createModularSmartAnimateHandler(): string {
               const copyValue = copyElement.getAttribute(attr);
               if (destValue !== copyValue && destValue !== null) {
                 copyElement.setAttribute(attr, destValue);
-                console.log('DEBUG: Updated attribute', attr, 'for', copyElementName, 'to', destValue);
               }
             });
           }
         });
         
-        // Log the visibility properties after content update
-        console.log('DEBUG: Copy element visibility properties after content update:');
-        const copyNodesAfterUpdate = copy.querySelectorAll('[data-figma-id]');
-        copyNodesAfterUpdate.forEach((node, index) => {
-          const nodeName = node.getAttribute('data-figma-name') || node.getAttribute('data-figma-id');
-          const computedStyle = window.getComputedStyle(node);
-          const opacity = computedStyle.opacity;
-          const display = computedStyle.display;
-          const visibility = computedStyle.visibility;
-          const position = computedStyle.position;
-          const left = computedStyle.left;
-          const top = computedStyle.top;
-          
-          console.log('  Node ' + (index + 1) + ' (' + nodeName + '):');
-          console.log('    opacity: ' + opacity);
-          console.log('    display: ' + display);
-          console.log('    visibility: ' + visibility);
-          console.log('    position: ' + position);
-          console.log('    left: ' + left);
-          console.log('    top: ' + top);
-        });
+        // Ensure all elements in the copy are visible after content update
 
         // Ensure all elements in the copy are visible after content update
         const allCopyElements = copy.querySelectorAll('*');
@@ -1039,7 +948,7 @@ export function createModularSmartAnimateHandler(): string {
                     });
                     clearTimeout(fallbackTimeout);
                     clearInterval(intervalId);
-                    clearInterval(subFrameInterval);
+                    clearInterval(progressCheckInterval);
                     resolve();
                   }
                 }
@@ -1069,7 +978,7 @@ export function createModularSmartAnimateHandler(): string {
                       });
                       clearTimeout(fallbackTimeout);
                       clearInterval(intervalId);
-                      clearInterval(subFrameInterval);
+                      clearInterval(progressCheckInterval);
                       resolve();
                     }
                   }
@@ -1078,25 +987,16 @@ export function createModularSmartAnimateHandler(): string {
             };
             
             // Add a more aggressive monitoring approach - check if animations are actually complete
-            const checkAnimationProgress = () => {
+            const checkAnimationProgressDetailed = () => {
               let actuallyCompleted = 0;
               elementsToAnimate.forEach(({ element, changes }) => {
                 const computedStyle = window.getComputedStyle(element);
                 const elementName = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
                 
-                // Log current position every frame for debugging
+                // Only log position when there's a significant change or completion
                 const currentLeft = parseFloat(computedStyle.left) || 0;
                 const currentTop = parseFloat(computedStyle.top) || 0;
                 const currentTransform = computedStyle.transform;
-                
-                console.log('🎯 FRAME POSITION:', {
-                  elementName: elementName,
-                  currentLeft: currentLeft,
-                  currentTop: currentTop,
-                  transform: currentTransform,
-                  transition: computedStyle.transition,
-                  timestamp: Date.now()
-                });
                 
                 // Check if the element has reached its target position
                 let isComplete = false;
@@ -1145,7 +1045,7 @@ export function createModularSmartAnimateHandler(): string {
                     child.removeEventListener('transitionend', onTransitionEnd);
                   });
                   clearInterval(intervalId);
-                  clearInterval(subFrameInterval);
+                  clearInterval(progressCheckInterval);
                   resolve();
                 }
               }
@@ -1168,50 +1068,36 @@ export function createModularSmartAnimateHandler(): string {
               }))
             });
             
-            // Add detailed sub-frame position tracking
-            let subFrameCount = 0;
-            const subFrameStartTime = Date.now();
+            // Add simplified animation progress tracking (no sub-frame logging)
+            let animationStartTime = Date.now();
             
-            const detailedPositionTracker = () => {
+            const checkAnimationProgressSimple = () => {
               // Stop tracking if animation has completed
               if (animationCompleted) {
                 return;
               }
               
-              subFrameCount++;
               const currentTime = Date.now();
-              const elapsed = currentTime - subFrameStartTime;
+              const elapsed = currentTime - animationStartTime;
               
-              elementsToAnimate.forEach(({ element, changes }) => {
-                const computedStyle = window.getComputedStyle(element);
-                const currentLeft = parseFloat(computedStyle.left) || 0;
-                const currentTop = parseFloat(computedStyle.top) || 0;
-                const targetLeft = changes.positionX?.targetValue || 0;
-                const targetTop = changes.positionY?.targetValue || 0;
-                
-                console.log('🎯 SUB-FRAME ' + subFrameCount + ' (' + elapsed + 'ms):', {
-                  elementName: element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id'),
-                  currentLeft: currentLeft.toFixed(4),
-                  currentTop: currentTop.toFixed(4),
-                  targetLeft: targetLeft.toFixed(4),
-                  targetTop: targetTop.toFixed(4),
-                  leftDifference: (currentLeft - targetLeft).toFixed(4),
-                  topDifference: (currentTop - targetTop).toFixed(4),
-                  leftMovement: (currentLeft - (parseFloat(window.getComputedStyle(element).left) || 0)).toFixed(4),
-                  transition: computedStyle.transition,
-                  transform: computedStyle.transform,
-                  timestamp: currentTime
+              // Only log significant progress milestones (every 100ms)
+              if (elapsed % 100 < 16) { // Log roughly every 100ms
+                console.log('🎯 ANIMATION PROGRESS:', {
+                  elapsed: elapsed + 'ms',
+                  elements: elementsToAnimate.length,
+                  transitionType: transitionType,
+                  transitionDuration: transitionDuration
                 });
-              });
+              }
             };
             
-            // Track positions every 16ms (60fps) for detailed analysis
-            const subFrameInterval = setInterval(detailedPositionTracker, 16);
+            // Check progress every 100ms instead of 16ms
+            const progressInterval = setInterval(checkAnimationProgressSimple, 100);
             
-            // Stop detailed tracking after animation duration + buffer
+            // Stop progress tracking after animation duration + buffer
             setTimeout(() => {
-              clearInterval(subFrameInterval);
-              console.log('🎯 SUB-FRAME TRACKING COMPLETED');
+              clearInterval(progressInterval);
+              console.log('🎯 PROGRESS TRACKING COMPLETED');
               
                       // CRITICAL FIX: Stop all animation monitoring when the animation should be complete
         // This prevents the monitoring from continuing to track the destination variant
@@ -1225,7 +1111,7 @@ export function createModularSmartAnimateHandler(): string {
           });
           clearTimeout(fallbackTimeout);
           clearInterval(intervalId);
-          clearInterval(subFrameInterval);
+          clearInterval(progressInterval);
           
           // CRITICAL FIX: Ensure the copy has the final position before resolving
           elementsToAnimate.forEach(({ element, changes }) => {
@@ -1244,17 +1130,8 @@ export function createModularSmartAnimateHandler(): string {
         }
             }, parseFloat(transitionDuration || '0.3') * 1000 + 500);
             
-            // Add frame counter for tracking
-            let frameCount = 0;
-            const originalCheckAnimationProgress = checkAnimationProgress;
-            const enhancedCheckAnimationProgress = () => {
-              frameCount++;
-              console.log('🎯 FRAME ' + frameCount + ':');
-              originalCheckAnimationProgress();
-            };
-            
-            // Set up periodic position checking with enhanced logging
-            const progressCheckInterval = setInterval(enhancedCheckAnimationProgress, 100); // Check every 100ms
+            // Set up periodic position checking with simplified logging
+            const progressCheckInterval = setInterval(checkAnimationProgressDetailed, 100); // Check every 100ms
             
             // Store the interval ID so we can clear it later
             const intervalId = progressCheckInterval;
@@ -1294,7 +1171,7 @@ export function createModularSmartAnimateHandler(): string {
                       });
                       clearTimeout(fallbackTimeout);
                       clearInterval(intervalId);
-                      clearInterval(subFrameInterval);
+                      clearInterval(progressCheckInterval);
                       resolve();
                     }
                   }
@@ -1333,7 +1210,7 @@ export function createModularSmartAnimateHandler(): string {
                 child.removeEventListener('transitionend', onTransitionEnd);
               });
               clearInterval(intervalId);
-              clearInterval(subFrameInterval);
+              clearInterval(progressInterval);
               resolve();
             }, parseFloat(transitionDuration || '0.3') * 1000 + 2000); // Add 2s buffer for more reliability
           } else {
@@ -1560,8 +1437,15 @@ export function createModularSmartAnimateHandler(): string {
       
       // Helper function to handle animated variant switching
       async function handleAnimatedVariantSwitch(sourceElement, destination, allVariants, transitionType, transitionDuration) {
-        console.log('DEBUG: Starting modular animated variant switch');
-        console.log('DEBUG: About to create element copy');
+        console.log('🔄 VARIANT SWITCH SEQUENCE START:', {
+          sourceId: sourceElement.getAttribute('data-figma-id'),
+          sourceName: sourceElement.getAttribute('data-figma-name'),
+          destinationId: destination.getAttribute('data-figma-id'),
+          destinationName: destination.getAttribute('data-figma-name'),
+          transitionType: transitionType,
+          transitionDuration: transitionDuration,
+          totalVariants: allVariants.length
+        });
         
         // Create a copy of the source variant
         const sourceCopy = createElementCopy(sourceElement);
@@ -1612,7 +1496,7 @@ export function createModularSmartAnimateHandler(): string {
         await animateCopyToDestination(sourceCopy, destination, sourceElement, transitionType, transitionDuration);
         
         // Animation complete - simply remove the copy and show the destination variant
-        console.log('DEBUG: Animation completed, removing copy and showing destination variant');
+        console.log('✅ ANIMATION COMPLETED - removing copy and showing destination variant');
         sourceCopy.remove();
         
         // Hide the original source element permanently
@@ -1622,7 +1506,13 @@ export function createModularSmartAnimateHandler(): string {
         sourceElement.classList.remove('variant-active');
         
         // Simply show the destination variant - don't touch its positioning
-        console.log('DEBUG: Showing destination variant');
+        console.log('🎯 SHOWING DESTINATION VARIANT:', {
+          destinationId: destination.getAttribute('data-figma-id'),
+          destinationName: destination.getAttribute('data-figma-name'),
+          visibility: 'visible',
+          opacity: '1',
+          display: 'flex'
+        });
         destination.style.visibility = 'visible';
         destination.style.opacity = '1';
         destination.style.display = 'flex';
@@ -1647,16 +1537,28 @@ export function createModularSmartAnimateHandler(): string {
         destination.offsetHeight;
         
         // Start timeout reactions
+        console.log('⏰ STARTING TIMEOUT REACTIONS for destination variant');
         startTimeoutReactionsForNewlyActiveVariant(destination);
         startTimeoutReactionsForNestedComponents(destination);
+        
+        console.log('✅ VARIANT SWITCH SEQUENCE COMPLETED:', {
+          sourceId: sourceElement.getAttribute('data-figma-id'),
+          destinationId: destination.getAttribute('data-figma-id'),
+          transitionType: transitionType
+        });
       }
       
       // Helper function to perform instant variant switch
       function performInstantVariantSwitch(allVariants, destination) {
+        console.log('⚡ PERFORMING INSTANT VARIANT SWITCH');
+        
         // Hide all variants
         allVariants.forEach(variant => {
           variant.classList.add('variant-hidden');
           variant.classList.remove('variant-active');
+          variant.style.display = 'none';
+          variant.style.visibility = 'hidden';
+          variant.style.opacity = '0';
           // Don't reset positions for hidden variants - let them keep their natural positions
           if (!variant.style.position || variant.style.position === 'static') {
             variant.style.position = 'relative';
@@ -1666,10 +1568,21 @@ export function createModularSmartAnimateHandler(): string {
         // Show destination variant
         destination.classList.add('variant-active');
         destination.classList.remove('variant-hidden');
+        destination.style.display = 'flex';
+        destination.style.visibility = 'visible';
+        destination.style.opacity = '1';
         // Don't reset position for destination - let it keep its natural position
         if (!destination.style.position || destination.style.position === 'static') {
           destination.style.position = 'relative';
         }
+        
+        console.log('✅ INSTANT VARIANT SWITCH COMPLETED:', {
+          destinationId: destination.getAttribute('data-figma-id'),
+          destinationName: destination.getAttribute('data-figma-name'),
+          display: destination.style.display,
+          visibility: destination.style.visibility,
+          opacity: destination.style.opacity
+        });
         
         // Start timeout reactions
         startTimeoutReactionsForNewlyActiveVariant(destination);
@@ -1678,8 +1591,17 @@ export function createModularSmartAnimateHandler(): string {
       
       // Main reaction handler function
       function handleReaction(sourceElement, destinationId, transitionType, transitionDuration) {
+        console.log('🎯 REACTION TRIGGERED:', {
+          sourceId: sourceElement.getAttribute('data-figma-id'),
+          sourceName: sourceElement.getAttribute('data-figma-name'),
+          destinationId: destinationId,
+          transitionType: transitionType,
+          transitionDuration: transitionDuration
+        });
+        
         // Prevent multiple simultaneous transitions
         if (isTransitionInProgress) {
+          console.log('⚠️ TRANSITION ALREADY IN PROGRESS - skipping');
           return;
         }
         
@@ -1711,22 +1633,43 @@ export function createModularSmartAnimateHandler(): string {
           
           if (sourceComponentSet && destinationComponentSet && sourceComponentSet === destinationComponentSet) {
             // This is a variant switch
+            console.log('🔄 VARIANT SWITCH DETECTED:', {
+              componentSetId: sourceComponentSet.getAttribute('data-figma-id'),
+              componentSetName: sourceComponentSet.getAttribute('data-figma-name')
+            });
+            
             const componentSet = sourceComponentSet;
             const allVariants = Array.from(componentSet.children).filter(child => 
               child.getAttribute('data-figma-type') === 'COMPONENT'
             );
             
-            const isAnimated = transitionType === 'SMART_ANIMATE' || 
-                              transitionType === 'BOUNCY' || 
-                              transitionType === 'EASE_IN_AND_OUT' || 
-                              transitionType === 'EASE_IN_AND_OUT_BACK' || 
-                              transitionType === 'EASE_IN' || 
-                              transitionType === 'EASE_OUT' || 
-                              transitionType === 'LINEAR' || 
-                              transitionType === 'GENTLE';
+            console.log('📊 VARIANT ANALYSIS:', {
+              totalVariants: allVariants.length,
+              variantIds: allVariants.map(v => v.getAttribute('data-figma-id')),
+              variantNames: allVariants.map(v => v.getAttribute('data-figma-name'))
+            });
+            
+            // Default to EASE_OUT if no transition type is specified
+            const effectiveTransitionType = transitionType || 'EASE_OUT';
+            const effectiveTransitionDuration = transitionDuration || '0.3';
+            
+            const isAnimated = effectiveTransitionType === 'SMART_ANIMATE' || 
+                              effectiveTransitionType === 'BOUNCY' || 
+                              effectiveTransitionType === 'EASE_IN_AND_OUT' || 
+                              effectiveTransitionType === 'EASE_IN_AND_OUT_BACK' || 
+                              effectiveTransitionType === 'EASE_IN' || 
+                              effectiveTransitionType === 'EASE_OUT' || 
+                              effectiveTransitionType === 'LINEAR' || 
+                              effectiveTransitionType === 'GENTLE' ||
+                              effectiveTransitionType === 'DISSOLVE';
             
             if (isAnimated) {
-              currentTransitionPromise = handleAnimatedVariantSwitch(sourceElement, destination, allVariants, transitionType, transitionDuration)
+              console.log('🎬 ANIMATED TRANSITION SELECTED:', {
+                transitionType: effectiveTransitionType,
+                transitionDuration: effectiveTransitionDuration
+              });
+              
+              currentTransitionPromise = handleAnimatedVariantSwitch(sourceElement, destination, allVariants, effectiveTransitionType, effectiveTransitionDuration)
                 .then(() => {
                   clearTimeout(safetyTimeout);
                   isTransitionInProgress = false;
@@ -1739,6 +1682,11 @@ export function createModularSmartAnimateHandler(): string {
                   currentTransitionPromise = null;
                 });
             } else {
+              console.log('⚡ INSTANT TRANSITION SELECTED:', {
+                transitionType: effectiveTransitionType,
+                reason: 'Not recognized as animated transition type'
+              });
+              
               performInstantVariantSwitch(allVariants, destination);
               clearTimeout(safetyTimeout);
               isTransitionInProgress = false;
@@ -1863,7 +1811,9 @@ export function createModularSmartAnimateHandler(): string {
         }
       }
       
-      // Make function globally available
+      // Make functions globally available
       window.handleReaction = handleReaction;
+      window.startTimeoutReactionsForNewlyActiveVariant = startTimeoutReactionsForNewlyActiveVariant;
+      window.startTimeoutReactionsForNestedComponents = startTimeoutReactionsForNestedComponents;
     `;
 }

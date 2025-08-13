@@ -309,7 +309,7 @@ async function exportSpecificNode(
     });
     
     <!-- Reference the external refactored-system.js file -->
-    <script src="refactored-system.js"></script>
+    <script src="refactored-system.js?v=${Date.now()}"></script>
     <script>
     // Enhanced event handling with logging
     ${generateEventHandlingJavaScript()}
@@ -327,6 +327,19 @@ async function exportSpecificNode(
     const finalOutputPath = outputPath || defaultOutputPath;
     
     fs.writeFileSync(finalOutputPath, finalHTML);
+    
+    // Step 4.5: Copy refactored-system.js to the same directory as the HTML file
+    const outputDir = path.dirname(finalOutputPath);
+    const refactoredSystemPath = path.join(__dirname, '../dist-refactored/refactored-system.js');
+    const targetRefactoredSystemPath = path.join(outputDir, 'refactored-system.js');
+    
+    if (fs.existsSync(refactoredSystemPath)) {
+      fs.copyFileSync(refactoredSystemPath, targetRefactoredSystemPath);
+      console.log(`📄 Copied refactored-system.js to: ${path.resolve(targetRefactoredSystemPath)}`);
+    } else {
+      console.warn('⚠️  refactored-system.js not found at:', refactoredSystemPath);
+      console.warn('   Make sure to run "npm run build:refactored" first');
+    }
     
     console.log('✅ Export completed successfully!');
     console.log(`📏 Final HTML length: ${finalHTML.length}`);

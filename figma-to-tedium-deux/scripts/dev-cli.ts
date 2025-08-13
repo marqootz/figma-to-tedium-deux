@@ -433,7 +433,7 @@ ${htmlResults.join('\n')}
 </div>
 
 <!-- Reference the external refactored-system.js file -->
-<script src="../dist-refactored/refactored-system.js"></script>
+<script src="../dist-refactored/refactored-system.js?v=${Date.now()}"></script>
 <script>
 ${eventJavaScript}
 
@@ -510,6 +510,19 @@ ${eventJavaScript}
     const outputPath = path.join(__dirname, '../dev-output.html');
     fs.writeFileSync(outputPath, finalHTML);
     console.log('💾 HTML saved to:', outputPath);
+    
+    // Copy refactored-system.js to the same directory as the HTML file
+    const outputDir = path.dirname(outputPath);
+    const refactoredSystemPath = path.join(__dirname, '../dist-refactored/refactored-system.js');
+    const targetRefactoredSystemPath = path.join(outputDir, 'refactored-system.js');
+    
+    if (fs.existsSync(refactoredSystemPath)) {
+      fs.copyFileSync(refactoredSystemPath, targetRefactoredSystemPath);
+      console.log(`📄 Copied refactored-system.js to: ${path.resolve(targetRefactoredSystemPath)}`);
+    } else {
+      console.warn('⚠️  refactored-system.js not found at:', refactoredSystemPath);
+      console.warn('   Make sure to run "npm run build:refactored" first');
+    }
     
     // Launch browser with developer tools
     await launchBrowser(outputPath);

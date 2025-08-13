@@ -46,6 +46,10 @@ export function generateReactionAttributes(node: FigmaNode): Record<string, stri
           if (actionToUse.transition.duration) {
             attributes['data-reaction-transition-duration'] = String(actionToUse.transition.duration);
           }
+        } else if (actionToUse.transition === null) {
+          // Handle instant transitions (no animation)
+          attributes['data-reaction-transition-type'] = 'INSTANT';
+          attributes['data-reaction-transition-duration'] = '0';
         }
       }
     }

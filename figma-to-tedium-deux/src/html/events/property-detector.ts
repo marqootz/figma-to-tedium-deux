@@ -102,32 +102,9 @@ export function createPropertyDetector(): string {
           const sourceId = sourceElement.getAttribute('data-figma-id');
           const targetId = targetElement.getAttribute('data-figma-id');
           
-          console.log('DEBUG: Analyzing elements:');
-          console.log('  Source:', sourceName, 'ID:', sourceId, 'Left:', sourceLeft, 'FigmaX:', sourceFigmaX);
-          console.log('  Target:', targetName, 'ID:', targetId, 'Left:', targetLeft, 'FigmaX:', targetFigmaX);
-          
-          // Log parent container dimensions
-          const sourceContainer = sourceElement.closest('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
-          const targetContainer = targetElement.closest('[data-figma-type="COMPONENT_SET"], [data-figma-type="COMPONENT"]');
-          
-          if (sourceContainer) {
-            const sourceContainerRect = sourceContainer.getBoundingClientRect();
-            console.log('  Source container dimensions:', sourceContainerRect.width, 'x', sourceContainerRect.height);
-          }
-          
-          if (targetContainer) {
-            const targetContainerRect = targetContainer.getBoundingClientRect();
-            console.log('  Target container dimensions:', targetContainerRect.width, 'x', targetContainerRect.height);
-          }
-          
-          // Log viewport dimensions
-          console.log('  Viewport dimensions:', window.innerWidth, 'x', window.innerHeight);
-          
-          // Log element dimensions
+          // Get element dimensions for validation
           const sourceRect = sourceElement.getBoundingClientRect();
           const targetRect = targetElement.getBoundingClientRect();
-          console.log('  Source element dimensions:', sourceRect.width, 'x', sourceRect.height);
-          console.log('  Target element dimensions:', targetRect.width, 'x', targetRect.height);
           
           // Check if target element is properly rendered
           if (targetRect.width === 0 && targetRect.height === 0) {
@@ -181,21 +158,13 @@ export function createPropertyDetector(): string {
             const sourceAlignItems = sourceParentStyle.alignItems;
             const targetAlignItems = targetParentStyle.alignItems;
             
-            console.log('DEBUG: Alignment analysis:', {
-              sourceJustifyContent,
-              targetJustifyContent,
-              sourceAlignItems,
-              targetAlignItems,
-              sourceElementId: sourceElement.getAttribute('data-figma-id'),
-              targetElementId: targetElement.getAttribute('data-figma-id')
-            });
+
             
             // STEP 3: If there's an alignment/justify difference, it's ultimately a position change
             const hasJustifyChange = sourceJustifyContent !== targetJustifyContent;
             const hasAlignChange = sourceAlignItems !== targetAlignItems;
             
             if (hasJustifyChange || hasAlignChange) {
-              console.log('DEBUG: Alignment/justify change detected - calculating position difference');
               
               // STEP 4: Query the corresponding nodes in source and target to find absolute/computed position
               const sourceRect = sourceElement.getBoundingClientRect();
@@ -209,14 +178,7 @@ export function createPropertyDetector(): string {
               const sourceRelativeTop = sourceRect.top - sourceParentRect.top;
               const targetRelativeTop = targetRect.top - targetParentRect.top;
               
-              console.log('DEBUG: Position analysis:', {
-                sourceRelativeLeft,
-                targetRelativeLeft,
-                sourceRelativeTop,
-                targetRelativeTop,
-                xDifference: Math.abs(sourceRelativeLeft - targetRelativeLeft),
-                yDifference: Math.abs(sourceRelativeTop - targetRelativeTop)
-              });
+
               
               // STEP 5: Calculate position difference
               const xDifference = targetRelativeLeft - sourceRelativeLeft;
@@ -225,25 +187,14 @@ export function createPropertyDetector(): string {
               // STEP 6: Set up animation values
               if (Math.abs(xDifference) > 1) {
                 finalTargetLeft = finalSourceLeft + xDifference;
-                console.log('DEBUG: X position change calculated:', {
-                  sourceLeft: finalSourceLeft,
-                  targetLeft: finalTargetLeft,
-                  difference: xDifference,
-                  justifyChange: hasJustifyChange ? (sourceJustifyContent + ' -> ' + targetJustifyContent) : 'none'
-                });
+
               }
               
               if (Math.abs(yDifference) > 1) {
                 finalTargetTop = finalSourceTop + yDifference;
-                console.log('DEBUG: Y position change calculated:', {
-                  sourceTop: finalSourceTop,
-                  targetTop: finalTargetTop,
-                  difference: yDifference,
-                  alignChange: hasAlignChange ? (sourceAlignItems + ' -> ' + targetAlignItems) : 'none'
-                });
+
               }
             } else {
-              console.log('DEBUG: No alignment/justify changes detected');
               // Fallback to direct position comparison if no alignment changes
               const sourceRect = sourceElement.getBoundingClientRect();
               const targetRect = targetElement.getBoundingClientRect();
@@ -259,7 +210,6 @@ export function createPropertyDetector(): string {
               finalTargetTop = targetRelativeTop;
             }
           } else {
-            console.log('DEBUG: No parent elements found, using fallback calculation');
             finalTargetLeft = parseFloat(targetStyle.left) || 0;
             finalTargetTop = parseFloat(targetStyle.top) || 0;
           }

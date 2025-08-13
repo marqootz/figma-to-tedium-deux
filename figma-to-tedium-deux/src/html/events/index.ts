@@ -55,6 +55,9 @@ export function generateEventHandlingJavaScript(): string {
     // Global timer tracking
     const activeTimers = new Map();
     
+    // CRITICAL FIX: Add click event handlers for reaction elements
+    ${createReactionHandler()}
+    
     // Function to start timeout reactions for nested components within a parent element
     function startTimeoutReactionsForNestedComponents(parentElement) {
       if (!parentElement) return;
@@ -322,5 +325,5 @@ export function generateEventHandlingJavaScript(): string {
 
 // Generate script tag that references the external file
 export function generateExternalScriptReference(): string {
-  return `<script src="refactored-system.js"></script>`;
+  return `<script src="refactored-system.js?v=${Date.now()}"></script>`;
 }
