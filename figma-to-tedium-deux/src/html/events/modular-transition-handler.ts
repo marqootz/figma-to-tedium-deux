@@ -1841,8 +1841,20 @@ export function createModularSmartAnimateHandler(): string {
         // Animate the copy to match the destination
         await animateCopyToDestination(sourceCopy, destination, sourceElement, transitionType, transitionDuration);
         
-        // Animation complete - simply remove the copy and show the destination variant
+        // Animation complete - remove the copy and show the destination variant
         console.log('✅ ANIMATION COMPLETED - removing copy and showing destination variant');
+        
+        // CRITICAL FIX: Ensure destination variant is positioned correctly before showing it
+        // Reset any absolute positioning that might have been applied during animation
+        destination.style.position = 'relative';
+        destination.style.left = '';
+        destination.style.top = '';
+        destination.style.transform = '';
+        
+        // Force a reflow to ensure positioning is reset
+        destination.offsetHeight;
+        
+        // Now remove the copy
         sourceCopy.remove();
         
         // Hide the original source element permanently
@@ -1851,13 +1863,16 @@ export function createModularSmartAnimateHandler(): string {
         sourceElement.classList.add('variant-hidden');
         sourceElement.classList.remove('variant-active');
         
-        // Simply show the destination variant - don't touch its positioning
+        // Show the destination variant with proper positioning
         console.log('🎯 SHOWING DESTINATION VARIANT:', {
           destinationId: destination.getAttribute('data-figma-id'),
           destinationName: destination.getAttribute('data-figma-name'),
           visibility: 'visible',
           opacity: '1',
-          display: 'flex'
+          display: 'flex',
+          position: destination.style.position,
+          left: destination.style.left,
+          top: destination.style.top
         });
         destination.style.visibility = 'visible';
         destination.style.opacity = '1';
