@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Simple Eval Test</title>
+</head>
+<body>
+  <h1>Simple Eval Test</h1>
+  <div id="status">Testing...</div>
+  
+  <script>
+    console.log('DEBUG: Simple test starting');
+    
+    // Test 1: Simple eval
+    try {
+      eval('console.log("DEBUG: Simple eval works");');
+      console.log('DEBUG: Simple eval successful');
+    } catch (error) {
+      console.error('DEBUG: Simple eval failed:', error);
+    }
+    
+    // Test 2: Function definition via eval
+    try {
+      eval(`
+        function testFunction() {
+          console.log('DEBUG: Test function called');
+          return 'success';
+        }
+        window.testFunction = testFunction;
+        console.log('DEBUG: Function defined and exposed');
+      `);
+      console.log('DEBUG: Function eval successful');
+    } catch (error) {
+      console.error('DEBUG: Function eval failed:', error);
+    }
+    
+    // Test 3: Check if function is available
+    setTimeout(() => {
+      console.log('DEBUG: Checking testFunction:', typeof window.testFunction);
+      if (window.testFunction) {
+        const result = window.testFunction();
+        console.log('DEBUG: Function call result:', result);
+        document.getElementById('status').textContent = 'SUCCESS: Function works!';
+        document.getElementById('status').style.color = 'green';
+      } else {
+        document.getElementById('status').textContent = 'FAILED: Function not found';
+        document.getElementById('status').style.color = 'red';
+      }
+    }, 100);
+  </script>
+</body>
+</html>

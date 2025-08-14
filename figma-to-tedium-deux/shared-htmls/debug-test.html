@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Debug Test - Refactored System</title>
+</head>
+<body>
+  <h1>Debug Test</h1>
+  <div id="status">Loading...</div>
+  
+  <!-- Load the refactored system -->
+  <script src="refactored-system.js"></script>
+  
+  <script>
+    console.log('DEBUG: Test HTML loaded');
+    
+    // Check immediately
+    console.log('DEBUG: Immediate check - window.handleReaction:', typeof window.handleReaction);
+    
+    // Check after a short delay
+    setTimeout(() => {
+      console.log('DEBUG: After 100ms - window.handleReaction:', typeof window.handleReaction);
+      console.log('DEBUG: Window keys with "handle":', Object.keys(window).filter(key => key.includes('handle')));
+    }, 100);
+    
+    // Check after a longer delay
+    setTimeout(() => {
+      console.log('DEBUG: After 500ms - window.handleReaction:', typeof window.handleReaction);
+      console.log('DEBUG: Window keys with "handle":', Object.keys(window).filter(key => key.includes('handle')));
+    }, 500);
+    
+    // Check after 1 second
+    setTimeout(() => {
+      console.log('DEBUG: After 1000ms - window.handleReaction:', typeof window.handleReaction);
+      console.log('DEBUG: Window keys with "handle":', Object.keys(window).filter(key => key.includes('handle')));
+      
+      if (window.handleReaction) {
+        document.getElementById('status').textContent = 'SUCCESS: handleReaction found!';
+        document.getElementById('status').style.color = 'green';
+      } else {
+        document.getElementById('status').textContent = 'FAILED: handleReaction not found';
+        document.getElementById('status').style.color = 'red';
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

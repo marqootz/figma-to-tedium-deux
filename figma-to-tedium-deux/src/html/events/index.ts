@@ -5,6 +5,7 @@ export { createReactionHandler, createTimeoutHandler } from './reaction-handler'
 export { createPropertyDetector } from './property-detector';
 // export { createSmartAnimateHandler } from './transition-handler';
 export { createModularSmartAnimateHandler } from './modular-transition-handler';
+export { createThreePhaseTransitionHandler } from './three-phase-transition-handler';
 export { createComponentSetInitializer } from './initializer';
 
 // Export only the types we need, not the functions that conflict with modular transition handler
@@ -12,7 +13,8 @@ export type {
   AnimationType,
   TranslationCondition,
   AnimationChange,
-  ElementAnimationContext
+  ElementAnimationContext,
+  AnimationSession
 } from './animation-system';
 
 // Import all handler functions for use in the main generator
@@ -21,6 +23,7 @@ import { createReactionHandler, createTimeoutHandler } from './reaction-handler'
 import { createPropertyDetector } from './property-detector';
 // import { createSmartAnimateHandler } from './transition-handler';
 import { createModularSmartAnimateHandler } from './modular-transition-handler';
+import { createThreePhaseTransitionHandler } from './three-phase-transition-handler';
 import { createComponentSetInitializer } from './initializer';
 
 // Main event handling JavaScript generator
@@ -314,6 +317,10 @@ export function generateEventHandlingJavaScript(): string {
         startTimeoutReactionsForInitialVariant();
       }, 100);
     });
+    
+    // Export timeout reaction functions for use by the three-phase transition handler
+    window.startTimeoutReactionsForNewlyActiveVariant = startTimeoutReactionsForNewlyActiveVariant;
+    window.startTimeoutReactionsForNestedComponents = startTimeoutReactionsForNestedComponents;
   `;
 }
 
