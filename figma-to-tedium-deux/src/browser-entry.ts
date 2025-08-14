@@ -10,7 +10,6 @@ declare global {
 
 // Import all the event handling and animation modules
 export * from './html/events';
-export * from './html/events/animation-system';
 export * from './html/events/modular-transition-handler';
 export * from './html/events/variant-handler';
 export * from './html/events/reaction-handler';

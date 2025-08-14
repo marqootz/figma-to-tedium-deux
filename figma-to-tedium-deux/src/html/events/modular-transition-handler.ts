@@ -1,12 +1,9 @@
-import { 
+// Import only the types we need, not the functions that conflict
+import type { 
   AnimationType, 
   TranslationCondition, 
   AnimationChange, 
-  ElementAnimationContext,
-  detectAnimationChanges,
-  createAnimationContext,
-  applyAnimationChange,
-  getEasingFunction
+  ElementAnimationContext
 } from './animation-system';
 
 /**
@@ -84,8 +81,8 @@ export function createModularSmartAnimateHandler(): string {
       function detectAnimationChanges(sourceElement, targetElement, sourceNode, targetNode, parentNode) {
         const changes = [];
         
-        const sourceStyle = window.getComputedStyle(sourceElement);
-        const targetStyle = window.getComputedStyle(targetElement);
+        let sourceStyle = window.getComputedStyle(sourceElement);
+        let targetStyle = window.getComputedStyle(targetElement);
         
         // Check simple properties
         const simpleProperties = ['opacity', 'backgroundColor', 'color'];
@@ -160,13 +157,13 @@ export function createModularSmartAnimateHandler(): string {
           const targetParent = targetElement.parentElement;
           
           if (sourceParent && targetParent) {
-            const sourceParentStyle = window.getComputedStyle(sourceParent);
-            const targetParentStyle = window.getComputedStyle(targetParent);
+            const sourceParentStylePadding = window.getComputedStyle(sourceParent);
+            const targetParentStylePadding = window.getComputedStyle(targetParent);
             
             const paddingProperties = ['paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom'];
             paddingProperties.forEach(property => {
-              const sourceValue = parseFloat(sourceParentStyle[property]) || 0;
-              const targetValue = parseFloat(targetParentStyle[property]) || 0;
+              const sourceValue = parseFloat(sourceParentStylePadding[property]) || 0;
+              const targetValue = parseFloat(targetParentStylePadding[property]) || 0;
               
               if (Math.abs(sourceValue - targetValue) > 1) {
                 changes.push({
@@ -186,8 +183,8 @@ export function createModularSmartAnimateHandler(): string {
           const targetParent = targetElement.parentElement;
           
           if (sourceParent && targetParent) {
-            const sourceParentStyle = window.getComputedStyle(sourceParent);
-            const targetParentStyle = window.getComputedStyle(targetParent);
+            const sourceParentStyleAlignment = window.getComputedStyle(sourceParent);
+            const targetParentStyleAlignment = window.getComputedStyle(targetParent);
             
             // Check alignment properties with detailed logging
             const alignmentProperties = ['justifyContent', 'alignItems', 'textAlign', 'verticalAlign'];
@@ -195,8 +192,8 @@ export function createModularSmartAnimateHandler(): string {
             console.log('DEBUG: Checking alignment properties for RELATIVE_ALIGNMENT');
             
             alignmentProperties.forEach(property => {
-              const sourceValue = sourceParentStyle[property];
-              const targetValue = targetParentStyle[property];
+              const sourceValue = sourceParentStyleAlignment[property];
+              const targetValue = targetParentStyleAlignment[property];
               
               console.log(\`DEBUG: Parent \${property}:\`, { sourceValue, targetValue, changed: sourceValue !== targetValue });
               
@@ -234,8 +231,8 @@ export function createModularSmartAnimateHandler(): string {
             // Check for flexbox-specific properties
             const flexProperties = ['flexDirection', 'flexWrap', 'alignContent', 'justifyItems'];
             flexProperties.forEach(property => {
-              const sourceValue = sourceParentStyle[property];
-              const targetValue = targetParentStyle[property];
+              const sourceValue = sourceParentStyleAlignment[property];
+              const targetValue = targetParentStyleAlignment[property];
               
               console.log(\`DEBUG: Flex \${property}:\`, { sourceValue, targetValue, changed: sourceValue !== targetValue });
               
@@ -259,10 +256,45 @@ export function createModularSmartAnimateHandler(): string {
             const targetParentRect = targetParent.getBoundingClientRect();
             
             // Calculate relative positions within their containers
-            const sourceRelativeX = sourceRect.left - sourceParentRect.left;
-            const targetRelativeX = targetRect.left - targetParentRect.left;
-            const sourceRelativeY = sourceRect.top - sourceParentRect.top;
-            const targetRelativeY = targetRect.top - targetParentRect.top;
+            // For nested instances with responsive parents, use percentage-based positioning
+            // But first, check if we should use the actual rendered position instead of Figma coordinates
+            let sourceRelativeX, targetRelativeX, sourceRelativeY, targetRelativeY;
+            
+            // Check if the target element has a different alignment that would affect positioning
+            const sourceParentStylePosition = window.getComputedStyle(sourceParent);
+            const targetParentStylePosition = window.getComputedStyle(targetParent);
+            const sourceStyle = window.getComputedStyle(sourceElement);
+            const targetStyle = window.getComputedStyle(targetElement);
+            
+            // If there's an alignment difference, calculate the actual rendered position
+            if (sourceParentStylePosition.justifyContent !== targetParentStylePosition.justifyContent ||
+                sourceParentStylePosition.alignItems !== targetParentStylePosition.alignItems ||
+                sourceStyle.justifyContent !== targetStyle.justifyContent ||
+                sourceStyle.alignItems !== targetStyle.alignItems) {
+              
+              // Use the actual rendered positions
+              sourceRelativeX = (sourceRect.left - sourceParentRect.left) / sourceParentRect.width * 100;
+              targetRelativeX = (targetRect.left - targetParentRect.left) / targetParentRect.width * 100;
+              sourceRelativeY = (sourceRect.top - sourceParentRect.top) / sourceParentRect.height * 100;
+              targetRelativeY = (targetRect.top - targetParentRect.top) / targetParentRect.height * 100;
+              
+              console.log('DEBUG: Using actual rendered positions for alignment change:', {
+                sourceJustifyContent: sourceParentStylePosition.justifyContent,
+                targetJustifyContent: targetParentStylePosition.justifyContent,
+                sourceAlignItems: sourceParentStylePosition.alignItems,
+                targetAlignItems: targetParentStylePosition.alignItems,
+                sourceRelativeX,
+                targetRelativeX,
+                sourceRelativeY,
+                targetRelativeY
+              });
+            } else {
+              // Use the actual rendered positions as fallback
+              sourceRelativeX = (sourceRect.left - sourceParentRect.left) / sourceParentRect.width * 100;
+              targetRelativeX = (targetRect.left - targetParentRect.left) / targetParentRect.width * 100;
+              sourceRelativeY = (sourceRect.top - sourceParentRect.top) / sourceParentRect.height * 100;
+              targetRelativeY = (targetRect.top - targetParentRect.top) / targetParentRect.height * 100;
+            }
             
             console.log('DEBUG: Relative position analysis:', {
               sourceRelativeX,
@@ -274,7 +306,8 @@ export function createModularSmartAnimateHandler(): string {
             });
             
             // If there's a significant position difference, it might be due to alignment
-            if (Math.abs(sourceRelativeX - targetRelativeX) > 1) {
+            // Use a smaller threshold for percentage-based positioning
+            if (Math.abs(sourceRelativeX - targetRelativeX) > 0.5) {
               changes.push({
                 type: AnimationType.TRANSFORM,
                 property: 'alignTranslateX',
@@ -285,7 +318,7 @@ export function createModularSmartAnimateHandler(): string {
               });
             }
             
-            if (Math.abs(sourceRelativeY - targetRelativeY) > 1) {
+            if (Math.abs(sourceRelativeY - targetRelativeY) > 0.5) {
               changes.push({
                 type: AnimationType.TRANSFORM,
                 property: 'alignTranslateY',
@@ -330,20 +363,20 @@ export function createModularSmartAnimateHandler(): string {
                   const parent = element.parentElement;
                   const parentRect = parent.getBoundingClientRect();
                   
-                  // Calculate the target position relative to the parent
-                  const targetLeft = targetRect.left - parentRect.left;
+                  // Calculate the target position relative to the parent using percentage
+                  const targetLeft = (targetRect.left - parentRect.left) / parentRect.width * 100;
                   
                   console.log('DEBUG: Calculating justifyContent animation using target position:', {
-                    currentLeft: element.getBoundingClientRect().left - parentRect.left,
+                    currentLeft: (element.getBoundingClientRect().left - parentRect.left) / parentRect.width * 100,
                     targetLeft: targetLeft,
                     targetElementId: targetElement.getAttribute('data-figma-id'),
                     targetElementName: sourceElementName,
                     justifyContent: targetValue
                   });
                   
-                  // Set transition for left position
+                  // Set transition for left position using percentage
                   element.style.transition = \`left \${duration}s \${easing}\`;
-                  element.style.left = \`\${targetLeft}px\`;
+                  element.style.left = \`\${targetLeft}%\`;
                   
                   console.log('DEBUG: Applied justifyContent animation via target position:', {
                     property: 'left',
@@ -365,20 +398,20 @@ export function createModularSmartAnimateHandler(): string {
                   const parent = element.parentElement;
                   const parentRect = parent.getBoundingClientRect();
                   
-                  // Calculate the target position relative to the parent
-                  const targetTop = targetRect.top - parentRect.top;
+                  // Calculate the target position relative to the parent using percentage
+                  const targetTop = (targetRect.top - parentRect.top) / parentRect.height * 100;
                   
                   console.log('DEBUG: Calculating alignItems animation using target position:', {
-                    currentTop: element.getBoundingClientRect().top - parentRect.top,
+                    currentTop: (element.getBoundingClientRect().top - parentRect.top) / parentRect.height * 100,
                     targetTop: targetTop,
                     targetElementId: targetElement.getAttribute('data-figma-id'),
                     targetElementName: sourceElementName,
                     alignItems: targetValue
                   });
                   
-                  // Set transition for top position
+                  // Set transition for top position using percentage
                   element.style.transition = \`top \${duration}s \${easing}\`;
-                  element.style.top = \`\${targetTop}px\`;
+                  element.style.top = \`\${targetTop}%\`;
                   
                   console.log('DEBUG: Applied alignItems animation via target position:', {
                     property: 'top',
@@ -458,9 +491,11 @@ export function createModularSmartAnimateHandler(): string {
               }
             } else if (translationCondition === TranslationCondition.RELATIVE_ALIGNMENT) {
               if (property === 'alignTranslateX') {
-                element.style.left = \`\${targetValue}px\`;
+                // Use percentage-based positioning for nested instances with responsive parents
+                element.style.left = \`\${targetValue}%\`;
               } else if (property === 'alignTranslateY') {
-                element.style.top = \`\${targetValue}px\`;
+                // Use percentage-based positioning for nested instances with responsive parents
+                element.style.top = \`\${targetValue}%\`;
               } else if (property.startsWith('parent_')) {
                 if (element.parentElement) {
                   const alignmentProperty = property.replace('parent_', '');
@@ -481,7 +516,7 @@ export function createModularSmartAnimateHandler(): string {
       function getEasingFunction(animationType) {
         switch (animationType) {
           case 'EASE_IN_AND_OUT_BACK':
-            return 'ease-in-out';
+            return 'cubic-bezier(0.68, -0.6, 0.32, 1.6)';
           case 'EASE_IN_AND_OUT':
             return 'ease-in-out';
           case 'EASE_IN':
@@ -664,7 +699,15 @@ export function createModularSmartAnimateHandler(): string {
           updateCopyContentToMatchDestination(copy, destination);
           
           // Find elements with property changes
-          const elementsToAnimate = findElementsWithPropertyChanges(destination, copy, originalSourceElement);
+          console.log('DEBUG: About to call findElementsWithPropertyChanges');
+          let elementsToAnimate = [];
+          try {
+            elementsToAnimate = findElementsWithPropertyChanges(destination, copy, originalSourceElement);
+            console.log('DEBUG: findElementsWithPropertyChanges returned:', elementsToAnimate.length, 'elements');
+          } catch (error) {
+            console.error('DEBUG: Error calling findElementsWithPropertyChanges:', error);
+            elementsToAnimate = [];
+          }
           
           const easingFunction = getEasingFunction(transitionType);
           const duration = parseFloat(transitionDuration || '0.3');
@@ -675,6 +718,35 @@ export function createModularSmartAnimateHandler(): string {
             // Setup animation for each element using the changes already detected
             elementsToAnimate.forEach(({ element, sourceElement, changes }) => {
               console.log('DEBUG: Processing element with changes:', changes);
+              
+              // Handle nested instance variant switch
+              if (changes.isNestedInstanceVariantSwitch) {
+                console.log('DEBUG: Handling nested instance variant switch');
+                
+                // Switch the internal variants
+                const sourceComponentSet = sourceElement.querySelector('[data-figma-type="COMPONENT_SET"]');
+                if (sourceComponentSet) {
+                  // Hide current active variant
+                  const currentActiveVariant = sourceComponentSet.querySelector('.variant-active');
+                  if (currentActiveVariant) {
+                    currentActiveVariant.classList.remove('variant-active');
+                    currentActiveVariant.classList.add('variant-hidden');
+                    console.log('DEBUG: Hidden current active variant:', currentActiveVariant.getAttribute('data-figma-id'));
+                  }
+                  
+                  // Show target variant
+                  const targetVariant = changes.targetVariant;
+                  if (targetVariant) {
+                    targetVariant.classList.add('variant-active');
+                    targetVariant.classList.remove('variant-hidden');
+                    console.log('DEBUG: Showed target variant:', targetVariant.getAttribute('data-figma-id'));
+                  }
+                  
+                  console.log('DEBUG: Completed nested instance variant switch');
+                }
+                
+                return; // Skip regular animation processing
+              }
               
               // Convert the detected changes to animation changes
               const animationChanges = [];
@@ -730,46 +802,84 @@ export function createModularSmartAnimateHandler(): string {
               if (changes.justifyContent && changes.justifyContent.changed) {
                 // Calculate the position difference that the alignment change creates
                 const parent = element.parentElement;
+                console.log('DEBUG: Alignment change detected:');
+                console.log('  element:', element.getAttribute('data-figma-name'), 'ID:', element.getAttribute('data-figma-id'));
+                console.log('  parent:', parent ? parent.getAttribute('data-figma-name') : 'none', 'ID:', parent ? parent.getAttribute('data-figma-id') : 'none');
                 if (parent) {
                   const parentRect = parent.getBoundingClientRect();
-                  const elementRect = element.getBoundingClientRect();
-                  const elementWidth = elementRect.width;
+                  // Use the original element's dimensions, not the copy's dimensions
+                  const originalElement = originalSourceElement.querySelector(\`[data-figma-name="\${element.getAttribute('data-figma-name')}"]\`) || originalSourceElement;
+                  const elementWidth = originalElement ? originalElement.offsetWidth : element.offsetWidth;
+                  console.log('DEBUG: Element dimension calculation:');
+                  console.log('  originalElement found:', !!originalElement);
+                  console.log('  originalElement name:', originalElement ? originalElement.getAttribute('data-figma-name') : 'none');
+                  console.log('  originalElement.offsetWidth:', originalElement ? originalElement.offsetWidth : 'N/A');
+                  console.log('  copy element.offsetWidth:', element.offsetWidth);
+                  console.log('  final elementWidth used:', elementWidth);
                   
-                  // Calculate current position relative to parent
-                  const currentLeft = elementRect.left - parentRect.left;
+                  // Calculate target position based on alignment change using percentage
+                  let targetLeft = 0;
+                  let sourceLeft = 0;
                   
-                  // Calculate target position based on alignment change
-                  let targetLeft = currentLeft;
+                  // Calculate source position (where the element was)
+                  if (changes.justifyContent.sourceValue === 'flex-end') {
+                    // Was positioned at right edge
+                    const elementWidthPercent = (elementWidth / parentRect.width) * 100;
+                    sourceLeft = 100 - elementWidthPercent;
+                  } else if (changes.justifyContent.sourceValue === 'center') {
+                    // Was positioned at center
+                    const elementWidthPercent = (elementWidth / parentRect.width) * 100;
+                    sourceLeft = 50 - (elementWidthPercent / 2);
+                  } else if (changes.justifyContent.sourceValue === 'flex-start') {
+                    // Was positioned at left edge
+                    sourceLeft = 0;
+                  }
+                  
+                  // Calculate target position (where the element should be)
                   if (changes.justifyContent.targetValue === 'flex-end') {
-                    targetLeft = parentRect.width - elementWidth;
+                    // For flex-end, position the element so its right edge aligns with parent's right edge
+                    // Calculate the position that places the element's right edge at the parent's right edge
+                    const elementWidthPercent = (elementWidth / parentRect.width) * 100;
+                    targetLeft = 100 - elementWidthPercent;
                   } else if (changes.justifyContent.targetValue === 'center') {
-                    targetLeft = (parentRect.width - elementWidth) / 2;
+                    // For center, position the element so its center aligns with parent's center
+                    const elementWidthPercent = (elementWidth / parentRect.width) * 100;
+                    targetLeft = 50 - (elementWidthPercent / 2);
                   } else if (changes.justifyContent.targetValue === 'flex-start') {
+                    // For flex-start, position the element at the left edge
                     targetLeft = 0;
                   }
                   
-                  // Only animate if there's actually a position difference
-                  if (Math.abs(currentLeft - targetLeft) > 1) {
-                    console.log('DEBUG: Calculating justifyContent position animation:', {
-                      currentLeft: currentLeft,
-                      targetLeft: targetLeft,
-                      justifyContent: changes.justifyContent.targetValue,
-                      parentWidth: parentRect.width,
-                      elementWidth: elementWidth
-                    });
-                    
-                    // Animate the position, NOT the alignment
-                    element.style.transition = \`left \${duration}s \${easingFunction}\`;
-                    element.style.left = \`\${targetLeft}px\`;
-                    
-                    console.log('DEBUG: Applied justifyContent position animation:', {
-                      property: 'left',
-                      transitionProperty: 'left',
-                      targetValue: \`\${targetLeft}px\`
-                    });
-                  } else {
-                    console.log('DEBUG: JustifyContent change detected but no position difference - skipping animation');
-                  }
+                  // Always animate the position change for alignment changes
+                  console.log('DEBUG: Calculating justifyContent position animation - KEY VALUES:');
+                  console.log('  sourceLeft:', sourceLeft);
+                  console.log('  targetLeft:', targetLeft);
+                  console.log('  positionDifference:', targetLeft - sourceLeft);
+                  console.log('  sourceJustifyContent:', changes.justifyContent.sourceValue);
+                  console.log('  targetJustifyContent:', changes.justifyContent.targetValue);
+                  console.log('  parentWidth:', parentRect.width);
+                  console.log('  elementWidth (calculated):', elementWidth);
+                  console.log('  element.offsetWidth:', element.offsetWidth);
+                  console.log('  element.clientWidth:', element.clientWidth);
+                  console.log('  element.getBoundingClientRect().width:', element.getBoundingClientRect().width);
+                  console.log('  parent.getBoundingClientRect().width:', parent.getBoundingClientRect().width);
+                  console.log('  availableSpace:', parentRect.width - elementWidth);
+                  
+                  // Set initial position to source position, then animate to target position
+                  element.style.left = \`\${sourceLeft}%\`;
+                  
+                  // Force a reflow to ensure the initial position is applied
+                  element.offsetHeight;
+                  
+                  // Now animate to the target position
+                  element.style.transition = \`left \${duration}s \${easingFunction}\`;
+                  element.style.left = \`\${targetLeft}%\`;
+                  
+                  console.log('DEBUG: Applied justifyContent position animation:', {
+                    property: 'left',
+                    transitionProperty: 'left',
+                    targetValue: \`\${targetLeft}%\`
+                  });
                   
                   // Don't add to animationChanges array since we're handling it directly
                   return;
@@ -781,44 +891,66 @@ export function createModularSmartAnimateHandler(): string {
                 const parent = element.parentElement;
                 if (parent) {
                   const parentRect = parent.getBoundingClientRect();
-                  const elementRect = element.getBoundingClientRect();
-                  const elementHeight = elementRect.height;
+                  const elementHeight = element.offsetHeight;
                   
-                  // Calculate current position relative to parent
-                  const currentTop = elementRect.top - parentRect.top;
+                  // Calculate target position based on alignment change using percentage
+                  let targetTop = 0;
+                  let sourceTop = 0;
                   
-                  // Calculate target position based on alignment change
-                  let targetTop = currentTop;
+                  // Calculate source position (where the element was)
+                  if (changes.alignItems.sourceValue === 'flex-end') {
+                    // Was positioned at bottom edge
+                    const elementHeightPercent = (elementHeight / parentRect.height) * 100;
+                    sourceTop = 100 - elementHeightPercent;
+                  } else if (changes.alignItems.sourceValue === 'center') {
+                    // Was positioned at center
+                    const elementHeightPercent = (elementHeight / parentRect.height) * 100;
+                    sourceTop = 50 - (elementHeightPercent / 2);
+                  } else if (changes.alignItems.sourceValue === 'flex-start') {
+                    // Was positioned at top edge
+                    sourceTop = 0;
+                  }
+                  
+                  // Calculate target position (where the element should be)
                   if (changes.alignItems.targetValue === 'flex-end') {
-                    targetTop = parentRect.height - elementHeight;
+                    // Position at bottom edge
+                    const elementHeightPercent = (elementHeight / parentRect.height) * 100;
+                    targetTop = 100 - elementHeightPercent;
                   } else if (changes.alignItems.targetValue === 'center') {
-                    targetTop = (parentRect.height - elementHeight) / 2;
+                    // Position at center
+                    const elementHeightPercent = (elementHeight / parentRect.height) * 100;
+                    targetTop = 50 - (elementHeightPercent / 2);
                   } else if (changes.alignItems.targetValue === 'flex-start') {
+                    // Position at top edge
                     targetTop = 0;
                   }
                   
-                  // Only animate if there's actually a position difference
-                  if (Math.abs(currentTop - targetTop) > 1) {
-                    console.log('DEBUG: Calculating alignItems position animation:', {
-                      currentTop: currentTop,
-                      targetTop: targetTop,
-                      alignItems: changes.alignItems.targetValue,
-                      parentHeight: parentRect.height,
-                      elementHeight: elementHeight
-                    });
-                    
-                    // Animate the position, NOT the alignment
-                    element.style.transition = \`top \${duration}s \${easingFunction}\`;
-                    element.style.top = \`\${targetTop}px\`;
-                    
-                    console.log('DEBUG: Applied alignItems position animation:', {
-                      property: 'top',
-                      transitionProperty: 'top',
-                      targetValue: \`\${targetTop}px\`
-                    });
-                  } else {
-                    console.log('DEBUG: AlignItems change detected but no position difference - skipping animation');
-                  }
+                  // Always animate the position change for alignment changes
+                  console.log('DEBUG: Calculating alignItems position animation:', {
+                    sourceTop: sourceTop,
+                    targetTop: targetTop,
+                    positionDifference: targetTop - sourceTop,
+                    sourceAlignItems: changes.alignItems.sourceValue,
+                    targetAlignItems: changes.alignItems.targetValue,
+                    parentHeight: parentRect.height,
+                    elementHeight: elementHeight
+                  });
+                  
+                  // Set initial position to source position, then animate to target position
+                  element.style.top = \`\${sourceTop}%\`;
+                  
+                  // Force a reflow to ensure the initial position is applied
+                  element.offsetHeight;
+                  
+                  // Now animate to the target position
+                  element.style.transition = \`top \${duration}s \${easingFunction}\`;
+                  element.style.top = \`\${targetTop}%\`;
+                  
+                  console.log('DEBUG: Applied alignItems position animation:', {
+                    property: 'top',
+                    transitionProperty: 'top',
+                    targetValue: \`\${targetTop}%\`
+                  });
                   
                   // Don't add to animationChanges array since we're handling it directly
                   return;
@@ -1102,10 +1234,10 @@ export function createModularSmartAnimateHandler(): string {
           clearInterval(intervalId);
           clearInterval(progressInterval);
           
-          // CRITICAL FIX: Ensure the copy has the final position before resolving
-          elementsToAnimate.forEach(({ element, changes }) => {
-            const elementName = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
-            const computedStyle = window.getComputedStyle(element);
+                      // CRITICAL FIX: Ensure the copy has the final position before resolving
+            elementsToAnimate.forEach(({ element, changes }) => {
+              const elementName = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
+              let computedStyle = window.getComputedStyle(element);
             console.log('🎯 FINAL POSITION BEFORE RESOLVE:', {
               elementName: elementName,
               finalLeft: computedStyle.left,
@@ -1183,7 +1315,7 @@ export function createModularSmartAnimateHandler(): string {
               // Check if animations are actually complete by examining the computed styles
               let actuallyCompleted = 0;
               elementsToAnimate.forEach(({ element, changes }) => {
-                const computedStyle = window.getComputedStyle(element);
+                let computedStyle = window.getComputedStyle(element);
                 
                 // If transition is 'none' or empty, animation is likely complete
                 if (!computedStyle.transition || computedStyle.transition === 'none' || computedStyle.transition === 'all 0s ease 0s') {
@@ -1219,10 +1351,87 @@ export function createModularSmartAnimateHandler(): string {
         };
       }
       
-      // Helper function to find elements with property changes
+
+
+      // Helper function to find elements with property changes between variants
       function findElementsWithPropertyChanges(targetVariant, currentVariant, originalSourceVariant) {
+        console.log('DEBUG: findElementsWithPropertyChanges MODULAR VERSION called');
+        console.log('DEBUG: findElementsWithPropertyChanges called in modular-transition-handler.ts');
+        console.log('DEBUG: Parameters:', {
+          targetVariant: targetVariant.getAttribute('data-figma-id'),
+          currentVariant: currentVariant.getAttribute('data-figma-id'),
+          originalSourceVariant: originalSourceVariant ? originalSourceVariant.getAttribute('data-figma-id') : 'none'
+        });
+        
         if (!currentVariant) {
+          console.log('DEBUG: No current variant provided, returning empty array');
           return [];
+        }
+        
+        // Check if this is a nested instance with internal variants
+        // Look for the parent instance that contains this component set
+        let isNestedInstance = false;
+        let parentInstance = null;
+        let parentComponentSet = null;
+        
+        if (originalSourceVariant) {
+          // Check if the original source variant is within a nested instance
+          parentComponentSet = originalSourceVariant.closest('[data-figma-type="COMPONENT_SET"]');
+          console.log('DEBUG: Nested instance detection check:', {
+            originalSourceVariant: originalSourceVariant.getAttribute('data-figma-id'),
+            originalSourceType: originalSourceVariant.getAttribute('data-figma-type'),
+            parentComponentSet: parentComponentSet ? parentComponentSet.getAttribute('data-figma-id') : 'none'
+          });
+          
+          if (parentComponentSet) {
+            parentInstance = parentComponentSet.closest('[data-figma-type="INSTANCE"]');
+            if (parentInstance) {
+              isNestedInstance = true;
+              console.log('DEBUG: Found nested instance structure:', {
+                originalSourceVariant: originalSourceVariant.getAttribute('data-figma-id'),
+                parentComponentSet: parentComponentSet.getAttribute('data-figma-id'),
+                parentInstance: parentInstance.getAttribute('data-figma-id')
+              });
+            } else {
+              console.log('DEBUG: No parent instance found for component set');
+            }
+          } else {
+            console.log('DEBUG: No parent component set found');
+          }
+        }
+        
+        if (isNestedInstance) {
+          console.log('DEBUG: Detected nested instance, handling internal variant switch');
+          
+          // For nested instances, we need to handle the internal variant switching
+          // instead of animating individual elements
+          const sourceComponentSet = parentComponentSet;
+          const targetComponentSet = targetVariant.querySelector('[data-figma-type="COMPONENT_SET"]');
+        
+          if (sourceComponentSet && targetComponentSet) {
+            // Find the active variants in both source and target
+            const sourceActiveVariant = sourceComponentSet.querySelector('.variant-active');
+            const targetActiveVariant = targetComponentSet.querySelector('.variant-active');
+            
+            if (sourceActiveVariant && targetActiveVariant) {
+              console.log('DEBUG: Nested instance variant switch:', {
+                sourceVariant: sourceActiveVariant.getAttribute('data-figma-id'),
+                targetVariant: targetActiveVariant.getAttribute('data-figma-id')
+              });
+              
+              // Return a special change that indicates this is a nested instance variant switch
+              return [{
+                element: parentInstance || currentVariant,
+                sourceElement: parentInstance || originalSourceVariant,
+                changes: {
+                  hasChanges: true,
+                  isNestedInstanceVariantSwitch: true,
+                  sourceVariant: sourceActiveVariant,
+                  targetVariant: targetActiveVariant
+                }
+              }];
+            }
+          }
         }
         
         const targetElements = targetVariant.querySelectorAll('[data-figma-id]');
@@ -1230,37 +1439,111 @@ export function createModularSmartAnimateHandler(): string {
         const sourceElementMap = new Map();
         const elementsToAnimate = [];
 
+        console.log('DEBUG: Found', targetElements.length, 'target elements and', sourceElements.length, 'source elements');
+
         // Build source element map by name
         sourceElements.forEach(function(sourceElement) {
           const sourceName = sourceElement.getAttribute('data-figma-name') || sourceElement.getAttribute('data-figma-id');
           if (sourceName) {
             sourceElementMap.set(sourceName, sourceElement);
+            console.log('  Mapped source element:', sourceName, '->', sourceElement.getAttribute('data-figma-id'));
           }
         });
 
-        // Analyze each target element for property changes
+        // First, check for alignment changes on parent elements that affect child positioning
+        const parentAlignmentChanges = [];
         targetElements.forEach(function(element, index) {
           const targetName = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
           const sourceElement = sourceElementMap.get(targetName);
           
           if (sourceElement) {
-            const changes = detectPropertyChanges(element, sourceElement, originalSourceVariant);
+            // Check if this element's parent has alignment changes
+            const sourceParent = sourceElement.parentElement;
+            const targetParent = element.parentElement;
             
-            if (changes.hasChanges) {
-              elementsToAnimate.push({
-                element: sourceElement,  // Use SOURCE element (from copy) instead of target
-                sourceElement: sourceElement,
-                changes: changes
-              });
+            if (sourceParent && targetParent) {
+              const sourceParentStyleParent = window.getComputedStyle(sourceParent);
+              const targetParentStyleParent = window.getComputedStyle(targetParent);
+              
+              // Check for alignment changes that would affect child positioning
+              if (sourceParentStyleParent.justifyContent !== targetParentStyleParent.justifyContent ||
+                  sourceParentStyleParent.alignItems !== targetParentStyleParent.alignItems) {
+                
+                console.log('DEBUG: Detected parent alignment change:', {
+                  elementName: targetName,
+                  parentName: targetParent.getAttribute('data-figma-name'),
+                  sourceJustifyContent: sourceParentStyleParent.justifyContent,
+                  targetJustifyContent: targetParentStyleParent.justifyContent,
+                  sourceAlignItems: sourceParentStyleParent.alignItems,
+                  targetAlignItems: targetParentStyleParent.alignItems
+                });
+                
+                // Add the parent to the animation list with alignment changes
+                const parentChanges = {
+                  hasChanges: true,
+                  justifyContent: { 
+                    changed: sourceParentStyleParent.justifyContent !== targetParentStyleParent.justifyContent,
+                    sourceValue: sourceParentStyleParent.justifyContent,
+                    targetValue: targetParentStyleParent.justifyContent
+                  },
+                  alignItems: { 
+                    changed: sourceParentStyleParent.alignItems !== targetParentStyleParent.alignItems,
+                    sourceValue: sourceParentStyleParent.alignItems,
+                    targetValue: targetParentStyleParent.alignItems
+                  }
+                };
+                
+                parentAlignmentChanges.push({
+                  element: sourceElement,  // Animate the CHILD that will be affected by parent alignment
+                  sourceElement: sourceElement,
+                  changes: parentChanges
+                });
+              }
             }
           }
         });
         
+        // If we found parent alignment changes, prioritize those over child position changes
+        if (parentAlignmentChanges.length > 0) {
+          console.log('DEBUG: Prioritizing parent alignment changes over child position changes');
+          elementsToAnimate.push(...parentAlignmentChanges);
+        } else {
+          // Only check for child position changes if no parent alignment changes were found
+          targetElements.forEach(function(element, index) {
+            const targetName = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
+            const sourceElement = sourceElementMap.get(targetName);
+            
+            console.log('DEBUG: Analyzing target element ' + (index + 1) + ':', targetName);
+            console.log('  Target element ID:', element.getAttribute('data-figma-id'));
+            console.log('  Source element found:', !!sourceElement);
+            
+            if (sourceElement) {
+              console.log('  Source element ID:', sourceElement.getAttribute('data-figma-id'));
+              const changes = detectPropertyChanges(element, sourceElement, originalSourceVariant);
+              
+              if (changes.hasChanges) {
+                elementsToAnimate.push({
+                  element: sourceElement,  // Use SOURCE element (from copy) instead of target
+                  sourceElement: sourceElement,
+                  changes: changes
+                });
+                console.log('DEBUG: Found element with property changes:', targetName, 'changes:', changes);
+              } else {
+                console.log('DEBUG: No changes detected for element:', targetName);
+              }
+            } else {
+              console.log('DEBUG: No matching source element found for:', targetName);
+            }
+          });
+        }
+        
+        console.log('DEBUG: Returning', elementsToAnimate.length, 'elements to animate');
         return elementsToAnimate;
       }
 
       // Helper function to detect property changes between elements
       function detectPropertyChanges(targetElement, sourceElement, originalSourceVariant) {
+        console.log('DEBUG: detectPropertyChanges function called for:', targetElement.getAttribute('data-figma-name'));
         const changes = {
           hasChanges: false,
           positionX: { changed: false, sourceValue: null, targetValue: null },
@@ -1274,6 +1557,69 @@ export function createModularSmartAnimateHandler(): string {
         try {
           const sourceStyle = window.getComputedStyle(sourceElement);
           const targetStyle = window.getComputedStyle(targetElement);
+          
+          // Check for parent alignment changes first
+          const sourceParent = sourceElement.parentElement;
+          const targetParent = targetElement.parentElement;
+          
+          console.log('DEBUG: detectPropertyChanges - Checking parent alignment for element:', targetElement.getAttribute('data-figma-name'));
+          console.log('DEBUG: detectPropertyChanges - Source parent:', sourceParent ? sourceParent.getAttribute('data-figma-name') : 'none');
+          console.log('DEBUG: detectPropertyChanges - Target parent:', targetParent ? targetParent.getAttribute('data-figma-name') : 'none');
+          
+          if (sourceParent && targetParent) {
+            const sourceParentStyleProperty = window.getComputedStyle(sourceParent);
+            const targetParentStyleProperty = window.getComputedStyle(targetParent);
+            
+            console.log('DEBUG: detectPropertyChanges - Parent styles comparison:', {
+              sourceParentName: sourceParent.getAttribute('data-figma-name'),
+              targetParentName: targetParent.getAttribute('data-figma-name'),
+              sourceJustifyContent: sourceParentStyleProperty.justifyContent,
+              targetJustifyContent: targetParentStyleProperty.justifyContent,
+              sourceAlignItems: sourceParentStyleProperty.alignItems,
+              targetAlignItems: targetParentStyleProperty.alignItems,
+              justifyContentChanged: sourceParentStyleProperty.justifyContent !== targetParentStyleProperty.justifyContent,
+              alignItemsChanged: sourceParentStyleProperty.alignItems !== targetParentStyleProperty.alignItems
+            });
+            
+            // Check for alignment changes that would affect child positioning
+            if (sourceParentStyleProperty.justifyContent !== targetParentStyleProperty.justifyContent ||
+                sourceParentStyleProperty.alignItems !== targetParentStyleProperty.alignItems) {
+              
+              console.log('DEBUG: detectPropertyChanges - Detected parent alignment change:', {
+                elementName: targetElement.getAttribute('data-figma-name'),
+                parentName: targetParent.getAttribute('data-figma-name'),
+                sourceJustifyContent: sourceParentStyleProperty.justifyContent,
+                targetJustifyContent: targetParentStyleProperty.justifyContent,
+                sourceAlignItems: sourceParentStyleProperty.alignItems,
+                targetAlignItems: targetParentStyleProperty.alignItems
+              });
+              
+              changes.hasChanges = true;
+              changes.justifyContent = { 
+                changed: sourceParentStyleProperty.justifyContent !== targetParentStyleProperty.justifyContent,
+                sourceValue: sourceParentStyleProperty.justifyContent,
+                targetValue: targetParentStyleProperty.justifyContent
+              };
+              changes.alignItems = { 
+                changed: sourceParentStyleProperty.alignItems !== targetParentStyleProperty.alignItems,
+                sourceValue: sourceParentStyleProperty.alignItems,
+                targetValue: targetParentStyleProperty.alignItems
+              };
+              
+              return changes;
+            } else {
+              console.log('DEBUG: detectPropertyChanges - No parent alignment changes detected');
+            }
+          } else {
+            console.log('DEBUG: detectPropertyChanges - Missing parent elements');
+          }
+        } catch (error) {
+          console.log('DEBUG: Error in parent alignment check:', error);
+        }
+
+        try {
+          let sourceStyle = window.getComputedStyle(sourceElement);
+          let targetStyle = window.getComputedStyle(targetElement);
           
           // STEP 1: Check if the node has position changes using bounding rectangles (accounts for flexbox alignment)
           const targetRect = targetElement.getBoundingClientRect();

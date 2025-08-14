@@ -7,18 +7,12 @@ export { createPropertyDetector } from './property-detector';
 export { createModularSmartAnimateHandler } from './modular-transition-handler';
 export { createComponentSetInitializer } from './initializer';
 
-// Export animation system types and functions
-export {
+// Export only the types we need, not the functions that conflict with modular transition handler
+export type {
   AnimationType,
   TranslationCondition,
   AnimationChange,
-  ElementAnimationContext,
-  getAnimationType,
-  getTranslationCondition,
-  detectAnimationChanges,
-  createAnimationContext,
-  applyAnimationChange,
-  getEasingFunction
+  ElementAnimationContext
 } from './animation-system';
 
 // Import all handler functions for use in the main generator
