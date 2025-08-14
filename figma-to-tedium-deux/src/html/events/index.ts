@@ -2,13 +2,10 @@
 export { generateReactionAttributes, generateVariantAttributes } from './attributes';
 export { createVariantSwitchingHandler } from './variant-handler';
 export { createReactionHandler, createTimeoutHandler } from './reaction-handler';
-export { createPropertyDetector } from './property-detector';
-// export { createSmartAnimateHandler } from './transition-handler';
-export { createModularSmartAnimateHandler } from './modular-transition-handler';
 export { createThreePhaseTransitionHandler } from './three-phase-transition-handler';
 export { createComponentSetInitializer } from './initializer';
 
-// Export only the types we need, not the functions that conflict with modular transition handler
+// Export only the types we need for the three-phase system
 export type {
   AnimationType,
   TranslationCondition,
@@ -20,9 +17,6 @@ export type {
 // Import all handler functions for use in the main generator
 import { createVariantSwitchingHandler } from './variant-handler';
 import { createReactionHandler, createTimeoutHandler } from './reaction-handler';
-import { createPropertyDetector } from './property-detector';
-// import { createSmartAnimateHandler } from './transition-handler';
-import { createModularSmartAnimateHandler } from './modular-transition-handler';
 import { createThreePhaseTransitionHandler } from './three-phase-transition-handler';
 import { createComponentSetInitializer } from './initializer';
 

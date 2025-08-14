@@ -15,7 +15,6 @@ export * from './html/events';
 export * from './html/events/three-phase-transition-handler';
 export * from './html/events/variant-handler';
 export * from './html/events/reaction-handler';
-export * from './html/events/property-detector';
 export * from './html/events/initializer';
 export * from './html/events/attributes';
 
