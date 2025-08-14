@@ -2124,10 +2124,63 @@ export function createModularSmartAnimateHandler(): string {
             }
           }
         } else {
-          // Handle case where destinationId is null (final variant - no further transitions)
-          clearTimeout(safetyTimeout);
-          isTransitionInProgress = false;
-          currentTransitionPromise = null;
+          // Handle case where destinationId is null (final variant in cycle)
+          console.log('DEBUG: Destination ID is null - handling cycle completion');
+          
+          // Find the component set to cycle back to the first variant
+          const sourceComponentSet = sourceElement.closest('[data-figma-type="COMPONENT_SET"]');
+          
+          if (sourceComponentSet) {
+            const allVariants = Array.from(sourceComponentSet.children).filter(child => 
+              child.getAttribute('data-figma-type') === 'COMPONENT'
+            );
+            
+            if (allVariants.length > 0) {
+              // Cycle back to the first variant
+              const firstVariant = allVariants[0];
+              console.log('DEBUG: Cycling back to first variant:', firstVariant.getAttribute('data-figma-id'));
+              
+              const isAnimated = transitionType === 'SMART_ANIMATE' || 
+                                transitionType === 'BOUNCY' || 
+                                transitionType === 'EASE_IN_AND_OUT' || 
+                                transitionType === 'EASE_IN' || 
+                                transitionType === 'EASE_OUT' || 
+                                transitionType === 'LINEAR' || 
+                                transitionType === 'GENTLE';
+              
+              if (isAnimated) {
+                console.log('DEBUG: Using modular animated variant switching for cycle completion');
+                currentTransitionPromise = handleAnimatedVariantSwitch(sourceElement, firstVariant, allVariants, transitionType, transitionDuration)
+                  .then(() => {
+                    clearTimeout(safetyTimeout);
+                    isTransitionInProgress = false;
+                    currentTransitionPromise = null;
+                  })
+                  .catch((error) => {
+                    console.error('Modular animation error during cycle completion:', error);
+                    clearTimeout(safetyTimeout);
+                    isTransitionInProgress = false;
+                    currentTransitionPromise = null;
+                  });
+              } else {
+                console.log('DEBUG: Using instant variant switching for cycle completion');
+                performInstantVariantSwitch(allVariants, firstVariant);
+                clearTimeout(safetyTimeout);
+                isTransitionInProgress = false;
+                currentTransitionPromise = null;
+              }
+            } else {
+              console.log('DEBUG: No variants found in component set for cycling');
+              clearTimeout(safetyTimeout);
+              isTransitionInProgress = false;
+              currentTransitionPromise = null;
+            }
+          } else {
+            console.log('DEBUG: No component set found for cycling');
+            clearTimeout(safetyTimeout);
+            isTransitionInProgress = false;
+            currentTransitionPromise = null;
+          }
         }
       }
       
