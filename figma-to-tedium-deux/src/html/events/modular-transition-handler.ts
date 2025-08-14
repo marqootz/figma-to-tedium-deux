@@ -543,24 +543,18 @@ export function createModularSmartAnimateHandler(): string {
         copy.style.transform = 'translateZ(0)';
         copy.style.willChange = 'transform, left, top';
         
-        // Preserve original overflow from source element
+        // Preserve original overflow, display, and visibility from source element
         const sourceComputedStyle = window.getComputedStyle(sourceElement);
         copy.style.overflow = sourceComputedStyle.overflow;
-        
-        // Ensure the copy and all its children are fully visible
+        copy.style.display = sourceComputedStyle.display;
+        copy.style.visibility = sourceComputedStyle.visibility;
         copy.style.opacity = '1';
-        copy.style.visibility = 'visible';
-        copy.style.display = 'flex';
 
-        // Ensure all nested elements in the copy are also visible, but preserve their original overflow
+        // Preserve original display and visibility for all nested elements, but ensure opacity is 1
         const copyChildren = copy.querySelectorAll('*');
         copyChildren.forEach(child => {
           child.style.opacity = '1';
-          child.style.visibility = 'visible';
-          // Don't override overflow - preserve the original value from the clone
-          if (child.style.display === 'none') {
-            child.style.display = 'flex';
-          }
+          // Don't override display, visibility, or overflow - preserve the original values from the clone
         });
 
         // Ensure all nodes in the copy are visible (no detailed logging)
@@ -655,15 +649,11 @@ export function createModularSmartAnimateHandler(): string {
           }
         });
         
-        // Ensure all elements in the copy are visible after content update, but preserve overflow
+        // Ensure all elements in the copy have opacity 1 after content update, but preserve display, visibility, and overflow
         const allCopyElements = copy.querySelectorAll('*');
         allCopyElements.forEach(element => {
           element.style.opacity = '1';
-          element.style.visibility = 'visible';
-          // Don't override overflow - preserve the original value from the clone
-          if (element.style.display === 'none') {
-            element.style.display = 'flex';
-          }
+          // Don't override display, visibility, or overflow - preserve the original values from the clone
         });
       }
       
@@ -1156,8 +1146,8 @@ export function createModularSmartAnimateHandler(): string {
                   transitionProperties.set(elementKey, updatedProperties);
                   
                   // If all properties for this element have completed, mark the element as done
-                  if (updatedProperties.length === 0 && !animatedElements.has(elementKey)) {
-                    animatedElements.add(elementKey);
+                  if (updatedProperties.length === 0 && !animatedElementsSet.has(elementKey)) {
+                    animatedElementsSet.add(elementKey);
                     completedAnimations++;
                     
                     if (completedAnimations >= totalAnimations) {
@@ -1293,27 +1283,57 @@ export function createModularSmartAnimateHandler(): string {
           const targetParent = targetElement.parentElement;
           const targetParentRect = targetParent ? targetParent.getBoundingClientRect() : { left: 0, top: 0 };
           
-          // For the source element (copy), use computed styles since it's positioned absolutely
-          // For the target element, use bounding rect for accurate positioning
-          // Calculate the position differences between source and target
-          // Use the original source element's position, not the copy's position
+          // CRITICAL FIX: Use the original source element's position, not the copy's position
+          // The copy is positioned absolutely at the top of the viewport, which creates false position differences
           const originalSourceElement = originalSourceVariant.querySelector('[data-figma-name="' + sourceElement.getAttribute('data-figma-name') + '"]');
-          const originalSourceStyle = originalSourceElement ? window.getComputedStyle(originalSourceElement) : sourceStyle;
-          const originalSourceRect = originalSourceElement ? originalSourceElement.getBoundingClientRect() : sourceElement.getBoundingClientRect();
-          const originalSourceParent = originalSourceElement ? originalSourceElement.parentElement : sourceElement.parentElement;
-          const originalSourceParentRect = originalSourceParent ? originalSourceParent.getBoundingClientRect() : sourceParentRect;
           
-          // Calculate positions based on element centers, not top-left corners
-          const sourceCenterX = originalSourceRect.left + originalSourceRect.width / 2 - originalSourceParentRect.left;
-          const sourceCenterY = originalSourceRect.top + originalSourceRect.height / 2 - originalSourceParentRect.top;
-          const targetCenterX = targetRect.left + targetRect.width / 2 - targetParentRect.left;
-          const targetCenterY = targetRect.top + targetRect.height / 2 - targetParentRect.top;
+          if (!originalSourceElement) {
+            return changes;
+          }
           
-          // Convert center positions back to top-left positions for the element
-          const sourceLeft = sourceCenterX - originalSourceRect.width / 2;
-          const sourceTop = sourceCenterY - originalSourceRect.height / 2;
-          const targetLeft = targetCenterX - targetRect.width / 2;
-          const targetTop = targetCenterY - targetRect.height / 2;
+          const originalSourceStyle = window.getComputedStyle(originalSourceElement);
+          const originalSourceRect = originalSourceElement.getBoundingClientRect();
+          const originalSourceParent = originalSourceElement.parentElement;
+          const originalSourceParentRect = originalSourceParent ? originalSourceParent.getBoundingClientRect() : { left: 0, top: 0 };
+          
+          // DEBUG: Check if target element is found correctly
+          const targetName = targetElement.getAttribute('data-figma-name');
+          const sourceName = sourceElement.getAttribute('data-figma-name');
+          
+          if (targetName === 'Frame 1306') {
+            console.log('DEBUG: Frame 1306 position analysis:');
+            console.log('  Target element found:', !!targetElement);
+            console.log('  Target element ID:', targetElement.getAttribute('data-figma-id'));
+            console.log('  Target element data-figma-y:', targetElement.getAttribute('data-figma-y'));
+            console.log('  Target element computed style top:', targetStyle.top);
+            console.log('  Target element bounding rect:', targetRect);
+            console.log('  Target parent bounding rect:', targetParentRect);
+            console.log('  Source element data-figma-y:', originalSourceElement.getAttribute('data-figma-y'));
+            console.log('  Source element computed style top:', originalSourceStyle.top);
+            console.log('  Source element bounding rect:', originalSourceRect);
+            console.log('  Source parent bounding rect:', originalSourceParentRect);
+          }
+          
+          // Calculate positions relative to their respective parents
+          // This ensures we're comparing equivalent coordinate systems
+          // CRITICAL FIX: Use data-figma-y attributes directly since bounding rectangles may not reflect correct positioning
+          const sourceFigmaY = parseFloat(originalSourceElement.getAttribute('data-figma-y')) || 0;
+          const targetFigmaY = parseFloat(targetElement.getAttribute('data-figma-y')) || 0;
+          const sourceFigmaX = parseFloat(originalSourceElement.getAttribute('data-figma-x')) || 0;
+          const targetFigmaX = parseFloat(targetElement.getAttribute('data-figma-x')) || 0;
+          
+          // Use Figma coordinates directly for comparison
+          const sourceRelativeLeft = sourceFigmaX;
+          const sourceRelativeTop = sourceFigmaY;
+          const targetRelativeLeft = targetFigmaX;
+          const targetRelativeTop = targetFigmaY;
+          
+          if (targetName === 'Frame 1306') {
+            console.log('DEBUG: Frame 1306 Figma coordinates:');
+            console.log('  Source Figma coordinates:', { x: sourceFigmaX, y: sourceFigmaY });
+            console.log('  Target Figma coordinates:', { x: targetFigmaX, y: targetFigmaY });
+            console.log('  Differences:', { x: Math.abs(sourceFigmaX - targetFigmaX), y: Math.abs(sourceFigmaY - targetFigmaY) });
+          }
           
           // STEP 2: Check if the node has ignore auto layout enabled
           const ignoreAutoLayout = sourceElement.getAttribute('data-layout-positioning') === 'ABSOLUTE';
@@ -1329,61 +1349,41 @@ export function createModularSmartAnimateHandler(): string {
           let shouldAnimatePosition = false;
           let animationType = 'ABSOLUTE';
           
-          if (Math.abs(sourceLeft - targetLeft) > 1 || Math.abs(sourceTop - targetTop) > 1) {
+          if (Math.abs(sourceRelativeLeft - targetRelativeLeft) > 1 || Math.abs(sourceRelativeTop - targetRelativeTop) > 1) {
             // Node has position changes
             if (ignoreAutoLayout) {
               // Node ignores auto layout - animate absolutely
               shouldAnimatePosition = true;
               animationType = 'ABSOLUTE';
-              console.log('DEBUG: Node has position changes and ignores auto layout - animating absolutely');
             } else if (!parentHasAutoLayout) {
               // Node's parent doesn't have auto layout - animate absolutely
               shouldAnimatePosition = true;
               animationType = 'ABSOLUTE';
-              console.log('DEBUG: Node has position changes and parent has no auto layout - animating absolutely');
             } else {
               // Node has position changes and parent has auto layout - ANIMATE the node
               // The node moves due to parent's alignment changes, so we animate it smoothly
               shouldAnimatePosition = true;
               animationType = 'ABSOLUTE';
-              console.log('DEBUG: Node has position changes and parent has auto layout - ANIMATING (node moves due to parent alignment)');
             }
           } else {
             // No position changes - no animation needed
             shouldAnimatePosition = false;
-            console.log('DEBUG: No position changes detected - no animation needed');
           }
           
           // Apply position changes if animation is needed
           if (shouldAnimatePosition) {
-            if (Math.abs(sourceLeft - targetLeft) > 1) {
+            if (Math.abs(sourceRelativeLeft - targetRelativeLeft) > 1) {
               changes.positionX.changed = true;
               changes.positionX.sourceValue = 0; // Start from 0 (additive animation)
-              changes.positionX.targetValue = targetLeft - sourceLeft; // Add the difference to current position
+              changes.positionX.targetValue = targetRelativeLeft - sourceRelativeLeft; // Add the difference to current position
               changes.hasChanges = true;
-              
-              // Debug the position calculation
-              console.log('DEBUG: Additive position calculation for X:', {
-                sourceLeft: sourceLeft,
-                targetLeft: targetLeft,
-                difference: targetLeft - sourceLeft,
-                elementName: sourceElement.getAttribute('data-figma-name')
-              });
             }
             
-            if (Math.abs(sourceTop - targetTop) > 1) {
+            if (Math.abs(sourceRelativeTop - targetRelativeTop) > 1) {
               changes.positionY.changed = true;
               changes.positionY.sourceValue = 0; // Start from 0 (additive animation)
-              changes.positionY.targetValue = targetTop - sourceTop; // Add the difference to current position
+              changes.positionY.targetValue = targetRelativeTop - sourceRelativeTop; // Add the difference to current position
               changes.hasChanges = true;
-              
-              // Debug the position calculation
-              console.log('DEBUG: Additive position calculation for Y:', {
-                sourceTop: sourceTop,
-                targetTop: targetTop,
-                difference: targetTop - sourceTop,
-                elementName: sourceElement.getAttribute('data-figma-name')
-              });
             }
           }
 
@@ -1427,8 +1427,9 @@ export function createModularSmartAnimateHandler(): string {
               changes.hasChanges = true;
             }
           }
+          
         } catch (error) {
-          console.error('Error detecting property changes:', error);
+          console.log('DEBUG: Error detecting property changes:', error);
         }
 
         return changes;
@@ -1517,6 +1518,46 @@ export function createModularSmartAnimateHandler(): string {
         destination.style.display = 'flex';
         destination.classList.add('variant-active');
         destination.classList.remove('variant-hidden');
+        
+        // CRITICAL FIX: Ensure all nested components within the destination variant are also visible
+        const nestedElements = destination.querySelectorAll('[data-figma-id]');
+        nestedElements.forEach(nestedElement => {
+          const elementId = nestedElement.getAttribute('data-figma-id');
+          const elementName = nestedElement.getAttribute('data-figma-name');
+          const computedStyle = window.getComputedStyle(nestedElement);
+          
+          console.log('DEBUG: Processing nested element:', elementName, 'ID:', elementId);
+          console.log('  Before fix - display:', computedStyle.display, 'visibility:', computedStyle.visibility, 'opacity:', computedStyle.opacity);
+          console.log('  Has variant-hidden class:', nestedElement.classList.contains('variant-hidden'));
+          
+          // CRITICAL FIX: Remove variant-hidden class to override CSS !important rule
+          if (nestedElement.classList.contains('variant-hidden')) {
+            nestedElement.classList.remove('variant-hidden');
+            console.log('  Removed variant-hidden class');
+          }
+          
+          // Only make visible if it's not explicitly hidden by variant-hidden class
+          if (!nestedElement.classList.contains('variant-hidden')) {
+            nestedElement.style.visibility = 'visible';
+            nestedElement.style.opacity = '1';
+            // Don't override display if it's already set to flex/block/etc.
+            if (computedStyle.display === 'none') {
+              nestedElement.style.display = 'flex'; // Default to flex for most Figma elements
+            }
+            
+            // Force a reflow to ensure styles are applied
+            nestedElement.offsetHeight;
+            
+            // Check if styles were actually applied
+            const afterStyle = window.getComputedStyle(nestedElement);
+            console.log('  After fix - display:', afterStyle.display, 'visibility:', afterStyle.visibility, 'opacity:', afterStyle.opacity);
+            console.log('  Is now visible?', afterStyle.display !== 'none' && afterStyle.visibility !== 'hidden');
+          } else {
+            console.log('  Skipping - has variant-hidden class');
+          }
+        });
+        
+        console.log('🎯 MADE NESTED COMPONENTS VISIBLE:', nestedElements.length, 'elements');
         
         // Hide all other variants
         allVariants.forEach(variant => {

@@ -1,23 +1,23 @@
 [
   [
     {
-      "id": "5533:4488",
-      "name": "glydcar/info-bar/buckle",
+      "id": "5533:3027",
+      "name": "glydcar/control-panel/button-volume",
       "type": "INSTANCE",
-      "x": 17566,
-      "y": 6966,
-      "width": 184.1999969482422,
-      "height": 184.1999969482422,
+      "x": 7742,
+      "y": 3703,
+      "width": 174.9199981689453,
+      "height": 174.9199981689453,
       "opacity": 1,
       "fills": [],
       "strokes": [],
-      "strokeWeight": 1,
+      "strokeWeight": 0.9995673894882202,
       "cornerRadius": 0,
       "layoutMode": "HORIZONTAL",
       "primaryAxisAlignItems": "CENTER",
       "counterAxisAlignItems": "CENTER",
       "itemSpacing": 10,
-      "layoutSizingHorizontal": "FIXED",
+      "layoutSizingHorizontal": "HUG",
       "layoutSizingVertical": "HUG",
       "paddingLeft": 0,
       "paddingRight": 0,
@@ -25,13 +25,13 @@
       "paddingBottom": 0,
       "children": [
         {
-          "id": "5533:4074",
-          "name": "glydcar/info-bar/buckle",
+          "id": "5355:2813",
+          "name": "glydcar/control-panel/button-volume",
           "type": "COMPONENT_SET",
-          "x": 18406,
-          "y": 6949,
-          "width": 436.3999938964844,
-          "height": 224.1999969482422,
+          "x": 8332,
+          "y": 3686,
+          "width": 564.760009765625,
+          "height": 174.9199981689453,
           "opacity": 1,
           "fills": [],
           "strokes": [
@@ -53,7 +53,7 @@
           "layoutMode": "HORIZONTAL",
           "primaryAxisAlignItems": "CENTER",
           "counterAxisAlignItems": "CENTER",
-          "itemSpacing": 28,
+          "itemSpacing": 20,
           "layoutSizingHorizontal": "FILL",
           "layoutSizingVertical": "FILL",
           "paddingLeft": 0,
@@ -62,23 +62,23 @@
           "paddingBottom": 0,
           "children": [
             {
-              "id": "5533:4073",
-              "name": "Property 1=open",
+              "id": "5355:2812",
+              "name": "Property 1=default",
               "type": "COMPONENT",
-              "x": 20,
-              "y": 20,
-              "width": 184.1999969482422,
-              "height": 184.1999969482422,
+              "x": 0,
+              "y": 0,
+              "width": 174.9199981689453,
+              "height": 174.9199981689453,
               "opacity": 1,
               "fills": [],
               "strokes": [],
-              "strokeWeight": 1,
+              "strokeWeight": 0.9995673894882202,
               "cornerRadius": 0,
               "layoutMode": "HORIZONTAL",
               "primaryAxisAlignItems": "CENTER",
               "counterAxisAlignItems": "CENTER",
               "itemSpacing": 10,
-              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingHorizontal": "HUG",
               "layoutSizingVertical": "HUG",
               "paddingLeft": 0,
               "paddingRight": 0,
@@ -86,13 +86,13 @@
               "paddingBottom": 0,
               "children": [
                 {
-                  "id": "5533:4086",
-                  "name": "info-bar-buckle",
+                  "id": "6411:5667",
+                  "name": "Frame 1299",
                   "type": "FRAME",
                   "x": 0,
                   "y": 0,
-                  "width": 184.1999969482422,
-                  "height": 184.1999969482422,
+                  "width": 174.9199981689453,
+                  "height": 174.9199981689453,
                   "opacity": 1,
                   "fills": [
                     {
@@ -101,20 +101,20 @@
                       "opacity": 1,
                       "blendMode": "NORMAL",
                       "color": {
-                        "r": 0.1730685830116272,
-                        "g": 0.5052500367164612,
-                        "b": 0.6483436226844788
+                        "r": 0.12156862765550613,
+                        "g": 0.12156862765550613,
+                        "b": 0.11764705926179886
                       },
                       "boundVariables": {}
                     }
                   ],
                   "strokes": [],
-                  "strokeWeight": 1.3157143592834473,
+                  "strokeWeight": 1,
                   "cornerRadius": 1000,
-                  "layoutMode": "NONE",
-                  "primaryAxisAlignItems": "CENTER",
+                  "layoutMode": "VERTICAL",
+                  "primaryAxisAlignItems": "SPACE_BETWEEN",
                   "counterAxisAlignItems": "CENTER",
-                  "itemSpacing": 24,
+                  "itemSpacing": 16,
                   "layoutSizingHorizontal": "FIXED",
                   "layoutSizingVertical": "FIXED",
                   "paddingLeft": 0,
@@ -123,82 +123,13 @@
                   "paddingBottom": 0,
                   "children": [
                     {
-                      "id": "7301:1664",
-                      "name": "Frame 1317",
+                      "id": "6411:5668",
+                      "name": "Frame 1300",
                       "type": "FRAME",
-                      "x": 103.583984375,
-                      "y": 65.78564453125,
-                      "width": 103.46269226074219,
-                      "height": 52.62834930419922,
-                      "opacity": 1,
-                      "fills": [],
-                      "strokes": [],
-                      "strokeWeight": 1,
-                      "cornerRadius": 0,
-                      "layoutMode": "VERTICAL",
-                      "primaryAxisAlignItems": "CENTER",
-                      "counterAxisAlignItems": "MIN",
-                      "itemSpacing": 10,
-                      "layoutSizingHorizontal": "FIXED",
-                      "layoutSizingVertical": "HUG",
-                      "paddingLeft": 0,
-                      "paddingRight": 0,
-                      "paddingTop": 0,
-                      "paddingBottom": 0,
-                      "children": [
-                        {
-                          "id": "5900:4538",
-                          "name": "Union",
-                          "type": "VECTOR",
-                          "x": 0,
-                          "y": 0,
-                          "width": 123.46269989013672,
-                          "height": 52.628353118896484,
-                          "opacity": 1,
-                          "fills": [
-                            {
-                              "type": "SOLID",
-                              "visible": true,
-                              "opacity": 1,
-                              "blendMode": "NORMAL",
-                              "color": {
-                                "r": 1,
-                                "g": 1,
-                                "b": 1
-                              },
-                              "boundVariables": {}
-                            }
-                          ],
-                          "strokes": [],
-                          "strokeWeight": 0,
-                          "cornerRadius": 0,
-                          "layoutSizingHorizontal": "FIXED",
-                          "layoutSizingVertical": "FIXED",
-                          "layoutPositioning": "AUTO",
-                          "vectorPaths": [
-                            {
-                              "windingRule": "EVENODD",
-                              "data": "M 123.46269989013672 45.427467346191406 L 63.89925003051758 45.427467346191406 L 63.89925003051758 52.628353118896484 L 36.76264572143555 52.628353118896484 L 24.428329467773438 40.666927337646484 L 24.42763900756836 40.63723373413086 L 0 40.63792419433594 L 0 11.692120552062988 L 24.705232620239258 11.69143009185791 L 36.76264572143555 0 L 63.89925003051758 0 L 63.89925003051758 9.427169799804688 L 123.46269989013672 9.427169799804688 L 123.46269989013672 45.427467346191406 Z M 7.936997413635254 19.586305618286133 L 7.936997413635254 32.74374008178711 L 21.094430923461914 32.74374008178711 L 21.094430923461914 19.586305618286133 L 7.936997413635254 19.586305618286133 Z"
-                            }
-                          ],
-                          "effects": [],
-                          "parentId": "7301:1664",
-                          "children": []
-                        }
-                      ],
-                      "clipsContent": false,
-                      "layoutPositioning": "AUTO",
-                      "effects": [],
-                      "parentId": "5533:4086"
-                    },
-                    {
-                      "id": "7301:1636",
-                      "name": "Frame 1316",
-                      "type": "FRAME",
-                      "x": -75,
-                      "y": 45,
-                      "width": 155,
-                      "height": 94,
+                      "x": 0,
+                      "y": 0,
+                      "width": 174.9199981689453,
+                      "height": 50.459999084472656,
                       "opacity": 1,
                       "fills": [
                         {
@@ -207,9 +138,9 @@
                           "opacity": 1,
                           "blendMode": "NORMAL",
                           "color": {
-                            "r": 0.1730685830116272,
-                            "g": 0.5052500367164612,
-                            "b": 0.6483436226844788
+                            "r": 0.12156862765550613,
+                            "g": 0.12156862765550613,
+                            "b": 0.11764705926179886
                           },
                           "boundVariables": {}
                         }
@@ -219,9 +150,9 @@
                       "cornerRadius": 0,
                       "layoutMode": "VERTICAL",
                       "primaryAxisAlignItems": "CENTER",
-                      "counterAxisAlignItems": "MAX",
-                      "itemSpacing": 10,
-                      "layoutSizingHorizontal": "FIXED",
+                      "counterAxisAlignItems": "CENTER",
+                      "itemSpacing": 0,
+                      "layoutSizingHorizontal": "FILL",
                       "layoutSizingVertical": "FIXED",
                       "paddingLeft": 0,
                       "paddingRight": 0,
@@ -229,19 +160,19 @@
                       "paddingBottom": 0,
                       "children": [
                         {
-                          "id": "5900:4456",
-                          "name": "Union",
+                          "id": "6411:5669",
+                          "name": "chevron-up",
                           "type": "VECTOR",
-                          "x": 32.56896209716797,
-                          "y": 20.68547821044922,
-                          "width": 122.43104553222656,
-                          "height": 52.62904357910156,
+                          "x": 71.63468933105469,
+                          "y": 18.707216262817383,
+                          "width": 31.650623321533203,
+                          "height": 13.045567512512207,
                           "opacity": 1,
                           "fills": [
                             {
                               "type": "SOLID",
                               "visible": true,
-                              "opacity": 1,
+                              "opacity": 0.75,
                               "blendMode": "NORMAL",
                               "color": {
                                 "r": 1,
@@ -252,92 +183,334 @@
                             }
                           ],
                           "strokes": [],
-                          "strokeWeight": 1,
+                          "strokeWeight": 2.998702049255371,
                           "cornerRadius": 0,
                           "layoutSizingHorizontal": "FIXED",
                           "layoutSizingVertical": "FIXED",
                           "layoutPositioning": "AUTO",
                           "vectorPaths": [
                             {
-                              "windingRule": "EVENODD",
-                              "data": "M 122.43104553222656 52.628353118896484 L 69.802001953125 52.62904357910156 L 69.802001953125 45.575931549072266 L 0 45.576622009277344 L 0 8.576431274414062 L 69.802001953125 8.575740814208984 L 69.80268859863281 0 L 122.43104553222656 0 L 122.43104553222656 52.628353118896484 Z M 82.01547241210938 11.873041152954102 L 82.01547241210938 40.818843841552734 L 110.96127319335938 40.818843841552734 L 110.96127319335938 11.873041152954102 L 82.01547241210938 11.873041152954102 Z"
+                              "windingRule": "NONZERO",
+                              "data": "M 15.82565689086914 0 L 31.650623321533203 10.550668716430664 L 29.98712730407715 13.045567512512207 L 15.824966430664062 3.6038966178894043 L 1.6641868352890015 13.045567512512207 L 0 10.54997730255127 L 15.82565689086914 0 Z"
                             }
                           ],
                           "effects": [],
-                          "parentId": "7301:1636",
+                          "parentId": "6411:5668",
                           "children": []
                         }
                       ],
-                      "clipsContent": true,
+                      "clipsContent": false,
                       "layoutPositioning": "AUTO",
                       "effects": [],
-                      "parentId": "5533:4086"
+                      "reactions": [
+                        {
+                          "action": {
+                            "type": "NODE",
+                            "destinationId": "5355:2814",
+                            "navigation": "CHANGE_TO",
+                            "transition": {
+                              "type": "SMART_ANIMATE",
+                              "easing": {
+                                "type": "EASE_OUT"
+                              },
+                              "duration": 0.6000000238418579
+                            },
+                            "resetVideoPosition": false
+                          },
+                          "actions": [
+                            {
+                              "type": "NODE",
+                              "destinationId": "5355:2814",
+                              "navigation": "CHANGE_TO",
+                              "transition": {
+                                "type": "SMART_ANIMATE",
+                                "easing": {
+                                  "type": "EASE_OUT"
+                                },
+                                "duration": 0.6000000238418579
+                              },
+                              "resetVideoPosition": false
+                            }
+                          ],
+                          "trigger": {
+                            "type": "ON_CLICK"
+                          }
+                        }
+                      ],
+                      "parentId": "6411:5667"
+                    },
+                    {
+                      "id": "6411:8627",
+                      "name": "Frame 1306",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 50.459999084472656,
+                      "width": 174.9199981689453,
+                      "height": 74,
+                      "opacity": 1,
+                      "fills": [],
+                      "strokes": [],
+                      "strokeWeight": 1,
+                      "cornerRadius": 0,
+                      "layoutMode": "VERTICAL",
+                      "primaryAxisAlignItems": "CENTER",
+                      "counterAxisAlignItems": "CENTER",
+                      "itemSpacing": 0,
+                      "layoutSizingHorizontal": "FILL",
+                      "layoutSizingVertical": "FIXED",
+                      "paddingLeft": 0,
+                      "paddingRight": 0,
+                      "paddingTop": 0,
+                      "paddingBottom": 0,
+                      "children": [
+                        {
+                          "id": "6411:5670",
+                          "name": "Vol",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 12,
+                          "width": 174.9199981689453,
+                          "height": 25,
+                          "opacity": 1,
+                          "fills": [
+                            {
+                              "type": "SOLID",
+                              "visible": true,
+                              "opacity": 0.5,
+                              "blendMode": "NORMAL",
+                              "color": {
+                                "r": 1,
+                                "g": 1,
+                                "b": 1
+                              },
+                              "boundVariables": {}
+                            }
+                          ],
+                          "strokes": [],
+                          "strokeWeight": 0.11006838828325272,
+                          "layoutSizingHorizontal": "FILL",
+                          "layoutSizingVertical": "HUG",
+                          "fontSize": 21.990480422973633,
+                          "fontName": {
+                            "family": "CircularXX TT",
+                            "style": "Regular"
+                          },
+                          "fontWeight": 400,
+                          "textAlignHorizontal": "CENTER",
+                          "letterSpacing": {
+                            "unit": "PERCENT",
+                            "value": 4
+                          },
+                          "lineHeight": {
+                            "unit": "PERCENT",
+                            "value": 114.99999761581421
+                          },
+                          "characters": "Vol",
+                          "layoutPositioning": "AUTO",
+                          "effects": [],
+                          "parentId": "6411:8627",
+                          "children": []
+                        },
+                        {
+                          "id": "6411:8379",
+                          "name": "3",
+                          "type": "TEXT",
+                          "x": 80.95999908447266,
+                          "y": 37,
+                          "width": 13,
+                          "height": 25,
+                          "opacity": 1,
+                          "fills": [
+                            {
+                              "type": "SOLID",
+                              "visible": true,
+                              "opacity": 0.75,
+                              "blendMode": "NORMAL",
+                              "color": {
+                                "r": 1,
+                                "g": 1,
+                                "b": 1
+                              },
+                              "boundVariables": {}
+                            }
+                          ],
+                          "strokes": [],
+                          "strokeWeight": 0.11006838828325272,
+                          "layoutSizingHorizontal": "HUG",
+                          "layoutSizingVertical": "HUG",
+                          "fontSize": 21.990480422973633,
+                          "fontName": {
+                            "family": "CircularXX TT",
+                            "style": "Regular"
+                          },
+                          "fontWeight": 400,
+                          "textAlignHorizontal": "CENTER",
+                          "letterSpacing": {
+                            "unit": "PERCENT",
+                            "value": 4
+                          },
+                          "lineHeight": {
+                            "unit": "PERCENT",
+                            "value": 114.99999761581421
+                          },
+                          "characters": "3",
+                          "layoutPositioning": "AUTO",
+                          "effects": [],
+                          "parentId": "6411:8627",
+                          "children": []
+                        }
+                      ],
+                      "clipsContent": false,
+                      "layoutPositioning": "AUTO",
+                      "effects": [],
+                      "parentId": "6411:5667"
+                    },
+                    {
+                      "id": "6411:5671",
+                      "name": "Frame 1301",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 124.4599609375,
+                      "width": 174.9199981689453,
+                      "height": 50.459999084472656,
+                      "opacity": 1,
+                      "fills": [
+                        {
+                          "type": "SOLID",
+                          "visible": true,
+                          "opacity": 1,
+                          "blendMode": "NORMAL",
+                          "color": {
+                            "r": 0.12156862765550613,
+                            "g": 0.12156862765550613,
+                            "b": 0.11764705926179886
+                          },
+                          "boundVariables": {}
+                        }
+                      ],
+                      "strokes": [],
+                      "strokeWeight": 1,
+                      "cornerRadius": 0,
+                      "layoutMode": "VERTICAL",
+                      "primaryAxisAlignItems": "CENTER",
+                      "counterAxisAlignItems": "CENTER",
+                      "itemSpacing": 0,
+                      "layoutSizingHorizontal": "FILL",
+                      "layoutSizingVertical": "FIXED",
+                      "paddingLeft": 0,
+                      "paddingRight": 0,
+                      "paddingTop": 0,
+                      "paddingBottom": 0,
+                      "children": [
+                        {
+                          "id": "6411:5672",
+                          "name": "chevron-down",
+                          "type": "VECTOR",
+                          "x": 71.63468933105469,
+                          "y": 18.707216262817383,
+                          "width": 31.650623321533203,
+                          "height": 13.045567512512207,
+                          "opacity": 1,
+                          "fills": [
+                            {
+                              "type": "SOLID",
+                              "visible": true,
+                              "opacity": 0.75,
+                              "blendMode": "NORMAL",
+                              "color": {
+                                "r": 1,
+                                "g": 1,
+                                "b": 1
+                              },
+                              "boundVariables": {}
+                            }
+                          ],
+                          "strokes": [],
+                          "strokeWeight": 2.998702049255371,
+                          "cornerRadius": 0,
+                          "layoutSizingHorizontal": "FIXED",
+                          "layoutSizingVertical": "FIXED",
+                          "layoutPositioning": "AUTO",
+                          "vectorPaths": [
+                            {
+                              "windingRule": "NONZERO",
+                              "data": "M 15.82565689086914 13.045567512512207 L 31.650623321533203 2.494899272918701 L 29.98712730407715 0 L 15.824966430664062 9.441670417785645 L 1.6641868352890015 0 L 0 2.4955897331237793 L 15.82565689086914 13.045567512512207 Z"
+                            }
+                          ],
+                          "effects": [],
+                          "parentId": "6411:5671",
+                          "children": []
+                        }
+                      ],
+                      "clipsContent": false,
+                      "layoutPositioning": "AUTO",
+                      "effects": [],
+                      "reactions": [
+                        {
+                          "action": {
+                            "type": "NODE",
+                            "destinationId": "5355:2833",
+                            "navigation": "CHANGE_TO",
+                            "transition": {
+                              "type": "SMART_ANIMATE",
+                              "easing": {
+                                "type": "EASE_OUT"
+                              },
+                              "duration": 0.6000000238418579
+                            },
+                            "resetVideoPosition": false
+                          },
+                          "actions": [
+                            {
+                              "type": "NODE",
+                              "destinationId": "5355:2833",
+                              "navigation": "CHANGE_TO",
+                              "transition": {
+                                "type": "SMART_ANIMATE",
+                                "easing": {
+                                  "type": "EASE_OUT"
+                                },
+                                "duration": 0.6000000238418579
+                              },
+                              "resetVideoPosition": false
+                            }
+                          ],
+                          "trigger": {
+                            "type": "ON_CLICK"
+                          }
+                        }
+                      ],
+                      "parentId": "6411:5667"
                     }
                   ],
                   "clipsContent": true,
                   "layoutPositioning": "AUTO",
                   "effects": [],
-                  "parentId": "5533:4073"
+                  "parentId": "5355:2812"
                 }
               ],
               "clipsContent": false,
               "layoutPositioning": "AUTO",
-              "reactions": [
-                {
-                  "action": {
-                    "type": "NODE",
-                    "destinationId": "5533:4075",
-                    "navigation": "CHANGE_TO",
-                    "transition": {
-                      "type": "SMART_ANIMATE",
-                      "easing": {
-                        "type": "EASE_IN_AND_OUT_BACK"
-                      },
-                      "duration": 0.4000000059604645
-                    },
-                    "resetVideoPosition": false
-                  },
-                  "actions": [
-                    {
-                      "type": "NODE",
-                      "destinationId": "5533:4075",
-                      "navigation": "CHANGE_TO",
-                      "transition": {
-                        "type": "SMART_ANIMATE",
-                        "easing": {
-                          "type": "EASE_IN_AND_OUT_BACK"
-                        },
-                        "duration": 0.4000000059604645
-                      },
-                      "resetVideoPosition": false
-                    }
-                  ],
-                  "trigger": {
-                    "type": "AFTER_TIMEOUT",
-                    "timeout": 0.20000000298023224
-                  }
-                }
-              ],
-              "parentId": "5533:4074"
+              "parentId": "5355:2813"
             },
             {
-              "id": "5533:4075",
-              "name": "Property 1=closed",
+              "id": "5355:2814",
+              "name": "Property 1=up",
               "type": "COMPONENT",
-              "x": 232.1999969482422,
-              "y": 20,
-              "width": 184.1999969482422,
-              "height": 184.1999969482422,
+              "x": 194.9199981689453,
+              "y": 0,
+              "width": 174.9199981689453,
+              "height": 174.9199981689453,
               "opacity": 1,
               "fills": [],
               "strokes": [],
-              "strokeWeight": 1,
+              "strokeWeight": 0.9995673894882202,
               "cornerRadius": 0,
               "layoutMode": "HORIZONTAL",
               "primaryAxisAlignItems": "CENTER",
               "counterAxisAlignItems": "CENTER",
               "itemSpacing": 10,
-              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingHorizontal": "HUG",
               "layoutSizingVertical": "HUG",
               "paddingLeft": 0,
               "paddingRight": 0,
@@ -345,13 +518,13 @@
               "paddingBottom": 0,
               "children": [
                 {
-                  "id": "5900:4696",
-                  "name": "info-bar-buckle",
+                  "id": "6411:5643",
+                  "name": "Frame 1299",
                   "type": "FRAME",
                   "x": 0,
                   "y": 0,
-                  "width": 184.1999969482422,
-                  "height": 184.1999969482422,
+                  "width": 174.9199981689453,
+                  "height": 174.9199981689453,
                   "opacity": 1,
                   "fills": [
                     {
@@ -360,20 +533,20 @@
                       "opacity": 1,
                       "blendMode": "NORMAL",
                       "color": {
-                        "r": 0.1730685830116272,
-                        "g": 0.5052500367164612,
-                        "b": 0.6483436226844788
+                        "r": 0.12156862765550613,
+                        "g": 0.12156862765550613,
+                        "b": 0.11764705926179886
                       },
                       "boundVariables": {}
                     }
                   ],
                   "strokes": [],
-                  "strokeWeight": 1.3157143592834473,
+                  "strokeWeight": 1,
                   "cornerRadius": 1000,
-                  "layoutMode": "NONE",
-                  "primaryAxisAlignItems": "CENTER",
+                  "layoutMode": "VERTICAL",
+                  "primaryAxisAlignItems": "SPACE_BETWEEN",
                   "counterAxisAlignItems": "CENTER",
-                  "itemSpacing": -31,
+                  "itemSpacing": 16,
                   "layoutSizingHorizontal": "FIXED",
                   "layoutSizingVertical": "FIXED",
                   "paddingLeft": 0,
@@ -382,82 +555,13 @@
                   "paddingBottom": 0,
                   "children": [
                     {
-                      "id": "7301:1698",
-                      "name": "Frame 1317",
+                      "id": "6411:5653",
+                      "name": "Frame 1300",
                       "type": "FRAME",
-                      "x": 76.083984375,
-                      "y": 65.78564453125,
-                      "width": 103.46269226074219,
-                      "height": 52.62834930419922,
-                      "opacity": 1,
-                      "fills": [],
-                      "strokes": [],
-                      "strokeWeight": 1,
-                      "cornerRadius": 0,
-                      "layoutMode": "VERTICAL",
-                      "primaryAxisAlignItems": "CENTER",
-                      "counterAxisAlignItems": "MIN",
-                      "itemSpacing": 10,
-                      "layoutSizingHorizontal": "FIXED",
-                      "layoutSizingVertical": "HUG",
-                      "paddingLeft": 0,
-                      "paddingRight": 0,
-                      "paddingTop": 0,
-                      "paddingBottom": 0,
-                      "children": [
-                        {
-                          "id": "5900:4698",
-                          "name": "Union",
-                          "type": "VECTOR",
-                          "x": 0,
-                          "y": 0,
-                          "width": 123.46269989013672,
-                          "height": 52.628353118896484,
-                          "opacity": 1,
-                          "fills": [
-                            {
-                              "type": "SOLID",
-                              "visible": true,
-                              "opacity": 1,
-                              "blendMode": "NORMAL",
-                              "color": {
-                                "r": 1,
-                                "g": 1,
-                                "b": 1
-                              },
-                              "boundVariables": {}
-                            }
-                          ],
-                          "strokes": [],
-                          "strokeWeight": 0,
-                          "cornerRadius": 0,
-                          "layoutSizingHorizontal": "FIXED",
-                          "layoutSizingVertical": "FIXED",
-                          "layoutPositioning": "AUTO",
-                          "vectorPaths": [
-                            {
-                              "windingRule": "EVENODD",
-                              "data": "M 123.46269989013672 45.427467346191406 L 63.89925003051758 45.427467346191406 L 63.89925003051758 52.628353118896484 L 36.76264572143555 52.628353118896484 L 24.428329467773438 40.666927337646484 L 24.42763900756836 40.63723373413086 L 0 40.63792419433594 L 0 11.692120552062988 L 24.705232620239258 11.69143009185791 L 36.76264572143555 0 L 63.89925003051758 0 L 63.89925003051758 9.427169799804688 L 123.46269989013672 9.427169799804688 L 123.46269989013672 45.427467346191406 Z M 7.936997413635254 19.586305618286133 L 7.936997413635254 32.74374008178711 L 21.094430923461914 32.74374008178711 L 21.094430923461914 19.586305618286133 L 7.936997413635254 19.586305618286133 Z"
-                            }
-                          ],
-                          "effects": [],
-                          "parentId": "7301:1698",
-                          "children": []
-                        }
-                      ],
-                      "clipsContent": false,
-                      "layoutPositioning": "AUTO",
-                      "effects": [],
-                      "parentId": "5900:4696"
-                    },
-                    {
-                      "id": "7301:1697",
-                      "name": "Frame 1316",
-                      "type": "FRAME",
-                      "x": -50.19921875,
-                      "y": 45,
-                      "width": 155,
-                      "height": 94,
+                      "x": 0,
+                      "y": 0,
+                      "width": 174.9199981689453,
+                      "height": 50.459999084472656,
                       "opacity": 1,
                       "fills": [
                         {
@@ -466,9 +570,9 @@
                           "opacity": 1,
                           "blendMode": "NORMAL",
                           "color": {
-                            "r": 0.1730685830116272,
-                            "g": 0.5052500367164612,
-                            "b": 0.6483436226844788
+                            "r": 1,
+                            "g": 1,
+                            "b": 1
                           },
                           "boundVariables": {}
                         }
@@ -478,9 +582,9 @@
                       "cornerRadius": 0,
                       "layoutMode": "VERTICAL",
                       "primaryAxisAlignItems": "CENTER",
-                      "counterAxisAlignItems": "MAX",
-                      "itemSpacing": 10,
-                      "layoutSizingHorizontal": "FIXED",
+                      "counterAxisAlignItems": "CENTER",
+                      "itemSpacing": 0,
+                      "layoutSizingHorizontal": "FILL",
                       "layoutSizingVertical": "FIXED",
                       "paddingLeft": 0,
                       "paddingRight": 0,
@@ -488,19 +592,88 @@
                       "paddingBottom": 0,
                       "children": [
                         {
-                          "id": "5900:4697",
-                          "name": "Union",
+                          "id": "6411:5644",
+                          "name": "chevron-up",
                           "type": "VECTOR",
-                          "x": 32.56896209716797,
-                          "y": 20.68547821044922,
-                          "width": 122.43104553222656,
-                          "height": 52.62904357910156,
+                          "x": 71.63468933105469,
+                          "y": 18.707216262817383,
+                          "width": 31.650623321533203,
+                          "height": 13.045567512512207,
                           "opacity": 1,
                           "fills": [
                             {
                               "type": "SOLID",
                               "visible": true,
-                              "opacity": 1,
+                              "opacity": 0.75,
+                              "blendMode": "NORMAL",
+                              "color": {
+                                "r": 0,
+                                "g": 0,
+                                "b": 0
+                              },
+                              "boundVariables": {}
+                            }
+                          ],
+                          "strokes": [],
+                          "strokeWeight": 2.998702049255371,
+                          "cornerRadius": 0,
+                          "layoutSizingHorizontal": "FIXED",
+                          "layoutSizingVertical": "FIXED",
+                          "layoutPositioning": "AUTO",
+                          "vectorPaths": [
+                            {
+                              "windingRule": "NONZERO",
+                              "data": "M 15.82565689086914 0 L 31.650623321533203 10.550668716430664 L 29.98712730407715 13.045567512512207 L 15.824966430664062 3.6038966178894043 L 1.6641868352890015 13.045567512512207 L 0 10.54997730255127 L 15.82565689086914 0 Z"
+                            }
+                          ],
+                          "effects": [],
+                          "parentId": "6411:5653",
+                          "children": []
+                        }
+                      ],
+                      "clipsContent": false,
+                      "layoutPositioning": "AUTO",
+                      "effects": [],
+                      "parentId": "6411:5643"
+                    },
+                    {
+                      "id": "6411:8915",
+                      "name": "Frame 1306",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 50.459999084472656,
+                      "width": 174.9199981689453,
+                      "height": 74,
+                      "opacity": 1,
+                      "fills": [],
+                      "strokes": [],
+                      "strokeWeight": 1,
+                      "cornerRadius": 0,
+                      "layoutMode": "VERTICAL",
+                      "primaryAxisAlignItems": "CENTER",
+                      "counterAxisAlignItems": "CENTER",
+                      "itemSpacing": 0,
+                      "layoutSizingHorizontal": "FILL",
+                      "layoutSizingVertical": "FIXED",
+                      "paddingLeft": 0,
+                      "paddingRight": 0,
+                      "paddingTop": 0,
+                      "paddingBottom": 0,
+                      "children": [
+                        {
+                          "id": "6411:8916",
+                          "name": "Vol",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 12,
+                          "width": 174.9199981689453,
+                          "height": 25,
+                          "opacity": 1,
+                          "fills": [
+                            {
+                              "type": "SOLID",
+                              "visible": true,
+                              "opacity": 0.5,
                               "blendMode": "NORMAL",
                               "color": {
                                 "r": 1,
@@ -511,32 +684,171 @@
                             }
                           ],
                           "strokes": [],
-                          "strokeWeight": 0,
-                          "cornerRadius": 0,
-                          "layoutSizingHorizontal": "FIXED",
-                          "layoutSizingVertical": "FIXED",
+                          "strokeWeight": 0.11006838828325272,
+                          "layoutSizingHorizontal": "FILL",
+                          "layoutSizingVertical": "HUG",
+                          "fontSize": 21.990480422973633,
+                          "fontName": {
+                            "family": "CircularXX TT",
+                            "style": "Regular"
+                          },
+                          "fontWeight": 400,
+                          "textAlignHorizontal": "CENTER",
+                          "letterSpacing": {
+                            "unit": "PERCENT",
+                            "value": 4
+                          },
+                          "lineHeight": {
+                            "unit": "PERCENT",
+                            "value": 114.99999761581421
+                          },
+                          "characters": "Vol",
                           "layoutPositioning": "AUTO",
-                          "vectorPaths": [
+                          "effects": [],
+                          "parentId": "6411:8915",
+                          "children": []
+                        },
+                        {
+                          "id": "6411:8917",
+                          "name": "3",
+                          "type": "TEXT",
+                          "x": 80.95999908447266,
+                          "y": 37,
+                          "width": 13,
+                          "height": 25,
+                          "opacity": 1,
+                          "fills": [
                             {
-                              "windingRule": "EVENODD",
-                              "data": "M 122.43104553222656 52.628353118896484 L 69.802001953125 52.62904357910156 L 69.802001953125 45.575931549072266 L 0 45.576622009277344 L 0 8.576431274414062 L 69.802001953125 8.575740814208984 L 69.80268859863281 0 L 122.43104553222656 0 L 122.43104553222656 52.628353118896484 Z M 82.01547241210938 11.873041152954102 L 82.01547241210938 40.818843841552734 L 110.96127319335938 40.818843841552734 L 110.96127319335938 11.873041152954102 L 82.01547241210938 11.873041152954102 Z"
+                              "type": "SOLID",
+                              "visible": true,
+                              "opacity": 0.75,
+                              "blendMode": "NORMAL",
+                              "color": {
+                                "r": 1,
+                                "g": 1,
+                                "b": 1
+                              },
+                              "boundVariables": {}
                             }
                           ],
+                          "strokes": [],
+                          "strokeWeight": 0.11006838828325272,
+                          "layoutSizingHorizontal": "HUG",
+                          "layoutSizingVertical": "HUG",
+                          "fontSize": 21.990480422973633,
+                          "fontName": {
+                            "family": "CircularXX TT",
+                            "style": "Regular"
+                          },
+                          "fontWeight": 400,
+                          "textAlignHorizontal": "CENTER",
+                          "letterSpacing": {
+                            "unit": "PERCENT",
+                            "value": 4
+                          },
+                          "lineHeight": {
+                            "unit": "PERCENT",
+                            "value": 114.99999761581421
+                          },
+                          "characters": "3",
+                          "layoutPositioning": "AUTO",
                           "effects": [],
-                          "parentId": "7301:1697",
+                          "parentId": "6411:8915",
                           "children": []
                         }
                       ],
                       "clipsContent": false,
                       "layoutPositioning": "AUTO",
                       "effects": [],
-                      "parentId": "5900:4696"
+                      "parentId": "6411:5643"
+                    },
+                    {
+                      "id": "6411:5654",
+                      "name": "Frame 1301",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 124.45999908447266,
+                      "width": 174.9199981689453,
+                      "height": 50.459999084472656,
+                      "opacity": 1,
+                      "fills": [
+                        {
+                          "type": "SOLID",
+                          "visible": true,
+                          "opacity": 1,
+                          "blendMode": "NORMAL",
+                          "color": {
+                            "r": 0.12156862765550613,
+                            "g": 0.12156862765550613,
+                            "b": 0.11764705926179886
+                          },
+                          "boundVariables": {}
+                        }
+                      ],
+                      "strokes": [],
+                      "strokeWeight": 1,
+                      "cornerRadius": 0,
+                      "layoutMode": "VERTICAL",
+                      "primaryAxisAlignItems": "CENTER",
+                      "counterAxisAlignItems": "CENTER",
+                      "itemSpacing": 0,
+                      "layoutSizingHorizontal": "FILL",
+                      "layoutSizingVertical": "FIXED",
+                      "paddingLeft": 0,
+                      "paddingRight": 0,
+                      "paddingTop": 0,
+                      "paddingBottom": 0,
+                      "children": [
+                        {
+                          "id": "6411:5646",
+                          "name": "chevron-down",
+                          "type": "VECTOR",
+                          "x": 71.63468933105469,
+                          "y": 18.707216262817383,
+                          "width": 31.650623321533203,
+                          "height": 13.045567512512207,
+                          "opacity": 1,
+                          "fills": [
+                            {
+                              "type": "SOLID",
+                              "visible": true,
+                              "opacity": 0.75,
+                              "blendMode": "NORMAL",
+                              "color": {
+                                "r": 1,
+                                "g": 1,
+                                "b": 1
+                              },
+                              "boundVariables": {}
+                            }
+                          ],
+                          "strokes": [],
+                          "strokeWeight": 2.998702049255371,
+                          "cornerRadius": 0,
+                          "layoutSizingHorizontal": "FIXED",
+                          "layoutSizingVertical": "FIXED",
+                          "layoutPositioning": "AUTO",
+                          "vectorPaths": [
+                            {
+                              "windingRule": "NONZERO",
+                              "data": "M 15.82565689086914 13.045567512512207 L 31.650623321533203 2.494899272918701 L 29.98712730407715 0 L 15.824966430664062 9.441670417785645 L 1.6641868352890015 0 L 0 2.4955897331237793 L 15.82565689086914 13.045567512512207 Z"
+                            }
+                          ],
+                          "effects": [],
+                          "parentId": "6411:5654",
+                          "children": []
+                        }
+                      ],
+                      "clipsContent": false,
+                      "layoutPositioning": "AUTO",
+                      "effects": [],
+                      "parentId": "6411:5643"
                     }
                   ],
                   "clipsContent": true,
                   "layoutPositioning": "AUTO",
                   "effects": [],
-                  "parentId": "5533:4075"
+                  "parentId": "5355:2814"
                 }
               ],
               "clipsContent": false,
@@ -545,100 +857,463 @@
                 {
                   "action": {
                     "type": "NODE",
-                    "destinationId": "5533:4073",
+                    "destinationId": "5355:2812",
                     "navigation": "CHANGE_TO",
                     "transition": {
                       "type": "SMART_ANIMATE",
                       "easing": {
                         "type": "EASE_OUT"
                       },
-                      "duration": 0.4000000059604645
+                      "duration": 0.30000001192092896
                     },
                     "resetVideoPosition": false
                   },
                   "actions": [
                     {
                       "type": "NODE",
-                      "destinationId": "5533:4073",
+                      "destinationId": "5355:2812",
                       "navigation": "CHANGE_TO",
                       "transition": {
                         "type": "SMART_ANIMATE",
                         "easing": {
                           "type": "EASE_OUT"
                         },
-                        "duration": 0.4000000059604645
+                        "duration": 0.30000001192092896
                       },
                       "resetVideoPosition": false
                     }
                   ],
                   "trigger": {
                     "type": "AFTER_TIMEOUT",
-                    "timeout": 1.600000023841858
+                    "timeout": 0.8
                   }
                 }
               ],
-              "parentId": "5533:4074"
+              "parentId": "5355:2813"
+            },
+            {
+              "id": "5355:2833",
+              "name": "Property 1=down",
+              "type": "COMPONENT",
+              "x": 389.8399963378906,
+              "y": 0,
+              "width": 174.9199981689453,
+              "height": 174.9199981689453,
+              "opacity": 1,
+              "fills": [],
+              "strokes": [],
+              "strokeWeight": 0.9995673894882202,
+              "cornerRadius": 0,
+              "layoutMode": "HORIZONTAL",
+              "primaryAxisAlignItems": "CENTER",
+              "counterAxisAlignItems": "CENTER",
+              "itemSpacing": 10,
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "paddingLeft": 0,
+              "paddingRight": 0,
+              "paddingTop": 0,
+              "paddingBottom": 0,
+              "children": [
+                {
+                  "id": "6411:5660",
+                  "name": "Frame 1299",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 174.9199981689453,
+                  "height": 174.9199981689453,
+                  "opacity": 1,
+                  "fills": [
+                    {
+                      "type": "SOLID",
+                      "visible": true,
+                      "opacity": 1,
+                      "blendMode": "NORMAL",
+                      "color": {
+                        "r": 0.12156862765550613,
+                        "g": 0.12156862765550613,
+                        "b": 0.11764705926179886
+                      },
+                      "boundVariables": {}
+                    }
+                  ],
+                  "strokes": [],
+                  "strokeWeight": 1,
+                  "cornerRadius": 1000,
+                  "layoutMode": "VERTICAL",
+                  "primaryAxisAlignItems": "SPACE_BETWEEN",
+                  "counterAxisAlignItems": "CENTER",
+                  "itemSpacing": 16,
+                  "layoutSizingHorizontal": "FIXED",
+                  "layoutSizingVertical": "FIXED",
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "children": [
+                    {
+                      "id": "6411:5661",
+                      "name": "Frame 1300",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 0,
+                      "width": 174.9199981689453,
+                      "height": 50.459999084472656,
+                      "opacity": 1,
+                      "fills": [
+                        {
+                          "type": "SOLID",
+                          "visible": true,
+                          "opacity": 1,
+                          "blendMode": "NORMAL",
+                          "color": {
+                            "r": 0.12156862765550613,
+                            "g": 0.12156862765550613,
+                            "b": 0.11764705926179886
+                          },
+                          "boundVariables": {}
+                        }
+                      ],
+                      "strokes": [],
+                      "strokeWeight": 1,
+                      "cornerRadius": 0,
+                      "layoutMode": "VERTICAL",
+                      "primaryAxisAlignItems": "CENTER",
+                      "counterAxisAlignItems": "CENTER",
+                      "itemSpacing": 0,
+                      "layoutSizingHorizontal": "FILL",
+                      "layoutSizingVertical": "FIXED",
+                      "paddingLeft": 0,
+                      "paddingRight": 0,
+                      "paddingTop": 0,
+                      "paddingBottom": 0,
+                      "children": [
+                        {
+                          "id": "6411:5662",
+                          "name": "chevron-up",
+                          "type": "VECTOR",
+                          "x": 71.63468933105469,
+                          "y": 18.707216262817383,
+                          "width": 31.650623321533203,
+                          "height": 13.045567512512207,
+                          "opacity": 1,
+                          "fills": [
+                            {
+                              "type": "SOLID",
+                              "visible": true,
+                              "opacity": 0.75,
+                              "blendMode": "NORMAL",
+                              "color": {
+                                "r": 1,
+                                "g": 1,
+                                "b": 1
+                              },
+                              "boundVariables": {}
+                            }
+                          ],
+                          "strokes": [],
+                          "strokeWeight": 2.998702049255371,
+                          "cornerRadius": 0,
+                          "layoutSizingHorizontal": "FIXED",
+                          "layoutSizingVertical": "FIXED",
+                          "layoutPositioning": "AUTO",
+                          "vectorPaths": [
+                            {
+                              "windingRule": "NONZERO",
+                              "data": "M 15.82565689086914 0 L 31.650623321533203 10.550668716430664 L 29.98712730407715 13.045567512512207 L 15.824966430664062 3.6038966178894043 L 1.6641868352890015 13.045567512512207 L 0 10.54997730255127 L 15.82565689086914 0 Z"
+                            }
+                          ],
+                          "effects": [],
+                          "parentId": "6411:5661",
+                          "children": []
+                        }
+                      ],
+                      "clipsContent": false,
+                      "layoutPositioning": "AUTO",
+                      "effects": [],
+                      "parentId": "6411:5660"
+                    },
+                    {
+                      "id": "6411:8919",
+                      "name": "Frame 1306",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 50.459999084472656,
+                      "width": 174.9199981689453,
+                      "height": 74,
+                      "opacity": 1,
+                      "fills": [],
+                      "strokes": [],
+                      "strokeWeight": 1,
+                      "cornerRadius": 0,
+                      "layoutMode": "VERTICAL",
+                      "primaryAxisAlignItems": "CENTER",
+                      "counterAxisAlignItems": "CENTER",
+                      "itemSpacing": 0,
+                      "layoutSizingHorizontal": "FILL",
+                      "layoutSizingVertical": "FIXED",
+                      "paddingLeft": 0,
+                      "paddingRight": 0,
+                      "paddingTop": 0,
+                      "paddingBottom": 0,
+                      "children": [
+                        {
+                          "id": "6411:8920",
+                          "name": "Vol",
+                          "type": "TEXT",
+                          "x": 0,
+                          "y": 12,
+                          "width": 174.9199981689453,
+                          "height": 25,
+                          "opacity": 1,
+                          "fills": [
+                            {
+                              "type": "SOLID",
+                              "visible": true,
+                              "opacity": 0.5,
+                              "blendMode": "NORMAL",
+                              "color": {
+                                "r": 1,
+                                "g": 1,
+                                "b": 1
+                              },
+                              "boundVariables": {}
+                            }
+                          ],
+                          "strokes": [],
+                          "strokeWeight": 0.11006838828325272,
+                          "layoutSizingHorizontal": "FILL",
+                          "layoutSizingVertical": "HUG",
+                          "fontSize": 21.990480422973633,
+                          "fontName": {
+                            "family": "CircularXX TT",
+                            "style": "Regular"
+                          },
+                          "fontWeight": 400,
+                          "textAlignHorizontal": "CENTER",
+                          "letterSpacing": {
+                            "unit": "PERCENT",
+                            "value": 4
+                          },
+                          "lineHeight": {
+                            "unit": "PERCENT",
+                            "value": 114.99999761581421
+                          },
+                          "characters": "Vol",
+                          "layoutPositioning": "AUTO",
+                          "effects": [],
+                          "parentId": "6411:8919",
+                          "children": []
+                        },
+                        {
+                          "id": "6411:8921",
+                          "name": "3",
+                          "type": "TEXT",
+                          "x": 80.95999908447266,
+                          "y": 37,
+                          "width": 13,
+                          "height": 25,
+                          "opacity": 1,
+                          "fills": [
+                            {
+                              "type": "SOLID",
+                              "visible": true,
+                              "opacity": 0.75,
+                              "blendMode": "NORMAL",
+                              "color": {
+                                "r": 1,
+                                "g": 1,
+                                "b": 1
+                              },
+                              "boundVariables": {}
+                            }
+                          ],
+                          "strokes": [],
+                          "strokeWeight": 0.11006838828325272,
+                          "layoutSizingHorizontal": "HUG",
+                          "layoutSizingVertical": "HUG",
+                          "fontSize": 21.990480422973633,
+                          "fontName": {
+                            "family": "CircularXX TT",
+                            "style": "Regular"
+                          },
+                          "fontWeight": 400,
+                          "textAlignHorizontal": "CENTER",
+                          "letterSpacing": {
+                            "unit": "PERCENT",
+                            "value": 4
+                          },
+                          "lineHeight": {
+                            "unit": "PERCENT",
+                            "value": 114.99999761581421
+                          },
+                          "characters": "3",
+                          "layoutPositioning": "AUTO",
+                          "effects": [],
+                          "parentId": "6411:8919",
+                          "children": []
+                        }
+                      ],
+                      "clipsContent": false,
+                      "layoutPositioning": "AUTO",
+                      "effects": [],
+                      "parentId": "6411:5660"
+                    },
+                    {
+                      "id": "6411:5664",
+                      "name": "Frame 1301",
+                      "type": "FRAME",
+                      "x": 0,
+                      "y": 124.45999908447266,
+                      "width": 174.9199981689453,
+                      "height": 50.459999084472656,
+                      "opacity": 1,
+                      "fills": [
+                        {
+                          "type": "SOLID",
+                          "visible": true,
+                          "opacity": 1,
+                          "blendMode": "NORMAL",
+                          "color": {
+                            "r": 1,
+                            "g": 1,
+                            "b": 1
+                          },
+                          "boundVariables": {}
+                        }
+                      ],
+                      "strokes": [],
+                      "strokeWeight": 1,
+                      "cornerRadius": 0,
+                      "layoutMode": "VERTICAL",
+                      "primaryAxisAlignItems": "CENTER",
+                      "counterAxisAlignItems": "CENTER",
+                      "itemSpacing": 0,
+                      "layoutSizingHorizontal": "FILL",
+                      "layoutSizingVertical": "FIXED",
+                      "paddingLeft": 0,
+                      "paddingRight": 0,
+                      "paddingTop": 0,
+                      "paddingBottom": 0,
+                      "children": [
+                        {
+                          "id": "6411:5665",
+                          "name": "chevron-down",
+                          "type": "VECTOR",
+                          "x": 71.63468933105469,
+                          "y": 18.707216262817383,
+                          "width": 31.650623321533203,
+                          "height": 13.045567512512207,
+                          "opacity": 1,
+                          "fills": [
+                            {
+                              "type": "SOLID",
+                              "visible": true,
+                              "opacity": 0.75,
+                              "blendMode": "NORMAL",
+                              "color": {
+                                "r": 0,
+                                "g": 0,
+                                "b": 0
+                              },
+                              "boundVariables": {}
+                            }
+                          ],
+                          "strokes": [],
+                          "strokeWeight": 2.998702049255371,
+                          "cornerRadius": 0,
+                          "layoutSizingHorizontal": "FIXED",
+                          "layoutSizingVertical": "FIXED",
+                          "layoutPositioning": "AUTO",
+                          "vectorPaths": [
+                            {
+                              "windingRule": "NONZERO",
+                              "data": "M 15.82565689086914 13.045567512512207 L 31.650623321533203 2.494899272918701 L 29.98712730407715 0 L 15.824966430664062 9.441670417785645 L 1.6641868352890015 0 L 0 2.4955897331237793 L 15.82565689086914 13.045567512512207 Z"
+                            }
+                          ],
+                          "effects": [],
+                          "parentId": "6411:5664",
+                          "children": []
+                        }
+                      ],
+                      "clipsContent": false,
+                      "layoutPositioning": "AUTO",
+                      "effects": [],
+                      "parentId": "6411:5660"
+                    }
+                  ],
+                  "clipsContent": true,
+                  "layoutPositioning": "AUTO",
+                  "effects": [],
+                  "parentId": "5355:2833"
+                }
+              ],
+              "clipsContent": false,
+              "layoutPositioning": "AUTO",
+              "reactions": [
+                {
+                  "action": {
+                    "type": "NODE",
+                    "destinationId": "5355:2812",
+                    "navigation": "CHANGE_TO",
+                    "transition": {
+                      "type": "SMART_ANIMATE",
+                      "easing": {
+                        "type": "EASE_OUT"
+                      },
+                      "duration": 0.6000000238418579
+                    },
+                    "resetVideoPosition": false
+                  },
+                  "actions": [
+                    {
+                      "type": "NODE",
+                      "destinationId": "5355:2812",
+                      "navigation": "CHANGE_TO",
+                      "transition": {
+                        "type": "SMART_ANIMATE",
+                        "easing": {
+                          "type": "EASE_OUT"
+                        },
+                        "duration": 0.6000000238418579
+                      },
+                      "resetVideoPosition": false
+                    }
+                  ],
+                  "trigger": {
+                    "type": "AFTER_TIMEOUT",
+                    "timeout": 0.8
+                  }
+                }
+              ],
+              "parentId": "5355:2813"
             }
           ],
-          "clipsContent": true,
+          "clipsContent": false,
           "layoutPositioning": "AUTO",
-          "parentId": "5533:4488"
+          "parentId": "5533:3027"
         }
       ],
       "clipsContent": false,
       "layoutPositioning": "AUTO",
       "componentProperties": {
         "Property 1": {
-          "value": "open",
+          "value": "default",
           "type": "VARIANT",
           "boundVariables": {}
         }
       },
       "overrides": [
         {
-          "id": "5533:4488",
+          "id": "5533:3027",
           "overriddenFields": [
             "height",
             "width"
           ]
         }
       ],
-      "reactions": [
-        {
-          "action": {
-            "type": "NODE",
-            "destinationId": "5533:4075",
-            "navigation": "CHANGE_TO",
-            "transition": {
-              "type": "SMART_ANIMATE",
-              "easing": {
-                "type": "EASE_IN_AND_OUT_BACK"
-              },
-              "duration": 0.4000000059604645
-            },
-            "resetVideoPosition": false
-          },
-          "actions": [
-            {
-              "type": "NODE",
-              "destinationId": "5533:4075",
-              "navigation": "CHANGE_TO",
-              "transition": {
-                "type": "SMART_ANIMATE",
-                "easing": {
-                  "type": "EASE_IN_AND_OUT_BACK"
-                },
-                "duration": 0.4000000059604645
-              },
-              "resetVideoPosition": false
-            }
-          ],
-          "trigger": {
-            "type": "AFTER_TIMEOUT",
-            "timeout": 0.20000000298023224
-          }
-        }
-      ],
+      "reactions": [],
       "parentId": "5533:3016"
     }
   ]

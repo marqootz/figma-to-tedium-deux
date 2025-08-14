@@ -256,12 +256,19 @@ export function createPropertyDetector(): string {
           const sourceBg = sourceStyle.backgroundColor || 'rgba(0, 0, 0, 0)';
           const targetBg = targetStyle.backgroundColor || 'rgba(0, 0, 0, 0)';
           
+          console.log('DEBUG: Background color comparison for', targetElement.getAttribute('data-figma-name') + ':');
+          console.log('  Source background:', sourceBg);
+          console.log('  Target background:', targetBg);
+          console.log('  Are they different?', sourceBg !== targetBg);
+          
           if (sourceBg !== targetBg) {
             changes.backgroundColor.changed = true;
             changes.backgroundColor.sourceValue = sourceBg;
             changes.backgroundColor.targetValue = targetBg;
             changes.hasChanges = true;
             console.log('DEBUG: Background color change detected:', sourceBg, '->', targetBg);
+          } else {
+            console.log('DEBUG: No background color change detected');
           }
           
           if (sourceStyle.color !== targetStyle.color) {
