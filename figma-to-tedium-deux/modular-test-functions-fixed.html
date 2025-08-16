@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Simple Animation Test - Sample Component</title>
+  <style>
+    
+    /* iOS-compatible font declarations - using consistent font-family names */
+    
+    /* TrueType fonts - "CircularXX TT" family with font-weight and font-style variations */
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Thin.ttf") format("truetype");
+      font-weight: 100;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-ThinItalic.ttf") format("truetype");
+      font-weight: 100;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Light.ttf") format("truetype");
+      font-weight: 300;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-LightItalic.ttf") format("truetype");
+      font-weight: 300;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Italic.ttf") format("truetype");
+      font-weight: 400;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Book.ttf") format("truetype");
+      font-weight: 450;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-BookItalic.ttf") format("truetype");
+      font-weight: 450;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Medium.ttf") format("truetype");
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-MediumItalic.ttf") format("truetype");
+      font-weight: 500;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-BoldItalic.ttf") format("truetype");
+      font-weight: 700;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-Black.ttf") format("truetype");
+      font-weight: 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-BlackItalic.ttf") format("truetype");
+      font-weight: 900;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-ExtraBlack.ttf") format("truetype");
+      font-weight: 950;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CircularXX TT";
+      src: url("fonts/CircularXXTT-ExtraBlackItalic.ttf") format("truetype");
+      font-weight: 950;
+      font-style: italic;
+      font-display: swap;
+    }
+  
+    html, body { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 20px; 
+      width: 100vw; 
+      min-height: 100vh; 
+      background: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .header h1 {
+      margin: 0;
+      color: #333;
+      font-size: 24px;
+    }
+    .header p {
+      margin: 5px 0 0 0;
+      color: #666;
+      font-size: 14px;
+    }
+    .test-controls {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 5px;
+      border: 1px solid #dee2e6;
+    }
+    .test-controls h3 {
+      margin: 0 0 10px 0;
+      color: #495057;
+    }
+    .test-button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 14px;
+    }
+    .test-button:hover {
+      background: #0056b3;
+    }
+    .test-button:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+    .debug-info {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 20px 0;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .export-content {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      background: #fafafa;
+      margin: 20px 0;
+    }
+    p { margin: 0; }
+    [data-figma-id]:not([style*="width:"]):not([style*="height:"]) { width: 100%; height: 100%; }
+    .variant-active { display: flex !important; }
+    .variant-hidden { display: none !important; }
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎬 Simple Animation Test</h1>
+      <p>Testing simple animation system with Figma export • Node: Sample Component</p>
+    </div>
+
+    <div class="test-controls">
+      <h3>🧪 Test Controls</h3>
+      <p>Use these buttons to test the simple animation system:</p>
+      <button class="test-button" onclick="testSimpleAnimation()">Test Simple Animation</button>
+      <button class="test-button" onclick="testColorAnimation()">Test Color Animation</button>
+      <button class="test-button" onclick="testShadowAnimation()">Test Shadow Animation</button>
+      <button class="test-button" onclick="testSizeAnimation()">Test Size Animation</button>
+      <button class="test-button" onclick="testInstantSwitch()">Test Instant Switch</button>
+      <button class="test-button" onclick="resetAnimation()">Reset</button>
+      <button class="test-button" onclick="clearLogs()">Clear Logs</button>
+    </div>
+
+    <div class="export-content">
+      <h3>📦 Exported Content</h3>
+      <div data-figma-id="1:2" data-figma-name="Sample Component" data-figma-type="COMPONENT" data-layout-mode="HORIZONTAL" data-primary-axis="CENTER" data-counter-axis="CENTER" data-item-spacing="16" data-padding-left="20" data-padding-right="20" data-padding-top="20" data-padding-bottom="20" data-opacity="1" data-corner-radius="8" data-stroke-weight="0" data-figma-x="0" data-figma-y="0" data-has-reactions="true" data-reaction-count="1" data-reaction-trigger="{&quot;type&quot;:&quot;ON_CLICK&quot;}" data-reaction-action-type="NAVIGATE" data-reaction-destination="1:5" data-variant-state="default" data-variant-theme="light" style="background-color: rgba(242, 242, 242, 1); position: relative; top: 0px; left: 0px; display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 16px; box-sizing: border-box; width: 300px; height: 200px; padding-left: 20px; padding-right: 20px; padding-top: 20px; padding-bottom: 20px; border-radius: 8px"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" fill="rgba(51, 153, 255, 1)" rx="4"/></svg>
+<p data-figma-id="1:4" data-figma-name="Text Content" data-figma-type="TEXT" data-font-size="16" data-font-weight="400" data-text-align="LEFT" data-line-height="20" data-figma-x="60" data-figma-y="20" style="color: rgba(26, 26, 26, 1); box-sizing: border-box; width: 200px; height: 40px; position: relative; left: 0px; top: 0px; font-size: 16px; font-family: Inter, sans-serif; font-weight: 400; text-align: left; line-height: 20%">This is a sample text element with some content to test the export functionality.</p>
+<div data-figma-id="1:5" data-figma-name="Button" data-figma-type="INSTANCE" data-corner-radius="6" data-figma-x="200" data-figma-y="20" style="background-color: rgba(51, 153, 255, 1); position: relative; top: 0px; left: 0px; box-sizing: border-box; width: 80px; height: 32px; border-radius: 6px"><p data-figma-id="1:6" data-figma-name="Button Text" data-figma-type="TEXT" data-font-size="14" data-font-weight="500" data-text-align="CENTER" data-figma-x="10" data-figma-y="8" style="color: rgba(255, 255, 255, 1); box-sizing: border-box; width: 60px; height: 16px; position: relative; left: 0px; top: 0px; font-size: 14px; font-family: Inter, sans-serif; font-weight: 500; text-align: center">Click me</p></div></div>
+    </div>
+
+    <div class="debug-info" id="debugInfo">
+      Debug information will appear here...
+    </div>
+  </div>
+
+  <!-- Simple Animation System -->
+  <script>
+    // Simple animation system functions
+    
+    // Global transition lock to prevent multiple simultaneous transitions
+    let isTransitionInProgress = false;
+    
+    // Animation types
+    const AnimationType = {
+      SIMPLE: 'SIMPLE',
+      SIZE: 'SIZE', 
+      TRANSFORM: 'TRANSFORM'
+    };
+    
+    // Translation conditions
+    const TranslationCondition = {
+      ABSOLUTE: 'ABSOLUTE',
+      RELATIVE_PADDING: 'RELATIVE_PADDING',
+      RELATIVE_ALIGNMENT: 'RELATIVE_ALIGNMENT'
+    };
+    
+
+    
+    /**
+     * Helper function to get easing function
+     */
+    function getEasingFunction(animationType) {
+      switch (animationType) {
+        case 'EASE_IN_AND_OUT_BACK':
+          return 'cubic-bezier(0.68, -0.6, 0.32, 1.6)';
+        case 'EASE_IN_AND_OUT':
+          return 'ease-in-out';
+        case 'EASE_IN':
+          return 'ease-in';
+        case 'EASE_OUT':
+          return 'ease-out';
+        case 'LINEAR':
+          return 'linear';
+        case 'BOUNCY':
+          return 'cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+        case 'GENTLE':
+          return 'ease-in-out';
+        case 'SMART_ANIMATE':
+          return 'ease-in-out';
+        default:
+          return 'ease-out';
+      }
+    }
+    
+    /**
+     * Main reaction handler function - entry point for all reactions
+     */
+    function handleReaction(sourceElement, destinationId, transitionType, transitionDuration) {
+      console.log('🎯 REACTION TRIGGERED:', {
+        sourceId: sourceElement.getAttribute('data-figma-id'),
+        sourceName: sourceElement.getAttribute('data-figma-name'),
+        destinationId: destinationId,
+        transitionType: transitionType,
+        transitionDuration: transitionDuration
+      });
+      
+      // Check if transition is already in progress
+      if (isTransitionInProgress) {
+        console.log('❌ Transition already in progress, skipping reaction');
+        return;
+      }
+      
+      // Find the destination element
+      const destination = document.querySelector('[data-figma-id="' + destinationId + '"]');
+      if (!destination) {
+        console.error('❌ Destination element not found:', destinationId);
+        return;
+      }
+      
+      // Find all variants in the same component set
+      const componentSet = sourceElement.closest('[data-figma-type="COMPONENT_SET"]');
+      if (!componentSet) {
+        console.error('❌ Component set not found for source element');
+        return;
+      }
+      
+      const allVariants = Array.from(componentSet.children).filter(child => 
+        child.getAttribute('data-figma-type') === 'COMPONENT'
+      );
+      
+      console.log('🎯 Found', allVariants.length, 'variants in component set');
+      
+      // Determine if we should animate or perform instant switch
+      if (transitionType && transitionType !== 'INSTANT' && transitionDuration && parseFloat(transitionDuration) > 0) {
+        // Use simple animated variant switch
+        console.log('🎭 Using simple animated variant switch');
+        handleSimpleAnimatedVariantSwitch(sourceElement, destination, allVariants, transitionType, transitionDuration);
+      } else {
+        // Use instant variant switch
+        console.log('⚡ Using instant variant switch');
+        performInstantVariantSwitch(allVariants, destination);
+      }
+    }
+    
+    /**
+     * Helper function to find all elements within source and target variants that have animated property changes
+     */
+    function findAnimatedElementsAndChanges(sourceVariant, targetVariant, options = {}) {
+      const changes = [];
+      const { animateColor = false, animateShadow = false, animateSize = false } = options;
+
+      console.log('🔍 FINDING ANIMATED ELEMENTS AND CHANGES');
+      console.log('📋 Source variant:', sourceVariant.getAttribute('data-figma-id'));
+      console.log('📋 Target variant:', targetVariant.getAttribute('data-figma-id'));
+
+      // Get all elements with data-figma-id in both variants
+      const sourceElements = sourceVariant.querySelectorAll('[data-figma-id]');
+      const targetElements = targetVariant.querySelectorAll('[data-figma-id]');
+
+      console.log('🔍 Found', sourceElements.length, 'elements in source variant');
+      console.log('🔍 Found', targetElements.length, 'elements in target variant');
+
+      // Create maps of target elements by their figma ID and name for lookup
+      const targetElementMapById = new Map();
+      const targetElementMapByName = new Map();
+      targetElements.forEach(element => {
+        const figmaId = element.getAttribute('data-figma-id');
+        const figmaName = element.getAttribute('data-figma-name');
+        if (figmaId) {
+          targetElementMapById.set(figmaId, element);
+        }
+        if (figmaName) {
+          targetElementMapByName.set(figmaName, element);
+        }
+      });
+
+      // Check each source element for changes
+      sourceElements.forEach(sourceElement => {
+        const figmaId = sourceElement.getAttribute('data-figma-id');
+        const figmaName = sourceElement.getAttribute('data-figma-name');
+        if (!figmaId && !figmaName) return;
+
+        // Try to find target element by ID first, then by name as fallback
+        let targetElement = figmaId ? targetElementMapById.get(figmaId) : null;
+        if (!targetElement && figmaName) {
+          targetElement = targetElementMapByName.get(figmaName);
+          if (targetElement) {
+            console.log('🔍 Found target element by name instead of ID:', figmaName);
+          }
+        }
+        
+        if (!targetElement) {
+          console.log('🔍 No matching target element found for:', figmaId || figmaName);
+          return;
+        }
+
+        // Get positions from Figma coordinates stored in data attributes
+        const sourceFigmaX = parseFloat(sourceElement.getAttribute('data-figma-x') || '0') || 0;
+        const sourceFigmaY = parseFloat(sourceElement.getAttribute('data-figma-y') || '0') || 0;
+        const targetFigmaX = parseFloat(targetElement.getAttribute('data-figma-x') || '0') || 0;
+        const targetFigmaY = parseFloat(targetElement.getAttribute('data-figma-y') || '0') || 0;
+        
+        // Calculate the difference using Figma coordinates
+        const deltaX = targetFigmaX - sourceFigmaX;
+        const deltaY = targetFigmaY - sourceFigmaY;
+        const hasPositionChange = Math.abs(deltaX) > 0.1 || Math.abs(deltaY) > 0.1;
+
+        // Initialize change object
+        const change = {
+          sourceElement: sourceElement,
+          targetElement: targetElement,
+          deltaX: deltaX,
+          deltaY: deltaY,
+          hasPositionChange: hasPositionChange,
+          hasColorChange: false,
+          hasBorderColorChange: false,
+          hasOpacityChange: false,
+          hasShadowChange: false,
+          hasSizeChange: false,
+          sourceColor: '',
+          targetColor: '',
+          sourceBorderColor: '',
+          targetBorderColor: '',
+          sourceOpacity: '',
+          targetOpacity: '',
+          sourceShadow: '',
+          targetShadow: '',
+          sourceWidth: '',
+          targetWidth: '',
+          sourceHeight: '',
+          targetHeight: '',
+          sourceMinWidth: '',
+          targetMinWidth: '',
+          sourceMinHeight: '',
+          targetMinHeight: '',
+          sourceMaxWidth: '',
+          targetMaxWidth: '',
+          sourceMaxHeight: '',
+          targetMaxHeight: ''
+        };
+
+        // Check for color changes
+        if (animateColor) {
+          const sourceComputedStyle = window.getComputedStyle(sourceElement);
+          const targetComputedStyle = window.getComputedStyle(targetElement);
+          
+          change.sourceColor = sourceComputedStyle.backgroundColor;
+          change.targetColor = targetComputedStyle.backgroundColor;
+          change.sourceBorderColor = sourceComputedStyle.borderColor;
+          change.targetBorderColor = targetComputedStyle.borderColor;
+          change.sourceOpacity = sourceComputedStyle.opacity;
+          change.targetOpacity = targetComputedStyle.opacity;
+          
+          // Ensure we have valid color values
+          if (!change.sourceColor || change.sourceColor === 'rgba(0, 0, 0, 0)' || change.sourceColor === 'transparent') {
+            change.sourceColor = 'rgb(255, 107, 107)';
+          }
+          if (!change.targetColor || change.targetColor === 'rgba(0, 0, 0, 0)' || change.targetColor === 'transparent') {
+            change.targetColor = 'rgb(243, 156, 18)';
+          }
+          
+          change.hasColorChange = change.sourceColor !== change.targetColor;
+          change.hasBorderColorChange = change.sourceBorderColor !== change.targetBorderColor;
+          change.hasOpacityChange = change.sourceOpacity !== change.targetOpacity;
+        }
+
+        // Check for shadow changes
+        if (animateShadow) {
+          const sourceComputedStyle = window.getComputedStyle(sourceElement);
+          const targetComputedStyle = window.getComputedStyle(targetElement);
+          
+          change.sourceShadow = sourceComputedStyle.boxShadow;
+          change.targetShadow = targetComputedStyle.boxShadow;
+          
+          // Ensure we have valid shadow values
+          if (!change.sourceShadow || change.sourceShadow === 'none') {
+            change.sourceShadow = '0px 0px 0px 0px rgba(0, 0, 0, 0)';
+          }
+          if (!change.targetShadow || change.targetShadow === 'none') {
+            change.targetShadow = '0px 0px 0px 0px rgba(0, 0, 0, 0)';
+          }
+          
+          change.hasShadowChange = change.sourceShadow !== change.targetShadow;
+        }
+
+        // Check for size changes
+        if (animateSize) {
+          const sourceComputedStyle = window.getComputedStyle(sourceElement);
+          const targetComputedStyle = window.getComputedStyle(targetElement);
+          
+          change.sourceWidth = sourceComputedStyle.width;
+          change.targetWidth = targetComputedStyle.width;
+          change.sourceHeight = sourceComputedStyle.height;
+          change.targetHeight = targetComputedStyle.height;
+          change.sourceMinWidth = sourceComputedStyle.minWidth;
+          change.targetMinWidth = targetComputedStyle.minWidth;
+          change.sourceMinHeight = sourceComputedStyle.minHeight;
+          change.targetMinHeight = targetComputedStyle.minHeight;
+          change.sourceMaxWidth = sourceComputedStyle.maxWidth;
+          change.targetMaxWidth = targetComputedStyle.maxWidth;
+          change.sourceMaxHeight = sourceComputedStyle.maxHeight;
+          change.targetMaxHeight = targetComputedStyle.maxHeight;
+          
+          change.hasSizeChange = (
+            change.sourceWidth !== change.targetWidth ||
+            change.sourceHeight !== change.targetHeight ||
+            change.sourceMinWidth !== change.targetMinWidth ||
+            change.sourceMinHeight !== change.targetMinHeight ||
+            change.sourceMaxWidth !== change.targetMaxWidth ||
+            change.sourceMaxHeight !== change.targetMaxHeight
+          );
+        }
+
+        // Only add to changes if there's actually something to animate
+        const hasAnyChange = hasPositionChange || 
+                            (animateColor && (change.hasColorChange || change.hasBorderColorChange || change.hasOpacityChange)) ||
+                            (animateShadow && change.hasShadowChange) ||
+                            (animateSize && change.hasSizeChange);
+
+        if (hasAnyChange) {
+          console.log('🔍 Found changes for element:', figmaId, {
+            hasPositionChange: hasPositionChange,
+            hasColorChange: change.hasColorChange,
+            hasShadowChange: change.hasShadowChange,
+            hasSizeChange: change.hasSizeChange,
+            deltaX: deltaX,
+            deltaY: deltaY
+          });
+          changes.push(change);
+        }
+      });
+
+      console.log('🔍 Total elements with changes:', changes.length);
+      return changes;
+    }
+
+    /**
+     * Simple animation function that animates a specific element based on detected changes
+     */
+    function simpleAnimate(change, options = {}) {
+      return new Promise((resolve) => {
+        const {
+          duration = 0.5,
+          easing = 'ease-in-out',
+          onComplete
+        } = options;
+
+        const { sourceElement, targetElement } = change;
+
+        console.log('🎬 SIMPLE ANIMATION: Starting animation for element:', sourceElement.getAttribute('data-figma-id'));
+        console.log('📊 Position delta:', { deltaX: change.deltaX, deltaY: change.deltaY });
+        console.log('📊 Has position change:', change.hasPositionChange);
+        console.log('📊 Has color change:', change.hasColorChange);
+        console.log('📊 Has shadow change:', change.hasShadowChange);
+        console.log('📊 Has size change:', change.hasSizeChange);
+
+        // Use CSS animations instead of transitions
+        const animationName = 'simple-animation-' + Date.now() + '-' + Math.random();
+        
+        // Create the keyframes for simultaneous animation
+        const keyframes = `
+          @keyframes ${animationName} {
+            0% {
+              transform: translate(0px, 0px);
+              ${change.hasColorChange ? `background-color: ${change.sourceColor};` : ''}
+              ${change.hasBorderColorChange ? `border-color: ${change.sourceBorderColor};` : ''}
+              ${change.hasOpacityChange ? `opacity: ${change.sourceOpacity};` : ''}
+              ${change.hasShadowChange ? `box-shadow: ${change.sourceShadow};` : ''}
+              ${change.hasSizeChange ? `width: ${change.sourceWidth}; height: ${change.sourceHeight}; min-width: ${change.sourceMinWidth}; min-height: ${change.sourceMinHeight}; max-width: ${change.sourceMaxWidth}; max-height: ${change.sourceMaxHeight};` : ''}
+            }
+            100% {
+              transform: translate(${change.deltaX}px, ${change.deltaY}px);
+              ${change.hasColorChange ? `background-color: ${change.targetColor};` : ''}
+              ${change.hasBorderColorChange ? `border-color: ${change.targetBorderColor};` : ''}
+              ${change.hasOpacityChange ? `opacity: ${change.targetOpacity};` : ''}
+              ${change.hasShadowChange ? `box-shadow: ${change.targetShadow};` : ''}
+              ${change.hasSizeChange ? `width: ${change.targetWidth}; height: ${change.targetHeight}; min-width: ${change.targetMinWidth}; min-height: ${change.targetMinHeight}; max-width: ${change.targetMaxWidth}; max-height: ${change.targetMaxHeight};` : ''}
+            }
+          }
+        `;
+        
+        console.log('🎬 Keyframes created:', keyframes);
+        
+        // Add the keyframes to the document
+        const style = document.createElement('style');
+        style.textContent = keyframes;
+        document.head.appendChild(style);
+        
+        // Disable any existing CSS transitions that might interfere
+        sourceElement.style.transition = 'none';
+        
+        // Apply the animation
+        sourceElement.style.animation = `${animationName} ${duration}s ${easing} forwards`;
+        
+        // Debug: Check if animation is actually running
+        setTimeout(() => {
+          const computedStyle = window.getComputedStyle(sourceElement);
+          console.log('🎬 Animation debug for element:', sourceElement.getAttribute('data-figma-id'));
+          console.log('🎬 Computed animation:', computedStyle.animation);
+          console.log('🎬 Computed transform:', computedStyle.transform);
+        }, 100);
+        
+        // Clean up the style element after animation
+        setTimeout(() => {
+          if (document.head.contains(style)) {
+            document.head.removeChild(style);
+          }
+        }, duration * 1000 + 100);
+
+        // Listen for animation completion
+        const onAnimationEnd = (event) => {
+          if (event.animationName === animationName) {
+            console.log('✅ SIMPLE ANIMATION: Animation completed for element:', sourceElement.getAttribute('data-figma-id'));
+            
+            // Log the final computed values
+            const finalComputedStyle = window.getComputedStyle(sourceElement);
+            console.log('🎬 Final computed transform:', finalComputedStyle.transform);
+            console.log('🎬 Final computed color:', finalComputedStyle.backgroundColor);
+            console.log('🎬 Final computed shadow:', finalComputedStyle.boxShadow);
+            console.log('🎬 Final computed width:', finalComputedStyle.width);
+            console.log('🎬 Final computed height:', finalComputedStyle.height);
+            
+            // Clean up
+            sourceElement.removeEventListener('animationend', onAnimationEnd);
+            sourceElement.style.animation = '';
+            
+            // Call completion callback
+            if (onComplete) {
+              onComplete();
+            }
+            
+            resolve();
+          }
+        };
+        
+        sourceElement.addEventListener('animationend', onAnimationEnd);
+        
+        // Fallback timeout
+        setTimeout(() => {
+          console.log('⏰ SIMPLE ANIMATION: Animation completed via timeout for element:', sourceElement.getAttribute('data-figma-id'));
+          sourceElement.removeEventListener('animationend', onAnimationEnd);
+          sourceElement.style.animation = '';
+          
+          if (onComplete) {
+            onComplete();
+          }
+          
+          resolve();
+        }, duration * 1000 + 1000);
+      });
+    }
+
+    /**
+     * Main function to handle animated variant switching using simple approach
+     */
+    async function handleSimpleAnimatedVariantSwitch(sourceElement, destination, allVariants, transitionType, transitionDuration) {
+      console.log('🔄 SIMPLE ANIMATED VARIANT SWITCH START:', {
+        sourceId: sourceElement.getAttribute('data-figma-id'),
+        sourceName: sourceElement.getAttribute('data-figma-name'),
+        destinationId: destination.getAttribute('data-figma-id'),
+        destinationName: destination.getAttribute('data-figma-name'),
+        transitionType: transitionType,
+        transitionDuration: transitionDuration,
+        totalVariants: allVariants.length
+      });
+      
+      // Check if transition is already in progress
+      if (isTransitionInProgress) {
+        console.log('❌ Transition already in progress, skipping');
+        return;
+      }
+      
+      isTransitionInProgress = true;
+      
+      // Clear any pending timeout reactions to prevent conflicts
+      if (window.clearAllTimeoutReactions) {
+        window.clearAllTimeoutReactions();
+      }
+      
+      try {
+        // Keep both source and target visible during animation
+        allVariants.forEach(variant => {
+          if (variant === sourceElement) {
+            variant.style.display = 'flex';
+            variant.classList.add('variant-active');
+            variant.classList.remove('variant-hidden');
+          } else if (variant === destination) {
+            // Keep target visible but positioned absolutely for animation
+            variant.style.display = 'flex';
+            variant.style.position = 'absolute';
+            variant.style.top = '0';
+            variant.style.left = '0';
+            variant.style.zIndex = '1';
+            variant.classList.add('variant-hidden');
+            variant.classList.remove('variant-active');
+          } else {
+            variant.style.display = 'none';
+            variant.classList.add('variant-hidden');
+            variant.classList.remove('variant-active');
+          }
+        });
+        
+        // Find all animated elements and their changes
+        const changes = findAnimatedElementsAndChanges(sourceElement, destination, {
+          animateColor: true,
+          animateShadow: true,
+          animateSize: true
+        });
+        
+        if (changes.length === 0) {
+          console.log('🔄 No changes detected, performing instant switch');
+          // If no changes detected, just do an instant switch
+          sourceElement.style.display = 'none';
+          sourceElement.classList.add('variant-hidden');
+          sourceElement.classList.remove('variant-active');
+          
+          destination.style.display = 'flex';
+          destination.classList.add('variant-active');
+          destination.classList.remove('variant-hidden');
+        } else {
+          console.log('🔄 Found', changes.length, 'elements with changes to animate');
+          
+          // Use the simple animation approach
+          const duration = parseFloat(transitionDuration.toString()) || 0.5;
+          const easing = getEasingFunction(transitionType);
+          
+          // Animate all changes simultaneously
+          const animationPromises = changes.map(change => 
+            simpleAnimate(change, {
+              duration,
+              easing
+            })
+          );
+          
+          await Promise.all(animationPromises);
+          
+          console.log('✅ All animations completed');
+          
+          // Show target and hide source after all animations complete
+          sourceElement.style.display = 'none';
+          sourceElement.classList.add('variant-hidden');
+          sourceElement.classList.remove('variant-active');
+          
+          // Reset target positioning and make it active
+          destination.style.position = '';
+          destination.style.top = '';
+          destination.style.left = '';
+          destination.style.zIndex = '';
+          destination.style.display = 'flex';
+          destination.classList.add('variant-active');
+          destination.classList.remove('variant-hidden');
+        }
+        
+        // Start timeout reactions for the new active variant
+        if (window.startTimeoutReactionsForNewlyActiveVariant) {
+          window.startTimeoutReactionsForNewlyActiveVariant(destination);
+        }
+        if (window.startTimeoutReactionsForNestedComponents) {
+          window.startTimeoutReactionsForNestedComponents(destination);
+        }
+        
+        console.log('✅ SIMPLE ANIMATED VARIANT SWITCH COMPLETED');
+        
+      } catch (error) {
+        console.error('❌ Error during simple animated variant switch:', error);
+      } finally {
+        isTransitionInProgress = false;
+      }
+    }
+    
+    /**
+     * Function to perform instant variant switch (no animation)
+     */
+    function performInstantVariantSwitch(allVariants, destination) {
+      console.log('⚡ PERFORMING INSTANT VARIANT SWITCH');
+      
+      // Hide all variants - only use display
+      allVariants.forEach(variant => {
+        variant.classList.add('variant-hidden');
+        variant.classList.remove('variant-active');
+        variant.style.display = 'none';
+        if (!variant.style.position || variant.style.position === 'static') {
+          variant.style.position = 'relative';
+        }
+      });
+      
+      // Show destination variant - only use display
+      destination.classList.add('variant-active');
+      destination.classList.remove('variant-hidden');
+      destination.style.display = 'flex';
+      if (!destination.style.position || destination.style.position === 'static') {
+        destination.style.position = 'relative';
+      }
+      
+      console.log('✅ INSTANT VARIANT SWITCH COMPLETED');
+      
+      // Start timeout reactions
+      if (window.startTimeoutReactionsForNewlyActiveVariant) {
+        window.startTimeoutReactionsForNewlyActiveVariant(destination);
+      }
+      if (window.startTimeoutReactionsForNestedComponents) {
+        window.startTimeoutReactionsForNestedComponents(destination);
+      }
+    }
+    
+    // Export the main functions for external use
+    window.handleReaction = handleReaction;
+    window.handleSimpleAnimatedVariantSwitch = handleSimpleAnimatedVariantSwitch;
+    window.performInstantVariantSwitch = performInstantVariantSwitch;
+    
+    console.log('✅ Simple transition handler loaded');
+  
+
+    // Test functions
+    let debugLogs = [];
+    let isAnimating = false;
+    
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = `[${timestamp}] ${message}`;
+      debugLogs.push(logEntry);
+      
+      console.log(logEntry);
+      
+      // Update debug display
+      const debugInfo = document.getElementById('debugInfo');
+      debugInfo.textContent = debugLogs.slice(-20).join('\n'); // Show last 20 logs
+    }
+    
+    function clearLogs() {
+      debugLogs = [];
+      document.getElementById('debugInfo').textContent = 'Debug information will appear here...';
+    }
+    
+    function resetAnimation() {
+      log('Resetting animation state...', 'info');
+      
+      // Reset all variants to initial state
+      const variants = document.querySelectorAll('[data-figma-type="COMPONENT"]');
+      
+      if (variants.length === 0) {
+        log('No components found to reset', 'info');
+        return;
+      }
+      
+      if (variants.length === 1) {
+        // Single component - reset to original state
+        const component = variants[0];
+        component.style.transition = '';
+        component.style.backgroundColor = '';
+        component.style.transform = '';
+        component.style.boxShadow = '';
+        component.style.width = '';
+        component.style.height = '';
+        log('Single component reset to original state', 'success');
+      } else {
+        // Multiple variants - reset to first variant active
+        variants.forEach((variant, index) => {
+          if (index === 0) {
+            variant.style.display = 'flex';
+            variant.classList.add('variant-active');
+            variant.classList.remove('variant-hidden');
+          } else {
+            variant.style.display = 'none';
+            variant.classList.add('variant-hidden');
+            variant.classList.remove('variant-active');
+          }
+        });
+        log('Multiple variants reset to first variant active', 'success');
+      }
+      
+      isAnimating = false;
+      log('Animation reset complete.', 'success');
+    }
+    
+    function testSimpleAnimation() {
+      if (isAnimating) {
+        log('Animation already in progress...', 'error');
+        return;
+      }
+      
+      log('Starting simple animation test...', 'info');
+      isAnimating = true;
+      
+      // Check if we have multiple variants
+      const variants = document.querySelectorAll('[data-figma-type="COMPONENT"]');
+      
+      if (variants.length < 2) {
+        log('No multiple variants found. Creating synthetic test...', 'info');
+        
+        // Create a synthetic animation test by modifying the existing component
+        const component = document.querySelector('[data-figma-type="COMPONENT"]');
+        if (!component) {
+          log('Error: Could not find any component', 'error');
+          isAnimating = false;
+          return;
+        }
+        
+        // Store original styles
+        const originalStyles = {
+          backgroundColor: component.style.backgroundColor,
+          transform: component.style.transform,
+          boxShadow: component.style.boxShadow,
+          width: component.style.width,
+          height: component.style.height
+        };
+        
+        // Animate to a different state
+        component.style.transition = 'all 1s ease-in-out';
+        component.style.backgroundColor = '#ff6b6b';
+        component.style.transform = 'translate(50px, 20px)';
+        component.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3)';
+        component.style.width = '350px';
+        component.style.height = '250px';
+        
+        // Animate back after 2 seconds
+        setTimeout(() => {
+          component.style.backgroundColor = originalStyles.backgroundColor;
+          component.style.transform = originalStyles.transform;
+          component.style.boxShadow = originalStyles.boxShadow;
+          component.style.width = originalStyles.width;
+          component.style.height = originalStyles.height;
+          
+          setTimeout(() => {
+            component.style.transition = '';
+            log('Synthetic animation test completed!', 'success');
+            isAnimating = false;
+          }, 1000);
+        }, 2000);
+        
+        return;
+      }
+      
+      const sourceVariant = variants[0];
+      const targetVariant = variants[1];
+      
+      if (!sourceVariant || !targetVariant) {
+        log('Error: Could not find source or target variants', 'error');
+        isAnimating = false;
+        return;
+      }
+      
+      // Create synthetic position difference for testing
+      const originalTargetTransform = targetVariant.style.transform;
+      const originalTargetLeft = targetVariant.style.left;
+      const originalTargetTop = targetVariant.style.top;
+      
+      // Temporarily move target variant to create position difference
+      targetVariant.style.transform = 'translate(50px, 30px)';
+      
+      // Force a reflow to ensure the transform is applied before measuring
+      targetVariant.offsetHeight;
+      
+      // Use the simple animation system
+      if (window.handleSimpleAnimatedVariantSwitch) {
+        window.handleSimpleAnimatedVariantSwitch(
+          sourceVariant,
+          targetVariant,
+          Array.from(variants),
+          'SMART_ANIMATE',
+          1.0
+        ).then(() => {
+          // Reset target variant position
+          targetVariant.style.transform = originalTargetTransform;
+          targetVariant.style.left = originalTargetLeft;
+          targetVariant.style.top = originalTargetTop;
+          
+          log('Simple animation completed successfully!', 'success');
+          isAnimating = false;
+        }).catch((error) => {
+          // Reset target variant position on error
+          targetVariant.style.transform = originalTargetTransform;
+          targetVariant.style.left = originalTargetLeft;
+          targetVariant.style.top = originalTargetTop;
+          
+          log('Error during animation: ' + error.message, 'error');
+          isAnimating = false;
+        });
+      } else {
+        log('Error: Simple animation system not loaded', 'error');
+        isAnimating = false;
+      }
+    }
+    
+    function testColorAnimation() {
+      log('Testing color animation...', 'info');
+      
+      const component = document.querySelector('[data-figma-type="COMPONENT"]');
+      if (!component) {
+        log('Error: Could not find component', 'error');
+        return;
+      }
+      
+      // Store original color
+      const originalColor = component.style.backgroundColor;
+      
+      // Animate through different colors
+      component.style.transition = 'background-color 0.5s ease-in-out';
+      
+      const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57'];
+      let colorIndex = 0;
+      
+      const colorAnimation = setInterval(() => {
+        component.style.backgroundColor = colors[colorIndex];
+        colorIndex = (colorIndex + 1) % colors.length;
+        
+        if (colorIndex === 0) {
+          clearInterval(colorAnimation);
+          setTimeout(() => {
+            component.style.backgroundColor = originalColor;
+            setTimeout(() => {
+              component.style.transition = '';
+              log('Color animation test completed!', 'success');
+            }, 500);
+          }, 500);
+        }
+      }, 1000);
+    }
+    
+    function testShadowAnimation() {
+      log('Testing shadow animation...', 'info');
+      
+      const component = document.querySelector('[data-figma-type="COMPONENT"]');
+      if (!component) {
+        log('Error: Could not find component', 'error');
+        return;
+      }
+      
+      // Store original shadow
+      const originalShadow = component.style.boxShadow;
+      
+      // Animate through different shadows
+      component.style.transition = 'box-shadow 0.5s ease-in-out';
+      
+      const shadows = [
+        '0 2px 4px rgba(0,0,0,0.1)',
+        '0 4px 8px rgba(0,0,0,0.2)',
+        '0 8px 16px rgba(0,0,0,0.3)',
+        '0 16px 32px rgba(0,0,0,0.4)',
+        '0 2px 4px rgba(0,0,0,0.1)'
+      ];
+      let shadowIndex = 0;
+      
+      const shadowAnimation = setInterval(() => {
+        component.style.boxShadow = shadows[shadowIndex];
+        shadowIndex = (shadowIndex + 1) % shadows.length;
+        
+        if (shadowIndex === 0) {
+          clearInterval(shadowAnimation);
+          setTimeout(() => {
+            component.style.boxShadow = originalShadow;
+            setTimeout(() => {
+              component.style.transition = '';
+              log('Shadow animation test completed!', 'success');
+            }, 500);
+          }, 500);
+        }
+      }, 1000);
+    }
+    
+    function testSizeAnimation() {
+      log('Testing size animation...', 'info');
+      
+      const component = document.querySelector('[data-figma-type="COMPONENT"]');
+      if (!component) {
+        log('Error: Could not find component', 'error');
+        return;
+      }
+      
+      // Store original size
+      const originalWidth = component.style.width;
+      const originalHeight = component.style.height;
+      
+      // Animate through different sizes
+      component.style.transition = 'width 0.5s ease-in-out, height 0.5s ease-in-out';
+      
+      const sizes = [
+        { width: '350px', height: '250px' },
+        { width: '400px', height: '300px' },
+        { width: '250px', height: '150px' },
+        { width: '300px', height: '200px' }
+      ];
+      let sizeIndex = 0;
+      
+      const sizeAnimation = setInterval(() => {
+        component.style.width = sizes[sizeIndex].width;
+        component.style.height = sizes[sizeIndex].height;
+        sizeIndex = (sizeIndex + 1) % sizes.length;
+        
+        if (sizeIndex === 0) {
+          clearInterval(sizeAnimation);
+          setTimeout(() => {
+            component.style.width = originalWidth;
+            component.style.height = originalHeight;
+            setTimeout(() => {
+              component.style.transition = '';
+              log('Size animation test completed!', 'success');
+            }, 500);
+          }, 500);
+        }
+      }, 1000);
+    }
+    
+    function testInstantSwitch() {
+      log('Testing instant switch...', 'info');
+      
+      const variants = document.querySelectorAll('[data-figma-type="COMPONENT"]');
+      
+      if (variants.length < 2) {
+        log('No multiple variants found. Creating synthetic instant switch...', 'info');
+        
+        const component = document.querySelector('[data-figma-type="COMPONENT"]');
+        if (!component) {
+          log('Error: Could not find component', 'error');
+          return;
+        }
+        
+        // Toggle between two states instantly
+        const isAlternate = component.style.backgroundColor === 'rgb(255, 107, 107)';
+        
+        if (isAlternate) {
+          component.style.backgroundColor = '';
+          component.style.transform = '';
+          component.style.boxShadow = '';
+          log('Switched back to original state', 'success');
+        } else {
+          component.style.backgroundColor = '#ff6b6b';
+          component.style.transform = 'translate(50px, 20px)';
+          component.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3)';
+          log('Switched to alternate state', 'success');
+        }
+        
+        return;
+      }
+      
+      const sourceVariant = variants[0];
+      const targetVariant = variants[1];
+      
+      if (!sourceVariant || !targetVariant) {
+        log('Error: Could not find source or target variants', 'error');
+        return;
+      }
+      
+      if (window.performInstantVariantSwitch) {
+        window.performInstantVariantSwitch(Array.from(variants), targetVariant);
+        log('Instant switch completed!', 'success');
+      } else {
+        log('Error: Instant switch function not found', 'error');
+      }
+    }
+    
+    // Override console.log to capture debug output
+    const originalConsoleLog = console.log;
+    console.log = function(...args) {
+      originalConsoleLog.apply(console, args);
+      
+      // Capture animation-related logs
+      const message = args.join(' ');
+      if (message.includes('🎬') || message.includes('📋') || message.includes('📊') || 
+          message.includes('✅') || message.includes('⏰') || message.includes('🔄') ||
+          message.includes('⚡') || message.includes('SIMPLE ANIMATION') ||
+          message.includes('VARIANT SWITCH')) {
+        
+        // Add to debug logs without calling log() to avoid recursion
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = `[${timestamp}] ${message}`;
+        debugLogs.push(logEntry);
+        
+        // Update debug display
+        const debugInfo = document.getElementById('debugInfo');
+        debugInfo.textContent = debugLogs.slice(-20).join('\n'); // Show last 20 logs
+      }
+    };
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      log('Simple animation test page loaded successfully.', 'success');
+      log('Simple animation system ready for testing.', 'info');
+      resetAnimation();
+    });
+  </script>
+</body>
+</html>

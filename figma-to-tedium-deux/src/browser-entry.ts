@@ -81,7 +81,7 @@ if (typeof window !== 'undefined') {
 function initializeSystem() {
   console.log('DEBUG: Initializing refactored system with modular transition handler');
   
-  // Expose the modular animation functions globally
+  // CRITICAL: Expose the modular animation functions globally BEFORE executing the eval
   window.handleAnimatedVariantSwitch = handleAnimatedVariantSwitch;
   window.performInstantVariantSwitch = performInstantVariantSwitch;
   window.handleReaction = handleReaction;
@@ -98,12 +98,15 @@ function initializeSystem() {
     getTransitionLockStatus
   };
   
-  // Execute the modular transition handler to expose handleReaction and variant switching functions
-  if (executeModularTransitionHandler()) {
-    console.log('DEBUG: Modular transition handler executed successfully');
-  } else {
-    console.error('DEBUG: Failed to execute modular transition handler');
-  }
+  // Force a small delay to ensure functions are properly exposed
+  setTimeout(() => {
+    // Execute the modular transition handler to expose handleReaction and variant switching functions
+    if (executeModularTransitionHandler()) {
+      console.log('DEBUG: Modular transition handler executed successfully');
+    } else {
+      console.error('DEBUG: Failed to execute modular transition handler');
+    }
+  }, 10);
   
   // Check if the functions are available
   setTimeout(() => {

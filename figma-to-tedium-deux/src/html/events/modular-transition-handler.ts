@@ -449,8 +449,11 @@ export function createModularSmartAnimateHandler(): string {
             });
             
             // Use the modular transition manager for animated variant switching
-            if (window.handleAnimatedVariantSwitch) {
-              currentTransitionPromise = window.handleAnimatedVariantSwitch(sourceElement, destination, allVariants, effectiveTransitionType, effectiveTransitionDuration)
+            const animatedVariantSwitch = window.handleAnimatedVariantSwitch || 
+                                        (window.modularAnimationSystem && window.modularAnimationSystem.handleAnimatedVariantSwitch);
+            
+            if (animatedVariantSwitch) {
+              currentTransitionPromise = animatedVariantSwitch(sourceElement, destination, allVariants, effectiveTransitionType, effectiveTransitionDuration)
                 .then(() => {
                   clearTimeout(safetyTimeout);
                   isTransitionInProgress = false;
@@ -463,7 +466,7 @@ export function createModularSmartAnimateHandler(): string {
                   currentTransitionPromise = null;
                 });
             } else {
-              console.error('handleAnimatedVariantSwitch not available');
+              console.error('handleAnimatedVariantSwitch not available in window or modularAnimationSystem');
               clearTimeout(safetyTimeout);
               isTransitionInProgress = false;
             }
@@ -473,8 +476,13 @@ export function createModularSmartAnimateHandler(): string {
               reason: 'Not recognized as animated transition type'
             });
             
-            if (window.performInstantVariantSwitch) {
-              window.performInstantVariantSwitch(allVariants, destination);
+            const instantVariantSwitch = window.performInstantVariantSwitch || 
+                                        (window.modularAnimationSystem && window.modularAnimationSystem.performInstantVariantSwitch);
+            
+            if (instantVariantSwitch) {
+              instantVariantSwitch(allVariants, destination);
+            } else {
+              console.error('performInstantVariantSwitch not available in window or modularAnimationSystem');
             }
             clearTimeout(safetyTimeout);
             isTransitionInProgress = false;
