@@ -179,7 +179,9 @@ export function applyAnimationChange(
           console.log('DEBUG: Applying combined transform animation:', {
             translateX: translateX,
             translateY: translateY,
-            elementName: element.getAttribute('data-figma-name')
+            elementName: element.getAttribute('data-figma-name'),
+            currentTransform: element.style.transform,
+            targetTransform: `translate(${translateX}px, ${translateY}px)`
           });
         } else if (property === 'translateX') {
           // For additive position changes, add the difference to current position

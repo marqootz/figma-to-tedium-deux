@@ -196,21 +196,31 @@ export function animateCopyToDestination(
           // Check if the element has reached its target position
           let isComplete = false;
           
-          if (changes.positionY && changes.positionY.changed) {
-            const targetTop = changes.positionY.targetValue;
-            const difference = Math.abs(currentTop - targetTop);
-            
-            if (difference < 5) { // Allow for small rounding differences
-              isComplete = true;
-            }
-          }
+          // Check if this is a transform-based animation
+          const hasTransformAnimation = currentTransform && currentTransform !== 'none' && currentTransform !== 'matrix(1, 0, 0, 1, 0, 0)';
           
-          if (changes.positionX && changes.positionX.changed) {
-            const targetLeft = changes.positionX.targetValue;
-            const difference = Math.abs(currentLeft - targetLeft);
+          if (hasTransformAnimation) {
+            // For transform animations, check if the transform has been applied
+            // The transform will be applied immediately, so we can consider it complete
+            isComplete = true;
+          } else {
+            // For position-based animations, check left/top values
+            if (changes.positionY && changes.positionY.changed) {
+              const targetTop = changes.positionY.targetValue;
+              const difference = Math.abs(currentTop - targetTop);
+              
+              if (difference < 5) { // Allow for small rounding differences
+                isComplete = true;
+              }
+            }
             
-            if (difference < 5) { // Allow for small rounding differences
-              isComplete = true;
+            if (changes.positionX && changes.positionX.changed) {
+              const targetLeft = changes.positionX.targetValue;
+              const difference = Math.abs(currentLeft - targetLeft);
+              
+              if (difference < 5) { // Allow for small rounding differences
+                isComplete = true;
+              }
             }
           }
           
