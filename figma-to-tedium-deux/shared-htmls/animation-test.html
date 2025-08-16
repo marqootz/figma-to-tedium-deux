@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three-Phase Animation Test - Moving Node Upwards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            position: relative;
+            min-height: 400px;
+        }
+        
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        /* Animation test elements */
+        .animation-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border: 2px dashed #ccc;
+            margin: 20px auto;
+            background: #fafafa;
+        }
+        
+        .animated-node {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: none; /* We'll control transitions via JavaScript */
+        }
+        
+        /* Debug styling to make variants more visible */
+        .animated-node[data-figma-id="source-variant"] {
+            border: 3px solid #ff6b6b;
+        }
+        
+        .animated-node[data-figma-id="target-variant"] {
+            border: 3px solid #4ecdc4;
+        }
+        
+        /* Make copy elements more visible */
+        .animated-node[data-is-animation-copy="true"] {
+            border: 3px solid #f39c12;
+            background: linear-gradient(45deg, #f39c12, #e74c3c);
+        }
+        
+        .variant-active {
+            display: flex !important;
+        }
+        
+        .variant-hidden {
+            display: none !important;
+        }
+        
+        .debug-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Three-Phase Animation Test</h1>
+        <p>This test demonstrates moving a node upwards using the three-phase animation system.</p>
+        
+        <div class="controls">
+            <button id="testAnimation" onclick="testAnimation()">Test Animation (Move Up)</button>
+            <button id="resetAnimation" onclick="resetAnimation()">Reset</button>
+            <button id="clearLogs" onclick="clearLogs()">Clear Logs</button>
+        </div>
+        
+        <div class="status info" id="status">
+            Ready to test animation. Click "Test Animation" to start.
+        </div>
+        
+        <div class="status info" id="animationStatus" style="margin-top: 10px;">
+            <strong>Animation Status:</strong> <span id="currentPhase">Ready</span>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Animation Test Area</div>
+            
+            <div class="animation-container" id="animationContainer">
+                <!-- Source variant (bottom position) -->
+                <div class="animated-node variant-active" 
+                     data-figma-id="source-variant"
+                     data-figma-name="Source Variant"
+                     data-figma-type="COMPONENT"
+                     style="left: 100px; top: 200px; z-index: 1;">
+                    <!-- Child element that will be animated -->
+                    <div data-figma-id="animated-element"
+                         data-figma-name="Animated Element"
+                         data-figma-type="FRAME"
+                         data-figma-x="100"
+                         data-figma-y="200"
+                         style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                        Source<br>Position
+                    </div>
+                </div>
+                
+                <!-- Target variant (top position) -->
+                <div class="animated-node variant-hidden" 
+                     data-figma-id="target-variant"
+                     data-figma-name="Target Variant"
+                     data-figma-type="COMPONENT"
+                     style="left: 100px; top: 50px; z-index: 2;">
+                    <!-- Child element that will be animated -->
+                    <div data-figma-id="animated-element"
+                         data-figma-name="Animated Element"
+                         data-figma-type="FRAME"
+                         data-figma-x="100"
+                         data-figma-y="50"
+                         style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                        Target<br>Position
+                    </div>
+                </div>
+            </div>
+            
+            <div class="debug-info" id="debugInfo">
+                Debug information will appear here...
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the refactored system -->
+    <script src="refactored-system.js"></script>
+    
+    <script>
+        let debugLogs = [];
+        let isAnimating = false;
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            debugLogs.push(logEntry);
+            
+            console.log(logEntry);
+            
+            // Update debug display
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.textContent = debugLogs.slice(-20).join('\n'); // Show last 20 logs
+            
+            // Update status
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+        
+        function clearLogs() {
+            debugLogs = [];
+            document.getElementById('debugInfo').textContent = 'Debug information will appear here...';
+            document.getElementById('status').textContent = 'Logs cleared.';
+            document.getElementById('status').className = 'status info';
+        }
+        
+        function resetAnimation() {
+            log('Resetting animation state...', 'info');
+            
+            // Reset variants to initial state
+            const sourceVariant = document.querySelector('[data-figma-id="source-variant"]');
+            const targetVariant = document.querySelector('[data-figma-id="target-variant"]');
+            
+            if (sourceVariant) {
+                sourceVariant.classList.add('variant-active');
+                sourceVariant.classList.remove('variant-hidden');
+                sourceVariant.style.display = 'flex';
+                sourceVariant.style.transform = '';
+                sourceVariant.style.transition = '';
+            }
+            
+            if (targetVariant) {
+                targetVariant.classList.add('variant-hidden');
+                targetVariant.classList.remove('variant-active');
+                targetVariant.style.display = 'none';
+                targetVariant.style.transform = '';
+                targetVariant.style.transition = '';
+            }
+            
+            isAnimating = false;
+            document.getElementById('testAnimation').disabled = false;
+            log('Animation reset complete.', 'success');
+        }
+        
+        function updateAnimationStatus(phase) {
+            document.getElementById('currentPhase').textContent = phase;
+        }
+        
+        function testAnimation() {
+            if (isAnimating) {
+                log('Animation already in progress...', 'error');
+                return;
+            }
+            
+            log('Starting three-phase animation test...', 'info');
+            updateAnimationStatus('Starting...');
+            isAnimating = true;
+            document.getElementById('testAnimation').disabled = true;
+            
+            // Get the source and target variants
+            const sourceVariant = document.querySelector('[data-figma-id="source-variant"]');
+            const targetVariant = document.querySelector('[data-figma-id="target-variant"]');
+            
+            if (!sourceVariant || !targetVariant) {
+                log('Error: Could not find source or target variants', 'error');
+                isAnimating = false;
+                document.getElementById('testAnimation').disabled = false;
+                return;
+            }
+            
+            // Create a component set wrapper for the variants
+            const componentSet = document.createElement('div');
+            componentSet.setAttribute('data-figma-id', 'test-component-set');
+            componentSet.setAttribute('data-figma-name', 'Test Component Set');
+            componentSet.setAttribute('data-figma-type', 'COMPONENT_SET');
+            componentSet.style.position = 'relative';
+            componentSet.style.width = '100%';
+            componentSet.style.height = '100%';
+            
+            // Move variants into the component set
+            const container = document.getElementById('animationContainer');
+            container.appendChild(componentSet);
+            componentSet.appendChild(sourceVariant);
+            componentSet.appendChild(targetVariant);
+            
+            // Get all variants
+            const allVariants = [sourceVariant, targetVariant];
+            
+            // Get the animated elements within the variants
+            const sourceAnimatedElement = sourceVariant.querySelector('[data-figma-id="animated-element"]');
+            const targetAnimatedElement = targetVariant.querySelector('[data-figma-id="animated-element"]');
+            
+            if (sourceAnimatedElement && targetAnimatedElement) {
+                const sourceY = sourceAnimatedElement.getAttribute('data-figma-y');
+                const targetY = targetAnimatedElement.getAttribute('data-figma-y');
+                const expectedMovement = parseInt(targetY) - parseInt(sourceY);
+                
+                log('Source animated element position: ' + sourceY + 'px', 'info');
+                log('Target animated element position: ' + targetY + 'px', 'info');
+                log('Expected movement: ' + expectedMovement + 'px', 'info');
+            } else {
+                log('Error: Could not find animated elements within variants', 'error');
+            }
+            
+            // Test the three-phase animation system
+            try {
+                // Use the global handleAnimatedVariantSwitch function
+                if (window.handleAnimatedVariantSwitch) {
+                    log('Calling handleAnimatedVariantSwitch...', 'info');
+                    
+                    window.handleAnimatedVariantSwitch(
+                        sourceVariant,
+                        targetVariant,
+                        allVariants,
+                        'GENTLE',
+                        '1.0'
+                    ).then(() => {
+                        log('Animation completed successfully!', 'success');
+                        updateAnimationStatus('Completed');
+                        isAnimating = false;
+                        document.getElementById('testAnimation').disabled = false;
+                    }).catch((error) => {
+                        log('Animation failed: ' + error.message, 'error');
+                        updateAnimationStatus('Failed');
+                        isAnimating = false;
+                        document.getElementById('testAnimation').disabled = false;
+                    });
+                } else {
+                    log('Error: handleAnimatedVariantSwitch function not found', 'error');
+                    isAnimating = false;
+                    document.getElementById('testAnimation').disabled = false;
+                }
+            } catch (error) {
+                log('Error during animation: ' + error.message, 'error');
+                isAnimating = false;
+                document.getElementById('testAnimation').disabled = false;
+            }
+        }
+        
+        // Override console.log to capture debug output
+        const originalConsoleLog = console.log;
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            
+            // Capture animation-related logs
+            const message = args.join(' ');
+            if (message.includes('🎬') || message.includes('🎭') || message.includes('🧹') || 
+                message.includes('🔍') || message.includes('📋') || message.includes('✅') ||
+                message.includes('transform') || message.includes('translateY') ||
+                message.includes('copy') || message.includes('variant')) {
+                
+                // Add to debug logs without calling log() to avoid recursion
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}`;
+                debugLogs.push(logEntry);
+                
+                // Update debug display
+                const debugInfo = document.getElementById('debugInfo');
+                debugInfo.textContent = debugLogs.slice(-20).join('\n'); // Show last 20 logs
+            }
+        };
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Animation test page loaded successfully.', 'success');
+            log('Three-phase animation system ready for testing.', 'info');
+        });
+    </script>
+</body>
+</html>

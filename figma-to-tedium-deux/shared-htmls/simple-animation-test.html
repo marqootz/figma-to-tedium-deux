@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Animation System Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            position: relative;
+            min-height: 400px;
+        }
+        
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        /* Animation test elements */
+        .animation-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border: 2px dashed #ccc;
+            margin: 20px auto;
+            background: #fafafa;
+        }
+        
+        .animated-node {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        /* Debug styling to make variants more visible */
+        .animated-node[data-figma-id="source-variant"] {
+            border: 3px solid #ff6b6b;
+        }
+        
+        .animated-node[data-figma-id="target-variant"] {
+            border: 3px solid #4ecdc4;
+        }
+        
+        .debug-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simple Animation System Test</h1>
+        <p>This test demonstrates the new simple animation system that directly animates elements without copying.</p>
+        
+        <div class="controls">
+            <button id="testAnimation" onclick="testAnimation()">Test Simple Animation</button>
+            <button id="testColorAnimation" onclick="testColorAnimation()">Test Color Animation</button>
+            <button id="testShadowAnimation" onclick="testShadowAnimation()">Test Shadow Animation</button>
+            <button id="testSizeAnimation" onclick="testSizeAnimation()">Test Size Animation</button>
+            <button id="testInstant" onclick="testInstant()">Test Instant Switch</button>
+            <button id="resetAnimation" onclick="resetAnimation()">Reset</button>
+            <button id="clearLogs" onclick="clearLogs()">Clear Logs</button>
+        </div>
+        
+        <div class="status info" id="status">
+            Ready to test simple animation system. Click "Test Simple Animation" to start.
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Simple Animation Test Area</div>
+            
+            <div class="animation-container" id="animationContainer">
+                <!-- Source variant (bottom position) -->
+                <div class="animated-node" 
+                     data-figma-id="source-variant"
+                     data-figma-name="Source Variant"
+                     data-figma-type="COMPONENT"
+                     style="left: 100px; top: 200px; width: 80px; height: 80px; background: #ff6b6b; opacity: 0.8; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    Source<br>Position
+                </div>
+                
+                <!-- Target variant (top-right position) -->
+                <div class="animated-node" 
+                     data-figma-id="target-variant"
+                     data-figma-name="Target Variant"
+                     data-figma-type="COMPONENT"
+                     style="left: 200px; top: 50px; width: 120px; height: 120px; display: none; background: #f39c12; opacity: 1.0; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
+                    Target<br>Position
+                </div>
+            </div>
+            
+            <div class="debug-info" id="debugInfo">
+                Debug information will appear here...
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the simple animation system -->
+    <script src="simple-animation-system.js"></script>
+    
+    <script>
+        let debugLogs = [];
+        let isAnimating = false;
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            debugLogs.push(logEntry);
+            
+            console.log(logEntry);
+            
+            // Update debug display
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.textContent = debugLogs.slice(-20).join('\n'); // Show last 20 logs
+            
+            // Update status
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+        
+        function clearLogs() {
+            debugLogs = [];
+            document.getElementById('debugInfo').textContent = 'Debug information will appear here...';
+            document.getElementById('status').textContent = 'Logs cleared.';
+            document.getElementById('status').className = 'status info';
+        }
+        
+        function resetAnimation() {
+            log('Resetting animation state...', 'info');
+            
+            // Reset variants to initial state
+            const sourceVariant = document.querySelector('[data-figma-id="source-variant"]');
+            const targetVariant = document.querySelector('[data-figma-id="target-variant"]');
+            
+            if (sourceVariant) {
+                sourceVariant.style.display = 'flex';
+                sourceVariant.style.transform = '';
+                sourceVariant.style.transition = '';
+            }
+            
+            if (targetVariant) {
+                targetVariant.style.display = 'none';
+                targetVariant.style.transform = '';
+                targetVariant.style.transition = '';
+            }
+            
+            isAnimating = false;
+            document.getElementById('testAnimation').disabled = false;
+            document.getElementById('testColorAnimation').disabled = false;
+            document.getElementById('testShadowAnimation').disabled = false;
+            document.getElementById('testSizeAnimation').disabled = false;
+            document.getElementById('testInstant').disabled = false;
+            log('Animation reset complete.', 'success');
+        }
+        
+        function testAnimation() {
+            if (isAnimating) {
+                log('Animation already in progress...', 'error');
+                return;
+            }
+            
+            log('Starting simple animation test...', 'info');
+            isAnimating = true;
+            document.getElementById('testAnimation').disabled = true;
+            document.getElementById('testColorAnimation').disabled = true;
+            document.getElementById('testShadowAnimation').disabled = true;
+            document.getElementById('testSizeAnimation').disabled = true;
+            document.getElementById('testInstant').disabled = true;
+            
+            // Get the source and target variants
+            const sourceVariant = document.querySelector('[data-figma-id="source-variant"]');
+            const targetVariant = document.querySelector('[data-figma-id="target-variant"]');
+            
+            if (!sourceVariant || !targetVariant) {
+                log('Error: Could not find source or target variants', 'error');
+                isAnimating = false;
+                document.getElementById('testAnimation').disabled = false;
+                document.getElementById('testColorAnimation').disabled = false;
+                document.getElementById('testShadowAnimation').disabled = false;
+                document.getElementById('testSizeAnimation').disabled = false;
+                document.getElementById('testInstant').disabled = false;
+                return;
+            }
+            
+            // Test the simple animation system
+            try {
+                // Use the simple animation function
+                if (window.simpleVariantSwitch) {
+                    log('Calling simpleVariantSwitch...', 'info');
+                    
+                    window.simpleVariantSwitch(
+                        sourceVariant,
+                        targetVariant,
+                        {
+                            duration: 1.0,
+                            easing: 'ease-in-out',
+                            onComplete: () => {
+                                log('Simple animation completed successfully!', 'success');
+                                isAnimating = false;
+                                document.getElementById('testAnimation').disabled = false;
+                                document.getElementById('testColorAnimation').disabled = false;
+                                document.getElementById('testShadowAnimation').disabled = false;
+                                document.getElementById('testSizeAnimation').disabled = false;
+                                document.getElementById('testInstant').disabled = false;
+                            }
+                        }
+                    );
+                } else {
+                    log('Error: simpleVariantSwitch function not found', 'error');
+                    isAnimating = false;
+                    document.getElementById('testAnimation').disabled = false;
+                    document.getElementById('testColorAnimation').disabled = false;
+                    document.getElementById('testShadowAnimation').disabled = false;
+                    document.getElementById('testSizeAnimation').disabled = false;
+                    document.getElementById('testInstant').disabled = false;
+                }
+            } catch (error) {
+                log('Error during animation: ' + error.message, 'error');
+                isAnimating = false;
+                document.getElementById('testAnimation').disabled = false;
+                document.getElementById('testColorAnimation').disabled = false;
+                document.getElementById('testShadowAnimation').disabled = false;
+                document.getElementById('testSizeAnimation').disabled = false;
+                document.getElementById('testInstant').disabled = false;
+            }
+        }
+        
+        function testColorAnimation() {
+            if (isAnimating) {
+                log('Animation already in progress...', 'error');
+                return;
+            }
+            
+            log('Starting color animation test...', 'info');
+            isAnimating = true;
+            document.getElementById('testAnimation').disabled = true;
+            document.getElementById('testColorAnimation').disabled = true;
+            document.getElementById('testShadowAnimation').disabled = true;
+            document.getElementById('testSizeAnimation').disabled = true;
+            document.getElementById('testInstant').disabled = true;
+            
+            // Get the source and target variants
+            const sourceVariant = document.querySelector('[data-figma-id="source-variant"]');
+            const targetVariant = document.querySelector('[data-figma-id="target-variant"]');
+            
+            if (!sourceVariant || !targetVariant) {
+                log('Error: Could not find source or target variants', 'error');
+                isAnimating = false;
+                document.getElementById('testAnimation').disabled = false;
+                document.getElementById('testColorAnimation').disabled = false;
+                document.getElementById('testShadowAnimation').disabled = false;
+                document.getElementById('testSizeAnimation').disabled = false;
+                document.getElementById('testInstant').disabled = false;
+                return;
+            }
+            
+            // Test the simple animation system with color
+            try {
+                if (window.simpleVariantSwitch) {
+                    log('Calling simpleVariantSwitch with color animation...', 'info');
+                    
+                    window.simpleVariantSwitch(
+                        sourceVariant,
+                        targetVariant,
+                        {
+                            duration: 1.5,
+                            easing: 'ease-in-out',
+                            animateColor: true,
+                            onComplete: () => {
+                                log('Color animation completed successfully!', 'success');
+                                isAnimating = false;
+                                document.getElementById('testAnimation').disabled = false;
+                                document.getElementById('testColorAnimation').disabled = false;
+                                document.getElementById('testShadowAnimation').disabled = false;
+                                document.getElementById('testSizeAnimation').disabled = false;
+                                document.getElementById('testInstant').disabled = false;
+                            }
+                        }
+                    );
+                } else {
+                    log('Error: simpleVariantSwitch function not found', 'error');
+                    isAnimating = false;
+                    document.getElementById('testAnimation').disabled = false;
+                    document.getElementById('testColorAnimation').disabled = false;
+                    document.getElementById('testShadowAnimation').disabled = false;
+                    document.getElementById('testSizeAnimation').disabled = false;
+                    document.getElementById('testInstant').disabled = false;
+                }
+            } catch (error) {
+                log('Error during color animation: ' + error.message, 'error');
+                isAnimating = false;
+                document.getElementById('testAnimation').disabled = false;
+                document.getElementById('testColorAnimation').disabled = false;
+                document.getElementById('testShadowAnimation').disabled = false;
+                document.getElementById('testSizeAnimation').disabled = false;
+                document.getElementById('testInstant').disabled = false;
+            }
+        }
+        
+        function testShadowAnimation() {
+            if (isAnimating) {
+                log('Animation already in progress...', 'error');
+                return;
+            }
+
+            log('Starting shadow animation test...', 'info');
+            isAnimating = true;
+            document.getElementById('testAnimation').disabled = true;
+            document.getElementById('testColorAnimation').disabled = true;
+            document.getElementById('testShadowAnimation').disabled = true;
+            document.getElementById('testSizeAnimation').disabled = true;
+            document.getElementById('testInstant').disabled = true;
+
+            const sourceVariant = document.querySelector('[data-figma-id="source-variant"]');
+            const targetVariant = document.querySelector('[data-figma-id="target-variant"]');
+
+            if (!sourceVariant || !targetVariant) {
+                log('Error: Could not find source or target variants', 'error');
+                isAnimating = false;
+                document.getElementById('testAnimation').disabled = false;
+                document.getElementById('testColorAnimation').disabled = false;
+                document.getElementById('testShadowAnimation').disabled = false;
+                document.getElementById('testSizeAnimation').disabled = false;
+                document.getElementById('testInstant').disabled = false;
+                return;
+            }
+
+            try {
+                if (window.simpleVariantSwitch) {
+                    log('Calling simpleVariantSwitch with shadow animation...', 'info');
+                    
+                    window.simpleVariantSwitch(
+                        sourceVariant,
+                        targetVariant,
+                        {
+                            duration: 1.0,
+                            easing: 'ease-in-out',
+                            animateShadow: true,
+                            onComplete: () => {
+                                log('Shadow animation completed successfully!', 'success');
+                                isAnimating = false;
+                                document.getElementById('testAnimation').disabled = false;
+                                document.getElementById('testColorAnimation').disabled = false;
+                                document.getElementById('testShadowAnimation').disabled = false;
+                                document.getElementById('testSizeAnimation').disabled = false;
+                                document.getElementById('testInstant').disabled = false;
+                            }
+                        }
+                    );
+                } else {
+                    log('Error: simpleVariantSwitch function not found', 'error');
+                    isAnimating = false;
+                    document.getElementById('testAnimation').disabled = false;
+                    document.getElementById('testColorAnimation').disabled = false;
+                    document.getElementById('testShadowAnimation').disabled = false;
+                    document.getElementById('testSizeAnimation').disabled = false;
+                    document.getElementById('testInstant').disabled = false;
+                }
+            } catch (error) {
+                log('Error during shadow animation: ' + error.message, 'error');
+                isAnimating = false;
+                document.getElementById('testAnimation').disabled = false;
+                document.getElementById('testColorAnimation').disabled = false;
+                document.getElementById('testShadowAnimation').disabled = false;
+                document.getElementById('testSizeAnimation').disabled = false;
+                document.getElementById('testInstant').disabled = false;
+            }
+        }
+        
+        function testSizeAnimation() {
+            if (isAnimating) {
+                log('Animation already in progress...', 'error');
+                return;
+            }
+
+            log('Starting size animation test...', 'info');
+            isAnimating = true;
+            document.getElementById('testAnimation').disabled = true;
+            document.getElementById('testColorAnimation').disabled = true;
+            document.getElementById('testShadowAnimation').disabled = true;
+            document.getElementById('testSizeAnimation').disabled = true;
+            document.getElementById('testInstant').disabled = true;
+
+            const sourceVariant = document.querySelector('[data-figma-id="source-variant"]');
+            const targetVariant = document.querySelector('[data-figma-id="target-variant"]');
+
+            if (!sourceVariant || !targetVariant) {
+                log('Error: Could not find source or target variants', 'error');
+                isAnimating = false;
+                document.getElementById('testAnimation').disabled = false;
+                document.getElementById('testColorAnimation').disabled = false;
+                document.getElementById('testShadowAnimation').disabled = false;
+                document.getElementById('testSizeAnimation').disabled = false;
+                document.getElementById('testInstant').disabled = false;
+                return;
+            }
+
+            try {
+                if (window.simpleVariantSwitch) {
+                    log('Calling simpleVariantSwitch with size animation...', 'info');
+                    
+                    window.simpleVariantSwitch(
+                        sourceVariant,
+                        targetVariant,
+                        {
+                            duration: 1.2,
+                            easing: 'ease-in-out',
+                            animateSize: true,
+                            onComplete: () => {
+                                log('Size animation completed successfully!', 'success');
+                                isAnimating = false;
+                                document.getElementById('testAnimation').disabled = false;
+                                document.getElementById('testColorAnimation').disabled = false;
+                                document.getElementById('testShadowAnimation').disabled = false;
+                                document.getElementById('testSizeAnimation').disabled = false;
+                                document.getElementById('testInstant').disabled = false;
+                            }
+                        }
+                    );
+                } else {
+                    log('Error: simpleVariantSwitch function not found', 'error');
+                    isAnimating = false;
+                    document.getElementById('testAnimation').disabled = false;
+                    document.getElementById('testColorAnimation').disabled = false;
+                    document.getElementById('testShadowAnimation').disabled = false;
+                    document.getElementById('testSizeAnimation').disabled = false;
+                    document.getElementById('testInstant').disabled = false;
+                }
+            } catch (error) {
+                log('Error during size animation: ' + error.message, 'error');
+                isAnimating = false;
+                document.getElementById('testAnimation').disabled = false;
+                document.getElementById('testColorAnimation').disabled = false;
+                document.getElementById('testShadowAnimation').disabled = false;
+                document.getElementById('testSizeAnimation').disabled = false;
+                document.getElementById('testInstant').disabled = false;
+            }
+        }
+        
+        function testInstant() {
+            log('Testing instant variant switch...', 'info');
+            
+            const sourceVariant = document.querySelector('[data-figma-id="source-variant"]');
+            const targetVariant = document.querySelector('[data-figma-id="target-variant"]');
+            
+            if (!sourceVariant || !targetVariant) {
+                log('Error: Could not find source or target variants', 'error');
+                return;
+            }
+            
+            if (window.instantVariantSwitch) {
+                window.instantVariantSwitch(sourceVariant, targetVariant);
+                log('Instant switch completed!', 'success');
+            } else {
+                log('Error: instantVariantSwitch function not found', 'error');
+            }
+        }
+        
+        // Override console.log to capture debug output
+        const originalConsoleLog = console.log;
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            
+            // Capture animation-related logs
+            const message = args.join(' ');
+            if (message.includes('🎬') || message.includes('📋') || message.includes('📊') || 
+                message.includes('✅') || message.includes('⏰') || message.includes('🔄') ||
+                message.includes('⚡') || message.includes('SIMPLE ANIMATION') ||
+                message.includes('VARIANT SWITCH')) {
+                
+                // Add to debug logs without calling log() to avoid recursion
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}`;
+                debugLogs.push(logEntry);
+                
+                // Update debug display
+                const debugInfo = document.getElementById('debugInfo');
+                debugInfo.textContent = debugLogs.slice(-20).join('\n'); // Show last 20 logs
+            }
+        };
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Simple animation test page loaded successfully.', 'success');
+            log('Simple animation system ready for testing.', 'info');
+        });
+    </script>
+</body>
+</html>

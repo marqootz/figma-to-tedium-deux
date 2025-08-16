@@ -18,24 +18,24 @@ export * from './html/events/reaction-handler';
 export * from './html/events/initializer';
 export * from './html/events/attributes';
 
-// Import the three-phase transition handler function
-import { createThreePhaseTransitionHandler } from './html/events/three-phase-transition-handler';
+// Import the modular transition handler function
+import { createModularSmartAnimateHandler } from './html/events/modular-transition-handler';
 
 // Store the function for later execution
-let threePhaseTransitionHandlerCode: string | null = null;
+let modularTransitionHandlerCode: string | null = null;
 
-// Function to execute the three-phase transition handler when needed
-function executeThreePhaseTransitionHandler() {
-  if (!threePhaseTransitionHandlerCode) {
-    threePhaseTransitionHandlerCode = createThreePhaseTransitionHandler();
+// Function to execute the modular transition handler when needed
+function executeModularTransitionHandler() {
+  if (!modularTransitionHandlerCode) {
+    modularTransitionHandlerCode = createModularSmartAnimateHandler();
   }
   
   try {
-    eval(threePhaseTransitionHandlerCode);
-    console.log('DEBUG: Three-phase transition handler executed successfully');
+    eval(modularTransitionHandlerCode);
+    console.log('DEBUG: Modular transition handler executed successfully');
     return true;
   } catch (error) {
-    console.error('DEBUG: Error executing three-phase transition handler:', error);
+    console.error('DEBUG: Error executing modular transition handler:', error);
     return false;
   }
 }
@@ -53,13 +53,13 @@ if (typeof window !== 'undefined') {
 }
 
 function initializeSystem() {
-  console.log('DEBUG: Initializing refactored system');
+  console.log('DEBUG: Initializing refactored system with modular transition handler');
   
-  // Execute the three-phase transition handler to expose handleReaction and variant switching functions
-  if (executeThreePhaseTransitionHandler()) {
-    console.log('DEBUG: Three-phase transition handler executed successfully');
+  // Execute the modular transition handler to expose handleReaction and variant switching functions
+  if (executeModularTransitionHandler()) {
+    console.log('DEBUG: Modular transition handler executed successfully');
   } else {
-    console.error('DEBUG: Failed to execute three-phase transition handler');
+    console.error('DEBUG: Failed to execute modular transition handler');
   }
   
   // Check if the functions are available
@@ -67,7 +67,7 @@ function initializeSystem() {
     if (window.handleReaction) {
       console.log('DEBUG: handleReaction function is available globally');
     } else {
-      console.error('DEBUG: handleReaction function not found - the three-phase transition handler may not be properly loaded');
+      console.error('DEBUG: handleReaction function not found - the modular transition handler may not be properly loaded');
     }
     
     if (window.handleAnimatedVariantSwitch) {
@@ -83,5 +83,5 @@ function initializeSystem() {
     }
   }, 100);
   
-  console.log('DEBUG: Refactored system functions available');
+  console.log('DEBUG: Modular transition handler functions available');
 }

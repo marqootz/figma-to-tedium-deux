@@ -6,14 +6,17 @@
   "scripts": {
     "build": "webpack --mode=production",
     "build:refactored": "webpack --config webpack-refactored.config.js --mode=production",
+    "build:simple": "webpack --config webpack-simple.config.js --mode=production",
     "dev": "webpack --mode=development --watch",
     "dev:refactored": "webpack --config webpack-refactored.config.js --mode=development --watch",
+    "dev:simple": "webpack --config webpack-simple.config.js --mode=development --watch",
     "build:css": "node scripts/build-css.js",
     "build:all": "node scripts/build-all.js",
     "verify": "node scripts/verify-plugin.js",
     "dev:cli": "ts-node --project tsconfig.cli.json scripts/dev-cli.ts",
     "dev:cli:build": "tsc --project tsconfig.cli.json && node dist-cli/scripts/dev-cli.js",
     "export-node": "ts-node --project tsconfig.cli.json scripts/export-specific-node.ts",
+    "test-simple-animation": "ts-node --project tsconfig.cli.json scripts/test-simple-animation-export.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

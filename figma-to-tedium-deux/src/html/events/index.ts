@@ -4,6 +4,7 @@ export { createVariantSwitchingHandler } from './variant-handler';
 export { createReactionHandler, createTimeoutHandler } from './reaction-handler';
 export { createThreePhaseTransitionHandler } from './three-phase-transition-handler';
 export { createComponentSetInitializer } from './initializer';
+export { generateSimpleTransitionHandler, officialStyleAnimate } from './simple-animation-system';
 
 // Export only the types we need for the three-phase system
 export type {

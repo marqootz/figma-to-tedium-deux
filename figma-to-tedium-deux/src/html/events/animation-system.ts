@@ -67,6 +67,26 @@ export function setupAnimationSession(
     isActive: true
   };
 
+  // CRITICAL FIX: Reset all variants to a clean state first
+  allVariants.forEach(variant => {
+    // Reset any residual styling from previous animations
+    variant.style.position = 'relative';
+    variant.style.left = '';
+    variant.style.top = '';
+    variant.style.transform = '';
+    variant.style.transition = '';
+    
+    // Reset all nested elements within each variant
+    const nestedElements = variant.querySelectorAll('[data-figma-id]');
+    nestedElements.forEach(nestedElement => {
+      (nestedElement as HTMLElement).style.position = 'relative';
+      (nestedElement as HTMLElement).style.left = '';
+      (nestedElement as HTMLElement).style.top = '';
+      (nestedElement as HTMLElement).style.transform = '';
+      (nestedElement as HTMLElement).style.transition = '';
+    });
+  });
+
   // Set initial state for all variants
   allVariants.forEach(variant => {
     if (variant === sourceElement) {
@@ -75,12 +95,14 @@ export function setupAnimationSession(
       variant.classList.remove('variant-hidden');
       variant.style.visibility = 'visible';
       variant.style.opacity = '1';
+      variant.style.display = 'flex';
     } else {
       // All other variants should be hidden
       variant.classList.add('variant-hidden');
       variant.classList.remove('variant-active');
       variant.style.visibility = 'hidden';
       variant.style.opacity = '0';
+      variant.style.display = 'none';
     }
   });
 
@@ -89,6 +111,7 @@ export function setupAnimationSession(
   targetElement.classList.remove('variant-hidden');
   targetElement.style.visibility = 'hidden';
   targetElement.style.opacity = '0';
+  targetElement.style.display = 'none';
 
   console.log('✅ SETUP PHASE: Animation session initialized');
   return session;
@@ -109,16 +132,28 @@ export async function animateVariantTransition(session: AnimationSession): Promi
   session.sourceCopy = createElementCopy(session.sourceElement);
   console.log('📋 ANIMATE PHASE: Created source element copy');
 
-  // Insert the copy into the DOM
+  // Insert the copy into the DOM and use natural positioning
   const sourceParent = session.sourceElement.parentElement;
   if (sourceParent && session.sourceCopy) {
-    sourceParent.appendChild(session.sourceCopy);
-    console.log('📋 ANIMATE PHASE: Inserted copy into DOM');
+    // Insert copy at the same position as source element
+    sourceParent.insertBefore(session.sourceCopy, session.sourceElement);
+    console.log('📋 ANIMATE PHASE: Inserted copy into DOM with natural positioning');
   }
 
-  // Hide the original source element
-  session.sourceElement.style.opacity = '0';
-  session.sourceElement.style.visibility = 'hidden';
+  // Hide the original source element and show the copy simultaneously
+  session.sourceElement.style.display = 'none';
+  session.sourceCopy!.style.display = 'flex';
+  console.log('📋 ANIMATE PHASE: Hidden source and showed copy');
+  
+  // Debug: Check copy visibility
+  const copyStyle = window.getComputedStyle(session.sourceCopy!);
+  console.log('🔍 DEBUG: Copy visibility check:', {
+    display: copyStyle.display,
+    visibility: copyStyle.visibility,
+    opacity: copyStyle.opacity,
+    position: copyStyle.position,
+    zIndex: copyStyle.zIndex
+  });
 
   // Hide all other variants
   session.allVariants.forEach(variant => {
@@ -160,6 +195,26 @@ export function cleanupAnimationSession(session: AnimationSession): void {
   session.sourceElement.style.visibility = 'hidden';
   session.sourceElement.classList.add('variant-hidden');
   session.sourceElement.classList.remove('variant-active');
+
+  // CRITICAL FIX: Reset all variants to a clean state before showing the destination
+  session.allVariants.forEach(variant => {
+    // Reset any residual styling from animations
+    variant.style.position = 'relative';
+    variant.style.left = '';
+    variant.style.top = '';
+    variant.style.transform = '';
+    variant.style.transition = '';
+    
+    // Reset all nested elements within each variant
+    const nestedElements = variant.querySelectorAll('[data-figma-id]');
+    nestedElements.forEach(nestedElement => {
+      (nestedElement as HTMLElement).style.position = 'relative';
+      (nestedElement as HTMLElement).style.left = '';
+      (nestedElement as HTMLElement).style.top = '';
+      (nestedElement as HTMLElement).style.transform = '';
+      (nestedElement as HTMLElement).style.transition = '';
+    });
+  });
 
   // Show the destination variant with proper positioning
   session.targetElement.style.visibility = 'visible';
@@ -216,34 +271,16 @@ function createElementCopy(sourceElement: HTMLElement): HTMLElement {
   copy.setAttribute('data-figma-id', sourceElement.getAttribute('data-figma-id') + '-copy');
   copy.setAttribute('data-is-animation-copy', 'true');
   
-  // Position the copy absolutely over the source element
-  const sourceRect = sourceElement.getBoundingClientRect();
-  const parentRect = sourceElement.parentElement!.getBoundingClientRect();
-  
-  copy.style.position = 'absolute';
-  copy.style.top = (sourceRect.top - parentRect.top) + 'px';
-  copy.style.left = (sourceRect.left - parentRect.left) + 'px';
-  copy.style.transform = 'none';
+  // Use natural positioning instead of absolute positioning
+  // The copy will inherit the source element's natural position in the document flow
+  copy.style.position = 'relative';
   copy.style.margin = '0';
   copy.style.padding = '0';
-  
-  // Set high z-index
-  const allElements = document.querySelectorAll('*');
-  let maxZIndex = 0;
-  allElements.forEach(el => {
-    const zIndex = parseInt(window.getComputedStyle(el).zIndex) || 0;
-    if (zIndex > maxZIndex) maxZIndex = zIndex;
-  });
-  
-  const copyZIndex = maxZIndex + 1000;
-  copy.style.zIndex = copyZIndex.toString();
   copy.style.pointerEvents = 'none';
-  copy.style.transform = 'translateZ(0)';
   copy.style.willChange = 'transform, left, top';
   
-  // Preserve original overflow, display, and visibility from source element
+  // Preserve original display and visibility from source element
   const sourceComputedStyle = window.getComputedStyle(sourceElement);
-  copy.style.overflow = sourceComputedStyle.overflow;
   copy.style.display = sourceComputedStyle.display;
   copy.style.visibility = sourceComputedStyle.visibility;
   copy.style.opacity = '1';
@@ -280,20 +317,21 @@ async function animateCopyToDestination(
     if (elementsToAnimate.length > 0) {
       console.log('🎭 Animating copy with', elementsToAnimate.length, 'elements');
       
-      // Setup animation for each element
-      elementsToAnimate.forEach(({ element, changes }) => {
-        // Handle nested instance variant switch
-        if (changes.isNestedInstanceVariantSwitch) {
-          handleNestedInstanceVariantSwitch(element, changes);
-          return;
-        }
-        
-        // Apply animation changes
-        const animationChanges = convertChangesToAnimationChanges(changes);
-        animationChanges.forEach(change => {
-          applyAnimationChange(element, change, duration, easingFunction);
+              // Setup animation for each element
+        elementsToAnimate.forEach(({ element, changes }) => {
+          // Handle nested instance variant switch as additional step (not replacement)
+          if (changes.isNestedInstanceVariantSwitch) {
+            handleNestedInstanceVariantSwitch(element, changes);
+          }
+          
+          // Always apply movement animations (even for nested instances)
+          const animationChanges = convertChangesToAnimationChanges(changes);
+          console.log('🔍 DEBUG: Animation changes to apply:', animationChanges);
+          animationChanges.forEach(change => {
+            console.log('🔍 DEBUG: Applying animation change:', change);
+            applyAnimationChange(element, change, duration, easingFunction);
+          });
         });
-      });
       
       // Monitor animation completion
       let completedAnimations = 0;
@@ -893,29 +931,9 @@ function findElementsWithPropertyChanges(
     }
   }
   
+  // Note: Nested instance detection is logged but doesn't bypass movement animations
   if (isNestedInstance) {
-    console.log('🔍 Handling nested instance variant switch');
-    
-    const sourceComponentSet = parentComponentSet;
-    const targetComponentSet = targetVariant.querySelector('[data-figma-type="COMPONENT_SET"]');
-    
-    if (sourceComponentSet && targetComponentSet) {
-      const sourceActiveVariant = sourceComponentSet.querySelector('.variant-active');
-      const targetActiveVariant = targetComponentSet.querySelector('.variant-active');
-      
-      if (sourceActiveVariant && targetActiveVariant) {
-        return [{
-          element: parentInstance || currentVariant,
-          sourceElement: parentInstance || originalSourceVariant,
-          changes: {
-            hasChanges: true,
-            isNestedInstanceVariantSwitch: true,
-            sourceVariant: sourceActiveVariant,
-            targetVariant: targetActiveVariant
-          }
-        }];
-      }
-    }
+    console.log('🔍 Detected nested instance structure - will handle both movement and internal variant switching');
   }
   
   const targetElements = targetVariant.querySelectorAll('[data-figma-id]');
@@ -923,11 +941,14 @@ function findElementsWithPropertyChanges(
   const sourceElementMap = new Map();
   const elementsToAnimate = [];
 
+  console.log('🔍 DEBUG: Found', targetElements.length, 'target elements and', sourceElements.length, 'source elements');
+
   // Build source element map by name
   sourceElements.forEach(sourceElement => {
     const sourceName = sourceElement.getAttribute('data-figma-name') || sourceElement.getAttribute('data-figma-id');
     if (sourceName) {
       sourceElementMap.set(sourceName, sourceElement);
+      console.log('🔍 DEBUG: Mapped source element:', sourceName);
     }
   });
 
@@ -976,23 +997,36 @@ function findElementsWithPropertyChanges(
   if (parentAlignmentChanges.length > 0) {
     elementsToAnimate.push(...parentAlignmentChanges);
   } else {
-    // Check for child position changes
-    targetElements.forEach(element => {
-      const targetName = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
-      const sourceElement = sourceElementMap.get(targetName);
-      
-      if (sourceElement) {
-        const changes = detectPropertyChanges(element as HTMLElement, sourceElement, originalSourceVariant);
-        
-        if (changes.hasChanges) {
-          elementsToAnimate.push({
-            element: sourceElement,
-            sourceElement: sourceElement,
-            changes: changes
-          });
-        }
-      }
-    });
+            // Check for child position changes
+        targetElements.forEach(element => {
+          const targetName = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
+          const sourceElement = sourceElementMap.get(targetName);
+          
+          console.log('🔍 DEBUG: Checking element:', targetName, 'sourceElement found:', !!sourceElement);
+          
+          if (sourceElement) {
+            // Use original source variant for property detection, not the copy
+            const originalSourceElement = originalSourceVariant.querySelector(`[data-figma-name="${targetName}"]`) || 
+                                        originalSourceVariant.querySelector(`[data-figma-id="${sourceElement.getAttribute('data-figma-id')}"]`);
+            
+            console.log('🔍 DEBUG: originalSourceElement found:', !!originalSourceElement);
+            
+            if (originalSourceElement) {
+              console.log('🔍 DEBUG: Calling detectPropertyChanges for:', targetName);
+              const changes = detectPropertyChanges(element as HTMLElement, originalSourceElement as HTMLElement, originalSourceVariant);
+              
+              console.log('🔍 DEBUG: Changes detected:', changes.hasChanges, changes);
+              
+              if (changes.hasChanges) {
+                elementsToAnimate.push({
+                  element: sourceElement, // Use copy for animation
+                  sourceElement: sourceElement, // Use copy for animation
+                  changes: changes
+                });
+              }
+            }
+          }
+        });
   }
   
   console.log('🔍 Found', elementsToAnimate.length, 'elements to animate');
@@ -1007,6 +1041,12 @@ function detectPropertyChanges(
   sourceElement: HTMLElement,
   originalSourceVariant: HTMLElement
 ): any {
+  console.log('🔍 DEBUG: detectPropertyChanges called for:', {
+    targetElement: targetElement.getAttribute('data-figma-name'),
+    sourceElement: sourceElement.getAttribute('data-figma-name'),
+    originalSourceVariant: originalSourceVariant.getAttribute('data-figma-name')
+  });
+
   const changes = {
     hasChanges: false,
     positionX: { changed: false, sourceValue: null, targetValue: null },
@@ -1065,6 +1105,15 @@ function detectPropertyChanges(
     const sourceRelativeTop = sourceFigmaY;
     const targetRelativeLeft = targetFigmaX;
     const targetRelativeTop = targetFigmaY;
+
+    console.log('🔍 DEBUG: Position comparison:', {
+      sourceFigmaX,
+      sourceFigmaY,
+      targetFigmaX,
+      targetFigmaY,
+      xDifference: Math.abs(sourceFigmaX - targetFigmaX),
+      yDifference: Math.abs(sourceFigmaY - targetFigmaY)
+    });
     
     // Check if the node has ignore auto layout enabled
     const ignoreAutoLayout = sourceElement.getAttribute('data-layout-positioning') === 'ABSOLUTE';
