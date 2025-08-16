@@ -5,8 +5,18 @@
 declare global {
   interface Window {
     handleReaction?: (sourceElement: Element, destinationId: string | null, transitionType: string, transitionDuration: string) => void;
-    handleAnimatedVariantSwitch?: (sourceElement: Element, destination: Element, allVariants: Element[], transitionType: string, transitionDuration: string) => Promise<void>;
-    performInstantVariantSwitch?: (allVariants: Element[], destination: Element) => void;
+    handleAnimatedVariantSwitch?: (sourceElement: HTMLElement, destination: HTMLElement, allVariants: HTMLElement[], transitionType: string, transitionDuration: number) => Promise<void>;
+    performInstantVariantSwitch?: (allVariants: HTMLElement[], destination: HTMLElement) => void;
+    startTimeoutReactionsForNewlyActiveVariant?: (newlyActiveElement: HTMLElement) => void;
+    startTimeoutReactionsForNestedComponents?: (parentElement: HTMLElement) => void;
+    clearAllTimeoutReactions?: () => void;
+    modularAnimationSystem?: {
+      handleAnimatedVariantSwitch: (sourceElement: HTMLElement, destination: HTMLElement, allVariants: HTMLElement[], transitionType: string, transitionDuration: number) => Promise<void>;
+      performInstantVariantSwitch: (allVariants: HTMLElement[], destination: HTMLElement) => void;
+      setTransitionLock: (inProgress: boolean, promise?: Promise<void>) => void;
+      clearTransitionLock: () => void;
+      getTransitionLockStatus: () => { isTransitionInProgress: boolean; currentTransitionPromise: Promise<void> | null };
+    };
   }
 }
 
@@ -17,6 +27,22 @@ export * from './html/events/variant-handler';
 export * from './html/events/reaction-handler';
 export * from './html/events/initializer';
 export * from './html/events/attributes';
+
+// Import the modular animation functions
+import { 
+  handleAnimatedVariantSwitch, 
+  performInstantVariantSwitch, 
+  setTransitionLock, 
+  clearTransitionLock,
+  getTransitionLockStatus
+} from './html/events/transition-manager';
+
+import {
+  handleReaction,
+  startTimeoutReactionsForNewlyActiveVariant,
+  startTimeoutReactionsForNestedComponents,
+  clearAllTimeoutReactions
+} from './html/events/modular-transition-handler';
 
 // Import the modular transition handler function
 import { createModularSmartAnimateHandler } from './html/events/modular-transition-handler';
@@ -55,6 +81,23 @@ if (typeof window !== 'undefined') {
 function initializeSystem() {
   console.log('DEBUG: Initializing refactored system with modular transition handler');
   
+  // Expose the modular animation functions globally
+  window.handleAnimatedVariantSwitch = handleAnimatedVariantSwitch;
+  window.performInstantVariantSwitch = performInstantVariantSwitch;
+  window.handleReaction = handleReaction;
+  window.startTimeoutReactionsForNewlyActiveVariant = startTimeoutReactionsForNewlyActiveVariant;
+  window.startTimeoutReactionsForNestedComponents = startTimeoutReactionsForNestedComponents;
+  window.clearAllTimeoutReactions = clearAllTimeoutReactions;
+  
+  // Also expose the modular system for the eval context
+  window.modularAnimationSystem = {
+    handleAnimatedVariantSwitch,
+    performInstantVariantSwitch,
+    setTransitionLock,
+    clearTransitionLock,
+    getTransitionLockStatus
+  };
+  
   // Execute the modular transition handler to expose handleReaction and variant switching functions
   if (executeModularTransitionHandler()) {
     console.log('DEBUG: Modular transition handler executed successfully');
@@ -80,6 +123,24 @@ function initializeSystem() {
       console.log('DEBUG: performInstantVariantSwitch function is available globally');
     } else {
       console.error('DEBUG: performInstantVariantSwitch function not found');
+    }
+    
+    if (window.startTimeoutReactionsForNewlyActiveVariant) {
+      console.log('DEBUG: startTimeoutReactionsForNewlyActiveVariant function is available globally');
+    } else {
+      console.error('DEBUG: startTimeoutReactionsForNewlyActiveVariant function not found');
+    }
+    
+    if (window.startTimeoutReactionsForNestedComponents) {
+      console.log('DEBUG: startTimeoutReactionsForNestedComponents function is available globally');
+    } else {
+      console.error('DEBUG: startTimeoutReactionsForNestedComponents function not found');
+    }
+    
+    if (window.clearAllTimeoutReactions) {
+      console.log('DEBUG: clearAllTimeoutReactions function is available globally');
+    } else {
+      console.error('DEBUG: clearAllTimeoutReactions function not found');
     }
   }, 100);
   
