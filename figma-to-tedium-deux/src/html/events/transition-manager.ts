@@ -9,18 +9,16 @@ import { findElementsWithPropertyChanges } from './animation-detector';
 import { setupElementAnimation, getEasingFunction } from './animation-applier';
 import { 
   createElementCopy, 
-  updateCopyContentToMatchDestination, 
-  insertCopyIntoDOM, 
-  removeCopyFromDOM,
-  hideOriginalElements,
-  showDestinationVariant,
-  safeElementOperation,
-  showOnlyCopyDuringAnimation,
-  completeAnimationAndShowTarget,
   measureElementPositions,
-  measureElementPositionsWithCSS,
+  measureVariantPositions,
+  ensureVariantsAtZeroPosition,
   hideAllVariantsExceptCopy,
-  animateWithPreMeasuredPositions
+  animateWithPreMeasuredPositions,
+  performVariantSwitchWithCorrectMeasurement,
+  safeElementOperation,
+  insertCopyIntoDOM,
+  updateCopyContentToMatchDestination,
+  completeAnimationAndShowTarget
 } from './element-copier';
 
 // Global transition state machine to prevent race conditions
@@ -567,33 +565,24 @@ export async function handleAnimatedVariantSwitch(
         htmlTargetParentComponentSet.style.setProperty('transform', 'none', 'important');
       }
       
-      // Position parent component set at 0px top/left
+      // ✅ STEP 1: Ensure proper positioning using enhanced function
       const parentComponentSet = sourceElement.closest('[data-figma-type="COMPONENT_SET"]');
+      let positioningSuccess = false;
+      
       if (parentComponentSet) {
-        const htmlParentComponentSet = parentComponentSet as HTMLElement;
-        htmlParentComponentSet.style.setProperty('position', 'relative', 'important');
-        htmlParentComponentSet.style.setProperty('top', '0px', 'important');
-        htmlParentComponentSet.style.setProperty('left', '0px', 'important');
-        htmlParentComponentSet.style.setProperty('transform', 'none', 'important');
+        positioningSuccess = ensureVariantsAtZeroPosition(parentComponentSet as HTMLElement);
       }
       
-      // Force reflow to apply positioning changes
-      sourceElement.offsetHeight;
-      destination.offsetHeight;
+      if (!positioningSuccess) {
+        console.error('❌ POSITIONING FAILED - aborting animation');
+        return;
+      }
       
-      console.log('📐 POSITIONING COMPLETE: All variants positioned at 0px top/left');
+      // ✅ STEP 2: NOW measure positions after proper positioning with corrected timing
+      console.log('📏 PRE-MEASUREMENT: Using corrected measurement timing');
       
-      // ✅ STEP 2: NOW measure positions after proper positioning
-      console.log('📏 PRE-MEASUREMENT: Measuring source and target positions while visible');
-      
-      // Try the CSS-based approach first (should work better with !important rules)
-      let sourcePositions: Map<string, any>;
-      let targetPositions: Map<string, any>;
-      
-      // ✅ CRITICAL: Use class removal method for pre-positioned variants to respect JavaScript positioning
-      console.log('📏 USING CLASS REMOVAL measurement (respects pre-positioning)');
-      sourcePositions = measureElementPositions(sourceElement);
-      targetPositions = measureElementPositions(destination);
+      // ✅ CRITICAL: Use the new measureVariantPositions function with proper timing
+      const { sourcePositions, targetPositions } = await measureVariantPositions(sourceElement, destination);
       
       console.log('📏 Source positions measured:', sourcePositions.size, 'elements');
       console.log('📏 Target positions measured:', targetPositions.size, 'elements');

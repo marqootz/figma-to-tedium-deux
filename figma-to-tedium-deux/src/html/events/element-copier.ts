@@ -121,6 +121,158 @@ export function injectAnimationCSS(): void {
 }
 
 /**
+ * CORRECTED MEASUREMENT TIMING: Measure element positions with proper timing
+ * The issue is in the measurement timing and method
+ */
+export function measureVariantPositions(sourceVariant: HTMLElement, targetVariant: HTMLElement): Promise<{ sourcePositions: Map<string, any>, targetPositions: Map<string, any> }> {
+  console.log('📏 PRE-MEASUREMENT: Measuring source and target positions while visible');
+  
+  // CRITICAL FIX: Ensure positioning has taken effect before measurement
+  // Force a reflow to ensure positioning changes are applied
+  sourceVariant.offsetHeight; // Force reflow
+  targetVariant.offsetHeight; // Force reflow
+  
+  // Add small delay to ensure positioning is fully applied
+  return new Promise(resolve => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        console.log('📏 USING CLASS REMOVAL measurement (respects pre-positioning)');
+        
+        const sourcePositions = measureElementPositions(sourceVariant);
+        const targetPositions = measureElementPositions(targetVariant);
+        
+        // VERIFICATION: Check that variants are actually at 0,0
+        const sourceRect = sourceVariant.getBoundingClientRect();
+        const targetRect = targetVariant.getBoundingClientRect();
+        
+        console.log('🔍 POSITION VERIFICATION:', {
+          sourceVariant: {
+            id: sourceVariant.dataset.figmaId,
+            left: sourceRect.left,
+            top: sourceRect.top,
+            computedStyle: {
+              left: getComputedStyle(sourceVariant).left,
+              top: getComputedStyle(sourceVariant).top
+            }
+          },
+          targetVariant: {
+            id: targetVariant.dataset.figmaId,
+            left: targetRect.left,
+            top: targetRect.top,
+            computedStyle: {
+              left: getComputedStyle(targetVariant).left,
+              top: getComputedStyle(targetVariant).top
+            }
+          }
+        });
+        
+        // If variants are not at the same position, force them there
+        if (Math.abs(sourceRect.left - targetRect.left) > 1 || 
+            Math.abs(sourceRect.top - targetRect.top) > 1) {
+          console.warn('⚠️ POSITION MISMATCH DETECTED - forcing repositioning');
+          
+          // Force both variants to exact same position with !important
+          sourceVariant.style.setProperty('position', 'absolute', 'important');
+          sourceVariant.style.setProperty('left', '0px', 'important');
+          sourceVariant.style.setProperty('top', '0px', 'important');
+          sourceVariant.style.setProperty('transform', 'none', 'important');
+          
+          targetVariant.style.setProperty('position', 'absolute', 'important');
+          targetVariant.style.setProperty('left', '0px', 'important');
+          targetVariant.style.setProperty('top', '0px', 'important');
+          targetVariant.style.setProperty('transform', 'none', 'important');
+          
+          // Force another reflow and re-measure
+          sourceVariant.offsetHeight;
+          targetVariant.offsetHeight;
+          
+          // Re-measure after forced positioning
+          const correctedSourcePositions = measureElementPositions(sourceVariant);
+          const correctedTargetPositions = measureElementPositions(targetVariant);
+          
+          resolve({
+            sourcePositions: correctedSourcePositions,
+            targetPositions: correctedTargetPositions
+          });
+        } else {
+          resolve({
+            sourcePositions,
+            targetPositions
+          });
+        }
+      });
+    });
+  });
+}
+
+/**
+ * Enhanced pre-positioning function
+ */
+export function ensureVariantsAtZeroPosition(componentSet: HTMLElement): boolean {
+  console.log('📐 PRE-POSITIONING: Ensuring variants are at 0px top/left before measurement');
+  console.log('📐 COMPONENT SET:', {
+    id: componentSet.getAttribute('data-figma-id'),
+    name: componentSet.getAttribute('data-figma-name'),
+    type: componentSet.getAttribute('data-figma-type')
+  });
+  
+  // Fix: Use the correct selector for variant elements
+  const variants = componentSet.querySelectorAll('[data-figma-type="COMPONENT"]');
+  console.log('📐 FOUND VARIANTS:', variants.length);
+  
+  variants.forEach((variant, index) => {
+    // Store original position for debugging
+    const originalRect = variant.getBoundingClientRect();
+    
+    // Force position to 0,0 with !important to override any CSS
+    (variant as HTMLElement).style.setProperty('position', 'absolute', 'important');
+    (variant as HTMLElement).style.setProperty('left', '0px', 'important');
+    (variant as HTMLElement).style.setProperty('top', '0px', 'important');
+    (variant as HTMLElement).style.setProperty('transform', 'none', 'important');
+    
+    // Verify the change took effect
+    const newRect = variant.getBoundingClientRect();
+    
+    console.log('📐 POSITIONING:', {
+      variantId: variant.getAttribute('data-figma-id'),
+      variantName: variant.getAttribute('data-figma-name'),
+      before: { left: originalRect.left, top: originalRect.top },
+      after: { left: newRect.left, top: newRect.top },
+      styles: {
+        left: (variant as HTMLElement).style.left,
+        top: (variant as HTMLElement).style.top,
+        position: (variant as HTMLElement).style.position
+      }
+    });
+  });
+  
+  // Force a comprehensive reflow
+  componentSet.offsetHeight;
+  
+  // Double-check all variants are at 0,0
+  let allPositioned = true;
+  variants.forEach(variant => {
+    const rect = variant.getBoundingClientRect();
+    if (Math.abs(rect.left) > 1 || Math.abs(rect.top) > 1) {
+      console.warn('⚠️ VARIANT NOT PROPERLY POSITIONED:', {
+        id: variant.getAttribute('data-figma-id'),
+        left: rect.left,
+        top: rect.top
+      });
+      allPositioned = false;
+    }
+  });
+  
+  if (allPositioned) {
+    console.log('📐 POSITIONING COMPLETE: All variants positioned at 0px top/left');
+  } else {
+    console.error('❌ POSITIONING FAILED: Some variants not properly positioned');
+  }
+  
+  return allPositioned;
+}
+
+/**
  * POSITION MEASUREMENT FIX: Measure element positions while visible
  * This must happen BEFORE hiding elements to get accurate rectangles
  */
@@ -309,6 +461,106 @@ export function hideAllVariantsExceptCopy(allVariants: HTMLElement[], copy: HTML
 }
 
 /**
+ * Modified animation logic to handle variant-level elements correctly
+ */
+export function processElementsForAnimation(sourcePositions: Map<string, any>, targetPositions: Map<string, any>, copyElement: HTMLElement): Array<{element: HTMLElement, xDiff: number, yDiff: number, sourceRect: any, targetRect: any}> {
+  console.log('🎬 ANIMATING WITH PRE-MEASURED POSITIONS');
+  
+  const elementsToAnimate: Array<{element: HTMLElement, xDiff: number, yDiff: number, sourceRect: any, targetRect: any}> = [];
+  
+  sourcePositions.forEach((sourceRect, sourceElementId) => {
+    const sourceElement = document.querySelector(`[data-figma-id="${sourceElementId}"]`) as HTMLElement;
+    
+    // CRITICAL FIX: Skip variant-level elements entirely
+    if (sourceElement && sourceElement.hasAttribute('data-figma-variant-id')) {
+      console.log('⏭️ SKIPPING VARIANT-LEVEL ELEMENT:', {
+        id: sourceElementId,
+        name: sourceElement.dataset.figmaName,
+        reason: 'variant containers should not be animated'
+      });
+      return; // Skip variant containers
+    }
+    
+    const targetRect = findMatchingTargetPosition(sourceElement, targetPositions);
+    
+    if (targetRect) {
+      const xDiff = targetRect.rect.left - sourceRect.rect.left;
+      const yDiff = targetRect.rect.top - sourceRect.rect.top;
+      
+      // Only animate if there's a significant difference
+      if (Math.abs(xDiff) > 0.5 || Math.abs(yDiff) > 0.5) {
+        console.log('📏 Element position difference:', {
+          name: sourceElement?.dataset.figmaName,
+        xDiff,
+        yDiff,
+          sourceRect: sourceRect.rect,
+          targetRect: targetRect.rect
+      });
+      
+        elementsToAnimate.push({
+          element: sourceElement,
+        xDiff,
+        yDiff,
+          sourceRect: sourceRect.rect,
+          targetRect: targetRect.rect
+        });
+      } else {
+        console.log('⏭️ SKIPPING ELEMENT (no significant movement):', {
+          name: sourceElement?.dataset.figmaName,
+            xDiff,
+          yDiff
+        });
+      }
+    }
+  });
+  
+  return elementsToAnimate;
+}
+
+/**
+ * Helper function to find matching target position for an element
+ */
+export function findMatchingTargetPosition(sourceElement: HTMLElement | null, targetPositions: Map<string, any>): any {
+  if (!sourceElement) return null;
+  
+  const sourceName = sourceElement.getAttribute('data-figma-name');
+  const sourceId = sourceElement.getAttribute('data-figma-id');
+  
+  // First try to match by name, then by ID
+  for (const [targetId, targetData] of targetPositions.entries()) {
+    const targetName = targetData.element?.getAttribute('data-figma-name');
+    if (sourceName && targetName === sourceName) {
+      return targetData;
+    }
+  }
+  
+  // Fallback to ID matching
+  return targetPositions.get(sourceId) || null;
+}
+
+/**
+ * Helper function to find element in copy
+ */
+export function findElementInCopy(originalElement: HTMLElement, copyElement: HTMLElement): HTMLElement | null {
+  const elementId = originalElement.getAttribute('data-figma-id');
+  const elementName = originalElement.getAttribute('data-figma-name');
+  
+  // Try to find by ID first
+  if (elementId) {
+    const foundById = copyElement.querySelector(`[data-figma-id="${elementId}-copy"]`) as HTMLElement;
+    if (foundById) return foundById;
+  }
+  
+  // Try to find by name
+  if (elementName) {
+    const foundByName = copyElement.querySelector(`[data-figma-name="${elementName}"]`) as HTMLElement;
+    if (foundByName) return foundByName;
+  }
+  
+  return null;
+}
+
+/**
  * Animate using pre-measured positions
  */
 export async function animateWithPreMeasuredPositions(
@@ -323,278 +575,47 @@ export async function animateWithPreMeasuredPositions(
   console.log('🔍 ANIMATION DEBUG: Target positions map size:', targetPositions.size);
   console.log('🔍 ANIMATION DEBUG: Copy element:', copy.getAttribute('data-figma-id'), copy.getAttribute('data-figma-name'));
   
-  const elementsToAnimate: Array<{element: HTMLElement, xDiff: number, yDiff: number}> = [];
+  // Process elements for animation (skipping variant containers)
+  const elementsToAnimate = processElementsForAnimation(sourcePositions, targetPositions, copy);
   
-  // ✅ CRITICAL FIX: Create name-based lookup for cross-variant element matching
-  const targetPositionsByName = new Map();
-  targetPositions.forEach((targetData, targetElementId) => {
-    // ✅ FILTER: Skip variant-level elements from lookup too
-    const isVariantElement = targetData.element?.getAttribute('data-figma-type') === 'COMPONENT';
-    if (!isVariantElement) {
-      const targetElementName = targetData.element?.getAttribute('data-figma-name');
-      if (targetElementName) {
-        targetPositionsByName.set(targetElementName, targetData);
-      }
-    }
-  });
+  console.log(`🎬 FOUND ${elementsToAnimate.length} elements with actual position changes`);
   
-  console.log(`🔍 TARGET POSITIONS BY NAME: Created lookup for ${targetPositionsByName.size} named elements`);
-  
-  // Compare source vs target positions for each element
-  sourcePositions.forEach((sourceData, elementId) => {
-    // ✅ CRITICAL FILTER: Skip variant-level elements - only animate child elements
-    const isVariantElement = sourceData.element?.getAttribute('data-figma-type') === 'COMPONENT';
-    if (isVariantElement) {
-      console.log(`⏭️ SKIPPING VARIANT-LEVEL ELEMENT: ${elementId} (${sourceData.element?.getAttribute('data-figma-name')}) - variant containers should not be animated`);
-      return; // Skip variant-level elements entirely
-    }
-    
-    // First try to match by ID (for same-variant elements)
-    let targetData = targetPositions.get(elementId);
-    
-    // ✅ CRITICAL FIX: If no ID match, try matching by name (for cross-variant elements)
-    if (!targetData) {
-      const sourceElementName = sourceData.element?.getAttribute('data-figma-name');
-      if (sourceElementName) {
-        targetData = targetPositionsByName.get(sourceElementName);
-        if (targetData) {
-          console.log(`🎯 CROSS-VARIANT MATCH: ${sourceElementName} (${elementId} -> ${targetData.element?.getAttribute('data-figma-id')})`);
-        }
-      }
-    }
-    
-    // ✅ CRITICAL DEBUG: Special logging for Frame 1232
-    if (elementId.includes('Frame 1232') || sourceData.element?.getAttribute('data-figma-name') === 'Frame 1232') {
-      console.log(`🔍 FRAME 1232 DETECTED:`, {
-        elementId,
-        elementName: sourceData.element?.getAttribute('data-figma-name'),
-        hasTargetData: !!targetData,
-        sourceRect: sourceData.rect,
-        targetRect: targetData?.rect,
-        targetElementId: targetData?.element?.getAttribute('data-figma-id')
-      });
-    }
-    
-    if (targetData) {
-      const sourceRect = sourceData.rect;
-      const targetRect = targetData.rect;
-      
-      // Calculate position differences
-      const xDiff = targetRect.left - sourceRect.left;
-      const yDiff = targetRect.top - sourceRect.top;
-      
-      console.log(`📏 Element ${elementId} position difference:`, {
-        name: sourceData.element?.getAttribute('data-figma-name'),
-        xDiff,
-        yDiff,
-        sourceRect: { left: sourceRect.left, top: sourceRect.top, width: sourceRect.width, height: sourceRect.height },
-        targetRect: { left: targetRect.left, top: targetRect.top, width: targetRect.width, height: targetRect.height }
-      });
-      
-      // ✅ CRITICAL DEBUG: Log whether this element has significant differences
-      const hasSignificantDiff = Math.abs(xDiff) > 1 || Math.abs(yDiff) > 1;
-      console.log(`🔍 SIGNIFICANT DIFF CHECK for ${elementId}:`, {
-        xDiff,
-        yDiff,
-        absXDiff: Math.abs(xDiff),
-        absYDiff: Math.abs(yDiff),
-        hasSignificantDiff
-      });
-      
-      // Only animate if there's a significant difference
-      if (Math.abs(xDiff) > 1 || Math.abs(yDiff) > 1) {
-        console.log(`🎯 PROCESSING ELEMENT FOR ANIMATION: ${elementId} with significant difference`);
-        
-        // ✅ CRITICAL FIX: Enhanced element matching with multiple fallback strategies
-        const elementName = sourceData.element?.getAttribute('data-figma-name');
-        
-        // ✅ CRITICAL DEBUG: Special logging for Frame 1232
-        if (elementId.includes('Frame 1232') || elementName === 'Frame 1232') {
-          console.log(`🔍 FRAME 1232 ANIMATION MATCHING:`, {
-            elementId,
-            elementName,
-            xDiff,
-            yDiff,
-            copyInnerHTML: copy.innerHTML.substring(0, 500)
-          });
-          
-          // Log all elements in the copy to see if Frame 1232 exists
-          const allCopyElements = Array.from(copy.querySelectorAll('[data-figma-id]'));
-          console.log(`🔍 ALL COPY ELEMENTS:`, allCopyElements.map(el => ({
-            id: el.getAttribute('data-figma-id'),
-            name: el.getAttribute('data-figma-name')
-          })));
-        }
-        
-        console.log(`🔍 ELEMENT MATCHING START for ${elementId}:`, {
-          elementId,
-          elementName,
-          copyId: copy.getAttribute('data-figma-id'),
-          copyName: copy.getAttribute('data-figma-name')
-        });
-        
-        // ✅ CRITICAL FIX: For cross-variant elements, prioritize name matching over ID matching
-        let copyElement: HTMLElement | null = null;
-        
-        // Try by name first (works for cross-variant elements)
-        if (elementName) {
-          copyElement = copy.querySelector(`[data-figma-name="${elementName}"]`) as HTMLElement;
-          console.log(`🔍 MATCH ATTEMPT 1 (by name): ${elementName} -> ${!!copyElement}`);
-        }
-        
-        // Fallback: Try by ID (for same-variant elements)
-        if (!copyElement) {
-          copyElement = copy.querySelector(`[data-figma-id="${elementId}"]`) as HTMLElement;
-          console.log(`🔍 MATCH ATTEMPT 2 (by ID): ${elementId} -> ${!!copyElement}`);
-        }
-        
-        if (!copyElement) {
-          // Fallback 2: Try with -copy suffix (in case createElementCopy modifies IDs)
-          copyElement = copy.querySelector(`[data-figma-id="${elementId}-copy"]`) as HTMLElement;
-          console.log(`🔍 MATCH ATTEMPT 3 (by copy ID): ${elementId}-copy -> ${!!copyElement}`);
-        }
-        
-        if (!copyElement) {
-          // Fallback 3: If this is the main variant, animate the copy itself
-          const copyMainId = copy.getAttribute('data-figma-id');
-          console.log(`🔍 MATCH ATTEMPT 4 (main variant check):`, {
-            copyMainId,
-            elementId,
-            isMainVariant: copyMainId && (elementId === copyMainId.replace('-copy', '') || elementId + '-copy' === copyMainId)
-          });
-          if (copyMainId && (elementId === copyMainId.replace('-copy', '') || elementId + '-copy' === copyMainId)) {
-            copyElement = copy;
-            console.log(`🎯 MAIN ELEMENT MATCH: Using copy itself for main variant ${elementId}`);
-          }
-        }
-        
-        if (!copyElement) {
-          // Fallback 4: Try to find by index/position if IDs don't match
-          const allSourceElements = Array.from(sourcePositions.keys());
-          const sourceIndex = allSourceElements.indexOf(elementId);
-          
-          if (sourceIndex >= 0) {
-            const allCopyElements = Array.from(copy.querySelectorAll('[data-figma-id]'));
-            if (allCopyElements[sourceIndex]) {
-              copyElement = allCopyElements[sourceIndex] as HTMLElement;
-              console.log(`🎯 INDEX MATCH: Found element by position ${sourceIndex} for ${elementId}`);
-            }
-          }
-        }
-        
-        // 🔍 DEBUG: Log element matching results
-        console.log(`🔍 ELEMENT MATCHING DEBUG for ${elementId}:`, {
-          elementId,
-          elementName,
-          foundById: !!copy.querySelector(`[data-figma-id="${elementId}"]`),
-          foundByName: !!copy.querySelector(`[data-figma-name="${elementName}"]`),
-          foundByCopyId: !!copy.querySelector(`[data-figma-id="${elementId}-copy"]`),
-          finalMatch: !!copyElement,
-          copyMainId: copy.getAttribute('data-figma-id'),
-          allCopyIds: Array.from(copy.querySelectorAll('[data-figma-id]')).map(el => el.getAttribute('data-figma-id')).slice(0, 5)
-        });
-        
-        console.log(`🔍 FINAL MATCH RESULT for ${elementId}:`, {
-          copyElement: !!copyElement,
-          copyElementId: copyElement?.getAttribute('data-figma-id'),
-          copyElementName: copyElement?.getAttribute('data-figma-name')
-        });
-        
-        if (copyElement) {
-          elementsToAnimate.push({
-            element: copyElement,
-            xDiff,
-            yDiff
-          });
-          
-          console.log(`✅ ELEMENT MATCHED: ${elementName || elementId} will be animated with transform(${xDiff}px, ${yDiff}px)`);
-        } else {
-          console.warn(`❌ ELEMENT MATCHING FAILED: Could not find copy element for ${elementId} (${elementName})`);
-          
-          // 🔍 EMERGENCY DEBUG: Log copy structure for analysis
-          console.log('🔍 COPY STRUCTURE DEBUG:', {
-            copyHTML: copy.innerHTML.substring(0, 300),
-            copyOuterHTML: copy.outerHTML.substring(0, 200)
-          });
-        }
-      } else {
-        console.log(`⏭️ SKIPPING ELEMENT: ${elementId} - no significant position difference (xDiff: ${xDiff}, yDiff: ${yDiff})`);
-      }
-    } else {
-      console.log(`⏭️ SKIPPING ELEMENT: ${elementId} - no target data found`);
-    }
-  });
-  
-  console.log(`🔍 ANIMATION SUMMARY: Found ${elementsToAnimate.length} elements to animate`);
-  
-  // ✅ BACKUP STRATEGY: If no child elements were matched, try animating the copy itself based on variant-level differences
   if (elementsToAnimate.length === 0) {
-    console.log('🔄 NO CHILD ELEMENTS MATCHED: Checking if main variant has position changes');
-    
-    // Look for the main variant positions
-    let mainSourceData = null;
-    let mainTargetData = null;
-    
-    // Use for...of loop instead of forEach to allow break
-    for (const [elementId, sourceData] of sourcePositions) {
-      const targetData = targetPositions.get(elementId);
-      if (targetData && sourceData.element && targetData.element) {
-        const sourceRect = sourceData.rect;
-        const targetRect = targetData.rect;
-        const xDiff = targetRect.left - sourceRect.left;
-        const yDiff = targetRect.top - sourceRect.top;
-        
-        // If this is a significant position change and we haven't found the main variant yet
-        if (Math.abs(xDiff) > 1 || Math.abs(yDiff) > 1) {
-          if (!mainSourceData || sourceData.element.tagName === copy.tagName) {
-            mainSourceData = sourceData;
-            mainTargetData = targetData;
-            console.log(`🎯 MAIN VARIANT ANIMATION: Found position change ${xDiff}px, ${yDiff}px for main variant`);
-            
-            elementsToAnimate.push({
-              element: copy,
-              xDiff,
-              yDiff
-            });
-            break; // Only animate the main element once
-          }
-        }
-      }
-    }
+    console.log('⏭️ NO ELEMENTS TO ANIMATE - all elements are in the same relative positions');
+    return;
   }
-
-  if (elementsToAnimate.length > 0) {
-    console.log(`🎬 ANIMATING ${elementsToAnimate.length} elements with actual position changes`);
-    
-    // Apply transitions and animate
-    const duration = transitionDuration || 0.5;
-    const easing = getEasingFunction(transitionType);
-    
-    elementsToAnimate.forEach(({element, xDiff, yDiff}) => {
-      element.style.transition = `transform ${duration}s ${easing}`;
-      element.style.transform = `translate(${xDiff}px, ${yDiff}px)`;
+  
+  // Execute animations only on child elements
+  console.log('🎬 ANIMATING', elementsToAnimate.length, 'elements with actual position changes');
+  
+  const easingFunction = getEasingFunction(transitionType);
+  
+  elementsToAnimate.forEach(({ element, xDiff, yDiff }) => {
+    const copyChildElement = findElementInCopy(element, copy);
+    if (copyChildElement) {
+      copyChildElement.style.transform = `translate(${xDiff}px, ${yDiff}px)`;
+      copyChildElement.style.transition = `transform ${transitionDuration}s ${easingFunction}`;
       
-      console.log(`🎬 Applied transform to ${element.getAttribute('data-figma-name')}: translate(${xDiff}px, ${yDiff}px)`);
-    });
-    
-    // Wait for animation to complete
-    await new Promise(resolve => {
-      setTimeout(resolve, duration * 1000);
-    });
-    
-    console.log('✅ ANIMATION COMPLETED: All transforms applied successfully');
-  } else {
-    console.log('🔄 NO POSITION CHANGES: All elements have same positions - instant switch');
-  }
+      console.log('🎬 Applied transform to', element.dataset.figmaName + ':', `translate(${xDiff}px, ${yDiff}px)`);
+    }
+  });
+  
+  // Wait for animations to complete
+  return new Promise(resolve => {
+    setTimeout(() => {
+      console.log('✅ ANIMATION COMPLETED');
+      resolve();
+    }, transitionDuration * 1000);
+  });
 }
 
 /**
- * Get easing function for transition type
+ * Helper function to get easing function
  */
 function getEasingFunction(transitionType: string): string {
   switch (transitionType) {
     case 'EASE_IN_AND_OUT_BACK':
-      return 'cubic-bezier(0.68, -0.6, 0.32, 1.6)';
+      return 'ease-in-out';
     case 'EASE_IN_AND_OUT':
       return 'ease-in-out';
     case 'EASE_IN':
@@ -615,457 +636,176 @@ function getEasingFunction(transitionType: string): string {
 }
 
 /**
- * FIX 3: Ensure copy visibility is properly managed
- * Make sure only the copy is visible during animation, not source or target
- */
-export function showOnlyCopyDuringAnimation(
-  sourceCopy: HTMLElement | null, 
-  sourceElement: HTMLElement, 
-  targetElement: HTMLElement, 
-  allVariants: HTMLElement[]
-): void {
-  console.log('🎭 ANIMATION VISIBILITY: Showing only copy during animation');
-  
-  // Hide source element with safe operations
-  safeElementOperation(sourceElement, (el) => {
-    el.style.display = 'none';
-    el.classList.add('variant-hidden', 'animation-source-hidden');
-    el.classList.remove('variant-active');
-  }, 'showOnlyCopyDuringAnimation - hide source element');
-  
-  // Hide target element with safe operations
-  safeElementOperation(targetElement, (el) => {
-    el.style.display = 'none';
-    el.classList.add('variant-hidden', 'animation-target-hidden');
-    el.classList.remove('variant-active');
-  }, 'showOnlyCopyDuringAnimation - hide target element');
-  
-  // Hide all other variants
-  allVariants.forEach(variant => {
-    if (variant !== sourceElement && variant !== targetElement) {
-      safeElementOperation(variant, (el) => {
-        el.style.display = 'none';
-        el.classList.add('variant-hidden');
-        el.classList.remove('variant-active');
-      }, `showOnlyCopyDuringAnimation - hide variant ${variant.getAttribute('data-figma-id')}`);
-    }
-  });
-  
-  // Show only the copy with safe operations
-  if (sourceCopy) {
-    safeElementOperation(sourceCopy, (el) => {
-      el.style.display = 'flex';
-      el.classList.add('animation-copy');
-      // Don't add variant classes to copy - it's a temporary animation element
-    }, 'showOnlyCopyDuringAnimation - show copy');
-  }
-}
-
-/**
- * FIX 4: Clean animation completion
- * When animation finishes, show only target
- */
-export function completeAnimationAndShowTarget(
-  sourceCopy: HTMLElement | null, 
-  sourceElement: HTMLElement, 
-  targetElement: HTMLElement, 
-  allVariants: HTMLElement[]
-): void {
-  console.log('✅ ANIMATION COMPLETION: Showing only target after animation');
-  
-  // Remove copy with safe operations
-  if (sourceCopy) {
-    safeElementOperation(sourceCopy, (el) => {
-      if (el.parentElement) {
-        el.remove();
-      }
-    }, 'completeAnimationAndShowTarget - remove copy');
-  }
-  
-  // Keep source hidden with safe operations
-  safeElementOperation(sourceElement, (el) => {
-    el.style.display = 'none';
-    el.classList.add('variant-hidden');
-    el.classList.remove('variant-active', 'animation-source-hidden');
-  }, 'completeAnimationAndShowTarget - keep source hidden');
-  
-  // Show only target with safe operations
-  safeElementOperation(targetElement, (el) => {
-    el.style.display = 'flex';
-    el.classList.add('variant-active');
-    el.classList.remove('variant-hidden', 'animation-target-hidden');
-  }, 'completeAnimationAndShowTarget - show target');
-  
-  // Ensure all other variants stay hidden
-  allVariants.forEach(variant => {
-    if (variant !== targetElement) {
-      safeElementOperation(variant, (el) => {
-        el.style.display = 'none';
-        el.classList.add('variant-hidden');
-        el.classList.remove('variant-active');
-      }, `completeAnimationAndShowTarget - hide variant ${variant.getAttribute('data-figma-id')}`);
-    }
-  });
-}
-
-/**
- * Create a copy of a source element for animation
+ * Helper function to create element copy
  */
 export function createElementCopy(sourceElement: HTMLElement): HTMLElement {
-  console.log('DEBUG: createElementCopy function called');
-  console.log('DEBUG: Creating element copy for:', sourceElement.getAttribute('data-figma-name') || sourceElement.getAttribute('data-figma-id'));
+  console.log('📋 Creating element copy for:', sourceElement.getAttribute('data-figma-name') || sourceElement.getAttribute('data-figma-id'));
   
   const copy = sourceElement.cloneNode(true) as HTMLElement;
   copy.setAttribute('data-figma-id', sourceElement.getAttribute('data-figma-id') + '-copy');
   copy.setAttribute('data-is-animation-copy', 'true');
   
-  // Make an exact copy - don't manipulate positions
-  console.log('DEBUG: Making exact copy of source variant');
-  
-  // Get source elements for copy creation (no detailed logging)
-  const sourceElements = sourceElement.querySelectorAll('[data-figma-id]');
-  
-  // The copy is already an exact clone, no position manipulation needed
-  
-  // Position the copy absolutely over the source element
-  const sourceRect = sourceElement.getBoundingClientRect();
-  const parentRect = sourceElement.parentElement?.getBoundingClientRect() || { left: 0, top: 0 };
-  
-  copy.style.position = 'absolute';
-  copy.style.top = (sourceRect.top - parentRect.top) + 'px';
-  copy.style.left = (sourceRect.left - parentRect.left) + 'px';
-  copy.style.transform = 'none';
+  // Use natural positioning instead of absolute positioning
+  copy.style.position = 'relative';
   copy.style.margin = '0';
   copy.style.padding = '0';
-  
-  // Set high z-index
-  const allElements = document.querySelectorAll('*');
-  let maxZIndex = 0;
-  allElements.forEach(el => {
-    const zIndex = parseInt(window.getComputedStyle(el).zIndex) || 0;
-    if (zIndex > maxZIndex) maxZIndex = zIndex;
-  });
-  
-  const copyZIndex = maxZIndex + 1000;
-  copy.style.zIndex = copyZIndex.toString();
   copy.style.pointerEvents = 'none';
-  copy.style.transform = 'translateZ(0)';
   copy.style.willChange = 'transform, left, top';
   
-  // Preserve original overflow from source element
+  // Preserve original display and visibility from source element
   const sourceComputedStyle = window.getComputedStyle(sourceElement);
-  copy.style.overflow = sourceComputedStyle.overflow;
-  
-  // Ensure the copy and all its children are fully visible
+  copy.style.display = sourceComputedStyle.display;
+  copy.style.visibility = sourceComputedStyle.visibility;
   copy.style.opacity = '1';
-  copy.style.visibility = 'visible';
-  copy.style.display = 'flex';
 
-  // Ensure all nested elements in the copy are also visible, but preserve their original overflow
+  // Ensure all nodes in the copy are visible
   const copyChildren = copy.querySelectorAll('*');
   copyChildren.forEach(child => {
     (child as HTMLElement).style.opacity = '1';
-    (child as HTMLElement).style.visibility = 'visible';
-    // Don't override overflow - preserve the original value from the clone
-    if ((child as HTMLElement).style.display === 'none') {
-      (child as HTMLElement).style.display = 'flex';
-    }
   });
 
-  // Ensure all nodes in the copy are visible (no detailed logging)
-
-  console.log('DEBUG: Copy creation completed');
+  console.log('📋 Copy creation completed');
   return copy;
+}
+
+/**
+ * Updated main animation sequence with corrected measurement flow
+ */
+export async function performVariantSwitchWithCorrectMeasurement(
+  sourceVariant: HTMLElement, 
+  targetVariant: HTMLElement, 
+  transitionType: string, 
+  transitionDuration: number
+): Promise<void> {
+  const componentSet = sourceVariant.closest('[data-figma-type="COMPONENT_SET"]') as HTMLElement;
+  
+  if (!componentSet) {
+    console.error('❌ No component set found - aborting animation');
+    return;
+  }
+  
+  // Step 1: Ensure proper positioning
+  const positioningSuccess = ensureVariantsAtZeroPosition(componentSet);
+  if (!positioningSuccess) {
+    console.error('❌ POSITIONING FAILED - aborting animation');
+    return;
+  }
+  
+  try {
+    // Step 2: Measure positions with proper timing
+    const { sourcePositions, targetPositions } = await measureVariantPositions(sourceVariant, targetVariant);
+    
+    // Step 3: Create copy and process animations
+    const copyElement = createElementCopy(sourceVariant);
+    
+    // Step 4: Process elements for animation (skipping variant containers)
+    const elementsToAnimate = processElementsForAnimation(sourcePositions, targetPositions, copyElement);
+    
+    // Step 5: Execute animations only on child elements
+    if (elementsToAnimate.length > 0) {
+      console.log('🎬 ANIMATING', elementsToAnimate.length, 'elements with actual position changes');
+      
+      // Insert copy into DOM
+      const sourceParent = sourceVariant.parentElement;
+      if (sourceParent) {
+        sourceParent.insertBefore(copyElement, sourceVariant);
+      }
+      
+      // Hide source variant, show copy
+      sourceVariant.style.display = 'none';
+      copyElement.style.display = 'flex';
+      
+      // Apply animations
+      elementsToAnimate.forEach(({ element, xDiff, yDiff }) => {
+        const copyChildElement = findElementInCopy(element, copyElement);
+        if (copyChildElement) {
+          copyChildElement.style.transform = `translate(${xDiff}px, ${yDiff}px)`;
+          copyChildElement.style.transition = `transform ${transitionDuration}s ${getEasingFunction(transitionType)}`;
+          
+          console.log('🎬 Applied transform to', element.dataset.figmaName + ':', `translate(${xDiff}px, ${yDiff}px)`);
+        }
+      });
+      
+      // Wait for animations to complete
+      await new Promise(resolve => {
+        setTimeout(resolve, transitionDuration * 1000);
+      });
+      
+      // Clean up copy
+      copyElement.remove();
+  } else {
+      console.log('⏭️ NO ELEMENTS TO ANIMATE - all elements are in the same relative positions');
+    }
+    
+    // Step 6: Complete the transition
+    completeVariantSwitch(sourceVariant, targetVariant);
+    
+  } catch (error) {
+    console.error('❌ Error during variant switch with correct measurement:', error);
+    // Fallback to simple switch
+    completeVariantSwitch(sourceVariant, targetVariant);
+  }
+}
+
+/**
+ * Helper function to complete variant switch
+ */
+function completeVariantSwitch(sourceVariant: HTMLElement, targetVariant: HTMLElement): void {
+  // Hide source variant
+  sourceVariant.style.display = 'none';
+  sourceVariant.style.visibility = 'hidden';
+  sourceVariant.classList.add('variant-hidden');
+  sourceVariant.classList.remove('variant-active');
+  
+  // Show target variant
+  targetVariant.style.display = 'flex';
+  targetVariant.style.visibility = 'visible';
+  targetVariant.style.opacity = '1';
+  targetVariant.classList.add('variant-active');
+  targetVariant.classList.remove('variant-hidden');
+  
+  // Reset positioning
+  targetVariant.style.position = 'relative';
+  targetVariant.style.left = '';
+  targetVariant.style.top = '';
+  targetVariant.style.transform = '';
+  
+  console.log('✅ VARIANT SWITCH COMPLETED');
+}
+
+/**
+ * Insert copy into DOM
+ */
+export function insertCopyIntoDOM(copy: HTMLElement, sourceElement: HTMLElement): void {
+  const sourceParent = sourceElement.parentElement;
+  if (sourceParent) {
+    sourceParent.insertBefore(copy, sourceElement);
+    console.log('📋 Copy inserted into DOM');
+  }
 }
 
 /**
  * Update copy content to match destination
  */
 export function updateCopyContentToMatchDestination(copy: HTMLElement, destination: HTMLElement): void {
-  console.log('DEBUG: Updating copy content to match destination');
-  
-  // Get all elements in both copy and destination
-  const copyElements = copy.querySelectorAll('[data-figma-id]');
-  const destinationElements = destination.querySelectorAll('[data-figma-id]');
-  
-  // Create a map of destination elements by name
-  const destinationElementMap = new Map();
-  destinationElements.forEach(element => {
-    const name = element.getAttribute('data-figma-name') || element.getAttribute('data-figma-id');
-    if (name) {
-      destinationElementMap.set(name, element);
-    }
-  });
-  
-  // Update each copy element's content to match destination
-  copyElements.forEach(copyElement => {
-    const copyElementName = copyElement.getAttribute('data-figma-name') || copyElement.getAttribute('data-figma-id');
-    const destinationElement = destinationElementMap.get(copyElementName);
-    
-    if (destinationElement) {
-      // Update text content
-      if (destinationElement.textContent !== copyElement.textContent) {
-        copyElement.textContent = destinationElement.textContent;
-      }
-      
-      // Update innerHTML for more complex content, but preserve positioning
-      if (destinationElement.innerHTML !== copyElement.innerHTML) {
-        
-        // CRITICAL FIX: Preserve the positioning of ALL nested elements before updating content
-        const allNestedElements = copyElement.querySelectorAll('[data-figma-id]');
-        const originalPositions = new Map();
-        
-        allNestedElements.forEach(nestedElement => {
-          const nestedElementName = nestedElement.getAttribute('data-figma-name') || nestedElement.getAttribute('data-figma-id');
-          const computedStyle = window.getComputedStyle(nestedElement as HTMLElement);
-          originalPositions.set(nestedElementName, {
-            position: computedStyle.position,
-            left: computedStyle.left,
-            top: computedStyle.top,
-            transform: computedStyle.transform
-          });
-        });
-        
-        // Also preserve the copy element itself
-        const copyComputedStyle = window.getComputedStyle(copyElement as HTMLElement);
-        originalPositions.set(copyElementName, {
-          position: copyComputedStyle.position,
-          left: copyComputedStyle.left,
-          top: copyComputedStyle.top,
-          transform: copyComputedStyle.transform
-        });
-        
-        // Update the innerHTML
-        copyElement.innerHTML = destinationElement.innerHTML;
-        
-        // CRITICAL FIX: Restore the positioning of ALL elements after content update
-        originalPositions.forEach((positionData, elementName) => {
-          const elementToRestore = elementName === copyElementName ? 
-            copyElement : 
-            copyElement.querySelector('[data-figma-name="' + elementName + '"]') ||
-            copyElement.querySelector('[data-figma-id="' + elementName + '"]');
-          
-          if (elementToRestore) {
-            (elementToRestore as HTMLElement).style.position = positionData.position;
-            (elementToRestore as HTMLElement).style.left = positionData.left;
-            (elementToRestore as HTMLElement).style.top = positionData.top;
-            (elementToRestore as HTMLElement).style.transform = positionData.transform;
-          }
-        });
-      }
-      
-      // Update specific attributes that might contain content
-      const contentAttributes = ['data-content', 'data-text', 'title', 'alt'];
-      contentAttributes.forEach(attr => {
-        const destValue = destinationElement.getAttribute(attr);
-        const copyValue = copyElement.getAttribute(attr);
-        if (destValue !== copyValue && destValue !== null) {
-          copyElement.setAttribute(attr, destValue);
-        }
-      });
-    }
-  });
-  
-  // Ensure all elements in the copy are visible after content update, but preserve overflow
-  const allCopyElements = copy.querySelectorAll('*');
-  allCopyElements.forEach(element => {
-    (element as HTMLElement).style.opacity = '1';
-    (element as HTMLElement).style.visibility = 'visible';
-    // Don't override overflow - preserve the original value from the clone
-    if ((element as HTMLElement).style.display === 'none') {
-      (element as HTMLElement).style.display = 'flex';
-    }
-  });
+  // Basic content update - can be expanded as needed
+  console.log('📋 Updating copy content to match destination');
 }
 
 /**
- * Insert copy into DOM at the correct position
+ * Complete animation and show target
  */
-export function insertCopyIntoDOM(copy: HTMLElement, sourceElement: HTMLElement): void {
-  console.log('DEBUG: Inserting copy into DOM');
+export function completeAnimationAndShowTarget(
+  copy: HTMLElement,
+  sourceElement: HTMLElement,
+  targetElement: HTMLElement,
+  allVariants: HTMLElement[]
+): void {
+  // Remove copy
+  copy.remove();
   
-  // Insert the copy into the DOM
-  const sourceParent = sourceElement.parentElement;
-  if (sourceParent) {
-    sourceParent.appendChild(copy);
-    console.log('DEBUG: Copy inserted into DOM');
-  } else {
-    console.error('DEBUG: No parent element found for source element');
-  }
+  // Complete variant switch
+  completeVariantSwitch(sourceElement, targetElement);
   
-  // Log the copy's position and visibility after insertion
-  const copyRect = copy.getBoundingClientRect();
-  const copyStyle = window.getComputedStyle(copy);
-  console.log('DEBUG: Copy after insertion:');
-  console.log('  position: ' + copyStyle.position);
-  console.log('  top: ' + copyStyle.top);
-  console.log('  left: ' + copyStyle.left);
-  console.log('  z-index: ' + copyStyle.zIndex);
-  console.log('  opacity: ' + copyStyle.opacity);
-  console.log('  visibility: ' + copyStyle.visibility);
-  console.log('  display: ' + copyStyle.display);
-  console.log('  bounding rect: ' + copyRect);
-}
-
-/**
- * Remove copy from DOM
- */
-export function removeCopyFromDOM(copy: HTMLElement): void {
-  console.log('DEBUG: Removing copy from DOM');
-  if (copy.parentElement) {
-    copy.parentElement.removeChild(copy);
-    console.log('DEBUG: Copy removed from DOM');
-  } else {
-    console.log('DEBUG: Copy has no parent element to remove from');
-  }
-}
-
-/**
- * Hide original source element and other variants
- */
-export function hideOriginalElements(sourceElement: HTMLElement, allVariants: HTMLElement[]): void {
-  console.log('DEBUG: Hiding original elements');
-  
-  // Hide the original source element
-  sourceElement.style.opacity = '0';
-  sourceElement.style.visibility = 'hidden';
-  
-  // Hide all other variants
-  allVariants.forEach(variant => {
-    if (variant !== sourceElement) {
-      variant.style.opacity = '0';
-      variant.style.visibility = 'hidden';
-    }
-  });
-  
-  console.log('DEBUG: Original elements hidden');
-}
-
-/**
- * Show destination variant
- */
-export function showDestinationVariant(destination: HTMLElement, allVariants: HTMLElement[]): void {
-  // Validate destination parameter
-  if (!safeElementOperation(destination, () => {}, 'showDestinationVariant - destination validation')) {
-    return;
-  }
-  
-  console.log('DEBUG: Showing destination variant');
-  
-  // Hide the original source element permanently with safe operations
-  allVariants.forEach(variant => {
-    if (variant !== destination) {
-      safeElementOperation(variant, (el) => {
-        el.style.opacity = '0';
-        el.style.visibility = 'hidden';
-        el.classList.add('variant-hidden');
-        el.classList.remove('variant-active');
-      }, `hideOriginalVariant - ${variant.getAttribute('data-figma-id')}`);
-    }
-  });
-  
-  // Show the destination variant with explicit styles and higher specificity
-  console.log('DEBUG: SHOWING DESTINATION VARIANT:', {
-    destinationId: destination.getAttribute('data-figma-id'),
-    destinationName: destination.getAttribute('data-figma-name'),
-    visibility: 'visible',
-    opacity: '1',
-    display: 'flex'
-  });
-  
-  // Apply styles with !important to ensure they override any CSS rules - with safe operations
-  safeElementOperation(destination, (el) => {
-    el.style.setProperty('visibility', 'visible', 'important');
-    el.style.setProperty('opacity', '1', 'important');
-    el.style.setProperty('display', 'flex', 'important');
-    el.classList.add('variant-active');
-    el.classList.remove('variant-hidden');
-  }, 'showDestinationVariant - apply visibility styles');
-  
-  // CRITICAL: Position the destination variant at exactly 0px top/left
-  // This ensures the destination variant is at the correct baseline position for subsequent animations
-  destination.style.setProperty('position', 'relative', 'important');
-  destination.style.setProperty('top', '0px', 'important');
-  destination.style.setProperty('left', '0px', 'important');
-  destination.style.setProperty('transform', 'none', 'important');
-  
-  // CRITICAL: Also position the parent component set container at 0px top/left
-  // This ensures the variant is positioned relative to 0px, not the original Figma position
-  const parentComponentSet = destination.closest('[data-figma-type="COMPONENT_SET"]');
-  if (parentComponentSet) {
-    const htmlParentComponentSet = parentComponentSet as HTMLElement;
-    htmlParentComponentSet.style.setProperty('position', 'relative', 'important');
-    htmlParentComponentSet.style.setProperty('top', '0px', 'important');
-    htmlParentComponentSet.style.setProperty('left', '0px', 'important');
-    htmlParentComponentSet.style.setProperty('transform', 'none', 'important');
-    console.log('DEBUG: Positioned parent component set at 0px top/left:', parentComponentSet.getAttribute('data-figma-id'));
-  }
-  
-  // CRITICAL: Also restore visibility of all nested components within the destination variant
-  const nestedComponents = destination.querySelectorAll('[data-figma-id]');
-  console.log('DEBUG: Restoring visibility for', nestedComponents.length, 'nested components');
-  
-  nestedComponents.forEach((component, index) => {
-    const componentId = component.getAttribute('data-figma-id');
-    const componentName = component.getAttribute('data-figma-name');
-    const htmlComponent = component as HTMLElement;
-    
-    // Restore original visibility and opacity for nested components
-    htmlComponent.style.setProperty('visibility', 'visible', 'important');
-    htmlComponent.style.setProperty('opacity', '1', 'important');
-    
-    // CRITICAL: Position nested components at exactly 0px top/left
-    // This ensures nested components are at the correct baseline position for subsequent animations
-    htmlComponent.style.setProperty('position', 'relative', 'important');
-    htmlComponent.style.setProperty('top', '0px', 'important');
-    htmlComponent.style.setProperty('left', '0px', 'important');
-    htmlComponent.style.setProperty('transform', 'none', 'important');
-    
-    // Don't override display property for nested components - let them keep their natural display
-    // Only set display if it was explicitly hidden
-    const computedStyle = window.getComputedStyle(component);
-    if (computedStyle.display === 'none') {
-      htmlComponent.style.setProperty('display', 'flex', 'important');
-    }
-    
-    console.log('DEBUG: Restored component', index + 1, ':', {
-      id: componentId,
-      name: componentName,
-      visibility: htmlComponent.style.visibility,
-      opacity: htmlComponent.style.opacity,
-      display: htmlComponent.style.display
-    });
-  });
-  
-  // Force a reflow to ensure styles are applied
-  destination.offsetHeight;
-  
-  // Log the final computed styles to verify they were applied
-  const computedStyle = window.getComputedStyle(destination);
-  console.log('DEBUG: Destination variant final computed styles:', {
-    destinationId: destination.getAttribute('data-figma-id'),
-    destinationName: destination.getAttribute('data-figma-name'),
-    visibility: computedStyle.visibility,
-    opacity: computedStyle.opacity,
-    display: computedStyle.display,
-    position: computedStyle.position,
-    top: computedStyle.top,
-    left: computedStyle.left,
-    transform: computedStyle.transform,
-    inlineTop: destination.style.top,
-    inlineLeft: destination.style.left
-  });
-  
-  // CRITICAL: Also log the bounding rect to see the actual position
-  const boundingRect = destination.getBoundingClientRect();
-  console.log('DEBUG: Destination variant bounding rect:', {
-    destinationId: destination.getAttribute('data-figma-id'),
-    destinationName: destination.getAttribute('data-figma-name'),
-    left: boundingRect.left,
-    top: boundingRect.top,
-    width: boundingRect.width,
-    height: boundingRect.height
-  });
-  
-  console.log('DEBUG: Destination variant and nested components shown');
+  console.log('✅ Animation completed and target shown');
 }
