@@ -13,10 +13,96 @@ import {
   insertCopyIntoDOM, 
   removeCopyFromDOM,
   hideOriginalElements,
-  showDestinationVariant
+  showDestinationVariant,
+  safeElementOperation,
+  showOnlyCopyDuringAnimation,
+  completeAnimationAndShowTarget,
+  measureElementPositions,
+  measureElementPositionsWithCSS,
+  hideAllVariantsExceptCopy,
+  animateWithPreMeasuredPositions
 } from './element-copier';
 
-// Global transition lock to prevent multiple simultaneous transitions
+// Global transition state machine to prevent race conditions
+enum TransitionState {
+  IDLE = 'IDLE',
+  TRANSITIONING = 'TRANSITIONING',
+  ERROR = 'ERROR'
+}
+
+interface TransitionStateMachine {
+  state: TransitionState;
+  currentPromise: Promise<void> | null;
+  transitionId: string | null;
+  startTime: number | null;
+}
+
+let transitionStateMachine: TransitionStateMachine = {
+  state: TransitionState.IDLE,
+  currentPromise: null,
+  transitionId: null,
+  startTime: null
+};
+
+// Atomic state transitions
+function canStartTransition(): boolean {
+  return transitionStateMachine.state === TransitionState.IDLE;
+}
+
+function startTransition(transitionId: string, promise: Promise<void>): boolean {
+  if (!canStartTransition()) {
+    console.warn('⚠️ TRANSITION ALREADY IN PROGRESS - cannot start new transition');
+    return false;
+  }
+  
+  transitionStateMachine = {
+    state: TransitionState.TRANSITIONING,
+    currentPromise: promise,
+    transitionId: transitionId,
+    startTime: Date.now()
+  };
+  
+  console.log('🔄 TRANSITION STARTED:', { transitionId, startTime: transitionStateMachine.startTime });
+  return true;
+}
+
+function completeTransition(transitionId: string): void {
+  if (transitionStateMachine.transitionId !== transitionId) {
+    console.warn('⚠️ TRANSITION ID MISMATCH - ignoring completion for:', transitionId);
+    return;
+  }
+  
+  const duration = transitionStateMachine.startTime ? Date.now() - transitionStateMachine.startTime : 0;
+  console.log('✅ TRANSITION COMPLETED:', { transitionId, duration: `${duration}ms` });
+  
+  transitionStateMachine = {
+    state: TransitionState.IDLE,
+    currentPromise: null,
+    transitionId: null,
+    startTime: null
+  };
+}
+
+function errorTransition(transitionId: string, error: Error): void {
+  console.error('❌ TRANSITION ERROR:', { transitionId, error: error.message });
+  
+  transitionStateMachine = {
+    state: TransitionState.ERROR,
+    currentPromise: null,
+    transitionId: null,
+    startTime: null
+  };
+  
+  // Auto-recover from error state after 5 seconds
+  setTimeout(() => {
+    if (transitionStateMachine.state === TransitionState.ERROR) {
+      console.log('🔄 AUTO-RECOVERING from error state');
+      transitionStateMachine.state = TransitionState.IDLE;
+    }
+  }, 5000);
+}
+
+// Legacy compatibility functions (deprecated - use state machine instead)
 let isTransitionInProgress = false;
 let currentTransitionPromise: Promise<void> | null = null;
 
@@ -200,9 +286,9 @@ export function animateCopyToDestination(
           const hasTransformAnimation = currentTransform && currentTransform !== 'none' && currentTransform !== 'matrix(1, 0, 0, 1, 0, 0)';
           
           if (hasTransformAnimation) {
-            // For transform animations, check if the transform has been applied
-            // The transform will be applied immediately, so we can consider it complete
-            isComplete = true;
+            // CRITICAL FIX: Don't mark transform animations as complete immediately
+            // Let the CSS transition take its full duration
+            // isComplete = true; // Removed - let transition end events handle completion
           } else {
             // For position-based animations, check left/top values
             if (changes.positionY && changes.positionY.changed) {
@@ -434,7 +520,10 @@ export async function handleAnimatedVariantSwitch(
   transitionType: string, 
   transitionDuration: number
 ): Promise<void> {
+  const transitionId = `transition_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
   console.log('🔄 VARIANT SWITCH SEQUENCE START:', {
+    transitionId,
     sourceId: sourceElement.getAttribute('data-figma-id'),
     sourceName: sourceElement.getAttribute('data-figma-name'),
     destinationId: destination.getAttribute('data-figma-id'),
@@ -443,38 +532,52 @@ export async function handleAnimatedVariantSwitch(
     transitionDuration: transitionDuration,
     totalVariants: allVariants.length
   });
+
+  // Create the promise for this transition
+  const transitionPromise = new Promise<void>(async (resolve, reject) => {
+    try {
+      // Register this transition with the state machine
+      if (!startTransition(transitionId, transitionPromise)) {
+        reject(new Error('Cannot start transition - another transition is in progress'));
+        return;
+      }
   
-  // Create a copy of the source variant
-  const sourceCopy = createElementCopy(sourceElement);
-  console.log('DEBUG: Element copy created successfully');
+      // ✅ STEP 1: Measure positions BEFORE hiding anything
+      console.log('📏 PRE-MEASUREMENT: Measuring source and target positions while visible');
+      
+      // Try the CSS-based approach first (should work better with !important rules)
+      let sourcePositions: Map<string, any>;
+      let targetPositions: Map<string, any>;
+      
+      try {
+        console.log('📏 ATTEMPTING CSS-based measurement (handles !important rules)');
+        sourcePositions = measureElementPositionsWithCSS(sourceElement);
+        targetPositions = measureElementPositionsWithCSS(destination);
+      } catch (error) {
+        console.warn('📏 CSS measurement failed, falling back to class removal approach:', error);
+        sourcePositions = measureElementPositions(sourceElement);
+        targetPositions = measureElementPositions(destination);
+      }
+      
+      console.log('📏 Source positions measured:', sourcePositions.size, 'elements');
+      console.log('📏 Target positions measured:', targetPositions.size, 'elements');
   
-  // Insert the copy into the DOM
-  insertCopyIntoDOM(sourceCopy, sourceElement);
+      // ✅ STEP 2: Create copy while source is still visible
+      const sourceCopy = createElementCopy(sourceElement);
+      console.log('DEBUG: Element copy created successfully');
   
-  // Hide the original source element and all other variants
-  hideOriginalElements(sourceElement, allVariants);
+      // ✅ STEP 3: Insert copy and make it visible
+      insertCopyIntoDOM(sourceCopy, sourceElement);
+      
+      // ✅ STEP 4: NOW hide source and target after measurements
+      hideAllVariantsExceptCopy(allVariants, sourceCopy);
   
-  // Prepare the destination variant but keep it hidden for now
-  destination.classList.add('variant-active');
-  destination.classList.remove('variant-hidden');
-  destination.style.visibility = 'hidden';
-  destination.style.opacity = '0';
-  
-  // DON'T pre-position the destination variant - let the copy do all the animation work
-  // The destination variant should remain in its natural position
-  
-  // Force reflow
-  destination.offsetHeight;
-  
-  // Animate the copy to match the destination
-  await animateCopyToDestination(sourceCopy, destination, sourceElement, transitionType, transitionDuration);
-  
-  // Animation complete - simply remove the copy and show the destination variant
-  console.log('✅ ANIMATION COMPLETED - removing copy and showing destination variant');
-  removeCopyFromDOM(sourceCopy);
-  
-  // Show the destination variant
-  showDestinationVariant(destination, allVariants);
+      // ✅ STEP 5: Use pre-measured positions for animation
+      await animateWithPreMeasuredPositions(sourceCopy, sourcePositions, targetPositions, transitionType, transitionDuration);
+      
+      // ✅ STEP 6: Complete animation - show only target
+      console.log('✅ ANIMATION COMPLETED - completing animation and showing only target');
+      completeAnimationAndShowTarget(sourceCopy, sourceElement, destination, allVariants);
   
   // Force a reflow to ensure the position changes are applied before starting reactions
   destination.offsetHeight;
@@ -488,11 +591,26 @@ export async function handleAnimatedVariantSwitch(
     window.startTimeoutReactionsForNestedComponents(destination);
   }
   
-  console.log('✅ VARIANT SWITCH SEQUENCE COMPLETED:', {
-    sourceId: sourceElement.getAttribute('data-figma-id'),
-    destinationId: destination.getAttribute('data-figma-id'),
-    transitionType: transitionType
+      console.log('✅ VARIANT SWITCH SEQUENCE COMPLETED:', {
+        transitionId,
+        sourceId: sourceElement.getAttribute('data-figma-id'),
+        destinationId: destination.getAttribute('data-figma-id'),
+        transitionType: transitionType
+      });
+      
+      // Complete the transition in state machine
+      completeTransition(transitionId);
+      resolve();
+      
+    } catch (error) {
+      console.error('❌ Error during animated variant switch:', error);
+      errorTransition(transitionId, error as Error);
+      reject(error);
+    }
   });
+  
+  // Wait for the transition to complete
+  return transitionPromise;
 }
 
 /**
@@ -501,29 +619,33 @@ export async function handleAnimatedVariantSwitch(
 export function performInstantVariantSwitch(allVariants: HTMLElement[], destination: HTMLElement): void {
   console.log('⚡ PERFORMING INSTANT VARIANT SWITCH');
   
-  // Hide all variants
+  // Hide all variants with safe operations
   allVariants.forEach(variant => {
-    variant.classList.add('variant-hidden');
-    variant.classList.remove('variant-active');
-    variant.style.display = 'none';
-    variant.style.visibility = 'hidden';
-    variant.style.opacity = '0';
-    // Don't reset positions for hidden variants - let them keep their natural positions
-    if (!variant.style.position || variant.style.position === 'static') {
-      variant.style.position = 'relative';
-    }
+    safeElementOperation(variant, (el) => {
+      el.classList.add('variant-hidden');
+      el.classList.remove('variant-active');
+      el.style.display = 'none';
+      el.style.visibility = 'hidden';
+      el.style.opacity = '0';
+      // Don't reset positions for hidden variants - let them keep their natural positions
+      if (!el.style.position || el.style.position === 'static') {
+        el.style.position = 'relative';
+      }
+    }, `performInstantVariantSwitch - hide variant ${variant.getAttribute('data-figma-id')}`);
   });
   
-  // Show destination variant
-  destination.classList.add('variant-active');
-  destination.classList.remove('variant-hidden');
-  destination.style.display = 'flex';
-  destination.style.visibility = 'visible';
-  destination.style.opacity = '1';
-  // Don't reset position for destination - let it keep its natural position
-  if (!destination.style.position || destination.style.position === 'static') {
-    destination.style.position = 'relative';
-  }
+  // Show destination variant with safe operations
+  safeElementOperation(destination, (el) => {
+    el.classList.add('variant-active');
+    el.classList.remove('variant-hidden');
+    el.style.display = 'flex';
+    el.style.visibility = 'visible';
+    el.style.opacity = '1';
+    // Don't reset position for destination - let it keep its natural position
+    if (!el.style.position || el.style.position === 'static') {
+      el.style.position = 'relative';
+    }
+  }, 'performInstantVariantSwitch - show destination variant');
   
   console.log('✅ INSTANT VARIANT SWITCH COMPLETED:', {
     destinationId: destination.getAttribute('data-figma-id'),

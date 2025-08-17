@@ -564,17 +564,9 @@ async function testSimpleAnimationExport(inputFile: string, outputFile?: string)
     console.log(`📁 Output file: ${outputPath}`);
     console.log(`📊 File size: ${(finalHTML.length / 1024).toFixed(2)} KB`);
     
-    // Step 6: Open the file in browser
-    console.log('\n🌐 Opening in browser...');
-    const { exec } = require('child_process');
-    exec(`open "${outputPath}"`, (error: any) => {
-      if (error) {
-        console.log('⚠️  Could not open browser automatically. Please open the file manually:');
-        console.log(`   ${outputPath}`);
-      } else {
-        console.log('✅ Opened in browser successfully!');
-      }
-    });
+    // Step 6: File ready for manual opening
+    console.log('\n📁 File ready for manual opening:');
+    console.log(`   ${outputPath}`);
 
   } catch (error) {
     console.error('❌ Error during export:', error);

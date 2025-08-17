@@ -988,34 +988,86 @@ export function generateSimpleTransitionHandler(): string {
       }
       
       try {
-        // Keep both source and target visible during animation
+        // ✅ POSITION MEASUREMENT FIX: Measure positions BEFORE hiding anything
+        console.log('📏 PRE-MEASUREMENT: Measuring source and target positions while visible');
+        
+        // Temporarily ensure both variants are visible for measurement
+        sourceElement.style.display = 'flex';
+        sourceElement.style.visibility = 'visible';
+        sourceElement.style.opacity = '1';
+        
+        destination.style.display = 'flex';
+        destination.style.visibility = 'visible';
+        destination.style.opacity = '1';
+        
+        // Force reflow
+        sourceElement.offsetHeight;
+        destination.offsetHeight;
+        
+        // Measure positions while both are visible
+        // Note: measureElementPositions function needs to be available in generated string
+        const sourcePositions = new Map();
+        const targetPositions = new Map();
+        
+        // Simplified position measurement for string generation
+        const measurePositions = (variant, positions) => {
+          const variantRect = variant.getBoundingClientRect();
+          positions.set(variant.getAttribute('data-figma-id'), {
+            rect: variantRect,
+            element: variant
+          });
+          
+          const childElements = variant.querySelectorAll('[data-figma-id]');
+          childElements.forEach(element => {
+            const rect = element.getBoundingClientRect();
+            positions.set(element.getAttribute('data-figma-id'), {
+              rect: rect,
+              element: element
+            });
+            
+            console.log(\`📏 Measured \${element.getAttribute('data-figma-name')}:\`, {
+              left: rect.left,
+              top: rect.top,
+              width: rect.width,
+              height: rect.height
+            });
+          });
+        };
+        
+        measurePositions(sourceElement, sourcePositions);
+        measurePositions(destination, targetPositions);
+        
+        console.log('📏 Source positions measured:', sourcePositions.size, 'elements');
+        console.log('📏 Target positions measured:', targetPositions.size, 'elements');
+        
+        // Now hide target and others, keep only source visible initially
         allVariants.forEach(variant => {
           if (variant === sourceElement) {
             variant.style.display = 'flex';
             variant.classList.add('variant-active');
             variant.classList.remove('variant-hidden');
-          } else if (variant === destination) {
-            // Keep target visible but positioned absolutely for animation
-            variant.style.display = 'flex';
-            variant.style.position = 'absolute';
-            variant.style.top = '0';
-            variant.style.left = '0';
-            variant.style.zIndex = '1';
-            variant.classList.add('variant-hidden');
-            variant.classList.remove('variant-active');
           } else {
+            // Hide target and others during animation
             variant.style.display = 'none';
             variant.classList.add('variant-hidden');
             variant.classList.remove('variant-active');
           }
         });
         
-        // Find all animated elements and their changes
-        const changes = findAnimatedElementsAndChanges(sourceElement, destination, {
-          animateColor: true,
-          animateShadow: true,
-          animateSize: true
+        // Use pre-measured positions to determine if animation is needed
+        let hasPositionChanges = false;
+        sourcePositions.forEach((sourceData, elementId) => {
+          const targetData = targetPositions.get(elementId);
+          if (targetData) {
+            const xDiff = targetData.rect.left - sourceData.rect.left;
+            const yDiff = targetData.rect.top - sourceData.rect.top;
+            if (Math.abs(xDiff) > 1 || Math.abs(yDiff) > 1) {
+              hasPositionChanges = true;
+            }
+          }
         });
+        
+        console.log('🔍 POSITION ANALYSIS: Has position changes:', hasPositionChanges);
         
         if (changes.length === 0) {
           console.log('🔄 No changes detected, performing instant switch');

@@ -7,6 +7,489 @@
  */
 
 /**
+ * Safe DOM manipulation utilities
+ */
+export function safeElementOperation<T extends HTMLElement>(
+  element: T | null | undefined, 
+  operation: (el: T) => void, 
+  errorMessage: string
+): boolean {
+  if (!element) {
+    console.error(`❌ DOM OPERATION FAILED: ${errorMessage} - element is null/undefined`);
+    return false;
+  }
+  
+  if (!(element instanceof HTMLElement)) {
+    console.error(`❌ DOM OPERATION FAILED: ${errorMessage} - element is not HTMLElement`);
+    return false;
+  }
+  
+  try {
+    operation(element);
+    return true;
+  } catch (error) {
+    console.error(`❌ DOM OPERATION FAILED: ${errorMessage}`, error);
+    return false;
+  }
+}
+
+export function safeQuerySelector(selector: string, context: Document | Element = document): HTMLElement | null {
+  try {
+    const element = context.querySelector(selector);
+    return element instanceof HTMLElement ? element : null;
+  } catch (error) {
+    console.error(`❌ QUERY SELECTOR FAILED: ${selector}`, error);
+    return null;
+  }
+}
+
+export function safeGetBoundingClientRect(element: HTMLElement): DOMRect | null {
+  try {
+    return element.getBoundingClientRect();
+  } catch (error) {
+    console.error('❌ GET BOUNDING CLIENT RECT FAILED:', error);
+    return null;
+  }
+}
+
+/**
+ * FIX 5: Inject CSS to prevent animation conflicts
+ */
+export function injectAnimationCSS(): void {
+  const styleId = 'figma-animation-styles';
+  
+  // Check if styles are already injected
+  if (document.getElementById(styleId)) {
+    return;
+  }
+  
+  const style = document.createElement('style');
+  style.id = styleId;
+  style.textContent = `
+    /* Animation copy visibility */
+    .animation-copy {
+      display: flex !important;
+      pointer-events: none !important;
+      z-index: 9999 !important;
+    }
+
+    /* Source element hidden during animation */
+    .animation-source-hidden {
+      display: none !important;
+    }
+
+    /* Target element hidden during animation */
+    .animation-target-hidden {
+      display: none !important;
+    }
+
+    /* Ensure variant transitions are smooth */
+    .variant-active {
+      display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+
+    .variant-hidden {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+    }
+
+    /* Measurement override - highest specificity to override all other rules */
+    .measuring-positions,
+    .measuring-positions.variant-hidden,
+    .measuring-positions.animation-source-hidden,
+    .measuring-positions.animation-target-hidden {
+      display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+
+    /* Ensure child elements are also visible during measurement */
+    .measuring-positions * {
+      visibility: visible !important;
+    }
+  `;
+  
+  document.head.appendChild(style);
+  console.log('✅ ANIMATION CSS: Injected animation styles to prevent conflicts');
+}
+
+/**
+ * POSITION MEASUREMENT FIX: Measure element positions while visible
+ * This must happen BEFORE hiding elements to get accurate rectangles
+ */
+export function measureElementPositions(variantElement: HTMLElement): Map<string, any> {
+  console.log('📏 MEASURING POSITIONS: Starting measurement for variant:', variantElement.getAttribute('data-figma-name'));
+  
+  const positions = new Map();
+  
+  // ✅ CRITICAL FIX: Remove CSS classes that have !important rules
+  const originalClasses = {
+    variantActive: variantElement.classList.contains('variant-active'),
+    variantHidden: variantElement.classList.contains('variant-hidden'),
+    animationSourceHidden: variantElement.classList.contains('animation-source-hidden'),
+    animationTargetHidden: variantElement.classList.contains('animation-target-hidden')
+  };
+  
+  // Store original inline styles
+  const originalStyles = {
+    display: variantElement.style.display,
+    visibility: variantElement.style.visibility,
+    opacity: variantElement.style.opacity
+  };
+  
+  console.log(`📏 MEASUREMENT PREP: Element ${variantElement.getAttribute('data-figma-name')} - Original classes:`, originalClasses);
+  
+  // ✅ CRITICAL: Remove conflicting CSS classes temporarily
+  variantElement.classList.remove('variant-hidden');
+  variantElement.classList.remove('variant-active');
+  variantElement.classList.remove('animation-source-hidden');
+  variantElement.classList.remove('animation-target-hidden');
+  
+  // Set styles to ensure visibility (without !important conflicts)
+  variantElement.style.display = 'flex';
+  variantElement.style.visibility = 'visible';
+  variantElement.style.opacity = '1';
+  
+  // Force reflow to apply changes
+  variantElement.offsetHeight;
+  
+  // Measure the variant itself
+  const variantRect = variantElement.getBoundingClientRect();
+  positions.set(variantElement.getAttribute('data-figma-id'), {
+    rect: variantRect,
+    computedStyle: window.getComputedStyle(variantElement),
+    element: variantElement
+  });
+  
+  console.log(`📏 Measured variant ${variantElement.getAttribute('data-figma-name')}:`, {
+    left: variantRect.left,
+    top: variantRect.top,
+    width: variantRect.width,
+    height: variantRect.height
+  });
+  
+  // Measure all child elements
+  const childElements = variantElement.querySelectorAll('[data-figma-id]');
+  childElements.forEach(element => {
+    const rect = element.getBoundingClientRect();
+    const computedStyle = window.getComputedStyle(element);
+    
+    positions.set(element.getAttribute('data-figma-id'), {
+      rect: rect,
+      computedStyle: computedStyle,
+      element: element
+    });
+    
+    console.log(`📏 Measured child ${element.getAttribute('data-figma-name')}:`, {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height
+    });
+  });
+  
+  // ✅ RESTORE: Put back original classes and styles
+  
+  // Restore CSS classes
+  if (originalClasses.variantActive) {
+    variantElement.classList.add('variant-active');
+  }
+  if (originalClasses.variantHidden) {
+    variantElement.classList.add('variant-hidden');
+  }
+  if (originalClasses.animationSourceHidden) {
+    variantElement.classList.add('animation-source-hidden');
+  }
+  if (originalClasses.animationTargetHidden) {
+    variantElement.classList.add('animation-target-hidden');
+  }
+  
+  // Restore original inline styles
+  variantElement.style.display = originalStyles.display;
+  variantElement.style.visibility = originalStyles.visibility;
+  variantElement.style.opacity = originalStyles.opacity;
+  
+  console.log(`📏 MEASUREMENT RESTORE: Element ${variantElement.getAttribute('data-figma-name')} - Classes restored:`, originalClasses);
+  console.log('📏 MEASUREMENT COMPLETE: Measured', positions.size, 'elements');
+  return positions;
+}
+
+/**
+ * Alternative measurement approach using CSS class override
+ */
+export function measureElementPositionsWithCSS(variantElement: HTMLElement): Map<string, any> {
+  console.log('📏 CSS MEASUREMENT: Starting measurement for variant:', variantElement.getAttribute('data-figma-name'));
+  
+  const positions = new Map();
+  
+  // Add measurement class that overrides hidden states with higher specificity
+  variantElement.classList.add('measuring-positions');
+  
+  // Force reflow to apply CSS changes
+  variantElement.offsetHeight;
+  
+  // Measure the variant (should now get real values)
+  const variantRect = variantElement.getBoundingClientRect();
+  positions.set(variantElement.getAttribute('data-figma-id'), {
+    rect: variantRect,
+    computedStyle: window.getComputedStyle(variantElement),
+    element: variantElement
+  });
+  
+  console.log(`📏 CSS MEASURED variant ${variantElement.getAttribute('data-figma-name')}:`, {
+    left: variantRect.left,
+    top: variantRect.top,
+    width: variantRect.width,
+    height: variantRect.height
+  });
+  
+  // Measure all child elements
+  const childElements = variantElement.querySelectorAll('[data-figma-id]');
+  childElements.forEach(element => {
+    const rect = element.getBoundingClientRect();
+    const computedStyle = window.getComputedStyle(element);
+    
+    positions.set(element.getAttribute('data-figma-id'), {
+      rect: rect,
+      computedStyle: computedStyle,
+      element: element
+    });
+    
+    console.log(`📏 CSS MEASURED child ${element.getAttribute('data-figma-name')}:`, {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height
+    });
+  });
+  
+  // Remove measurement class
+  variantElement.classList.remove('measuring-positions');
+  
+  console.log('📏 CSS MEASUREMENT COMPLETE: Measured', positions.size, 'elements');
+  return positions;
+}
+
+/**
+ * Hide all variants except the animation copy
+ */
+export function hideAllVariantsExceptCopy(allVariants: HTMLElement[], copy: HTMLElement): void {
+  console.log('🙈 HIDING VARIANTS: Hiding all variants except copy');
+  
+  allVariants.forEach(variant => {
+    safeElementOperation(variant, (el) => {
+      el.style.display = 'none';
+      el.classList.add('variant-hidden');
+      el.classList.remove('variant-active');
+    }, `hideAllVariantsExceptCopy - hide variant ${variant.getAttribute('data-figma-id')}`);
+  });
+  
+  // ✅ CRITICAL: Ensure copy stays visible
+  safeElementOperation(copy, (el) => {
+    el.style.display = 'flex';
+    el.style.opacity = '1';
+    el.style.visibility = 'visible';
+    el.classList.add('animation-copy');
+  }, 'hideAllVariantsExceptCopy - ensure copy visibility');
+}
+
+/**
+ * Animate using pre-measured positions
+ */
+export async function animateWithPreMeasuredPositions(
+  copy: HTMLElement, 
+  sourcePositions: Map<string, any>, 
+  targetPositions: Map<string, any>, 
+  transitionType: string, 
+  transitionDuration: number
+): Promise<void> {
+  console.log('🎬 ANIMATING WITH PRE-MEASURED POSITIONS');
+  
+  const elementsToAnimate: Array<{element: HTMLElement, xDiff: number, yDiff: number}> = [];
+  
+  // Compare source vs target positions for each element
+  sourcePositions.forEach((sourceData, elementId) => {
+    const targetData = targetPositions.get(elementId);
+    
+    if (targetData) {
+      const sourceRect = sourceData.rect;
+      const targetRect = targetData.rect;
+      
+      // Calculate position differences
+      const xDiff = targetRect.left - sourceRect.left;
+      const yDiff = targetRect.top - sourceRect.top;
+      
+      console.log(`📏 Element ${elementId} position difference:`, {
+        name: sourceData.element?.getAttribute('data-figma-name'),
+        xDiff,
+        yDiff,
+        sourceRect: { left: sourceRect.left, top: sourceRect.top, width: sourceRect.width, height: sourceRect.height },
+        targetRect: { left: targetRect.left, top: targetRect.top, width: targetRect.width, height: targetRect.height }
+      });
+      
+      // Only animate if there's a significant difference
+      if (Math.abs(xDiff) > 1 || Math.abs(yDiff) > 1) {
+        const copyElement = copy.querySelector(`[data-figma-id="${elementId}"]`) as HTMLElement;
+        if (copyElement) {
+          elementsToAnimate.push({
+            element: copyElement,
+            xDiff,
+            yDiff
+          });
+        }
+      }
+    }
+  });
+  
+  if (elementsToAnimate.length > 0) {
+    console.log(`🎬 ANIMATING ${elementsToAnimate.length} elements with actual position changes`);
+    
+    // Apply transitions and animate
+    const duration = transitionDuration || 0.5;
+    const easing = getEasingFunction(transitionType);
+    
+    elementsToAnimate.forEach(({element, xDiff, yDiff}) => {
+      element.style.transition = `transform ${duration}s ${easing}`;
+      element.style.transform = `translate(${xDiff}px, ${yDiff}px)`;
+      
+      console.log(`🎬 Applied transform to ${element.getAttribute('data-figma-name')}: translate(${xDiff}px, ${yDiff}px)`);
+    });
+    
+    // Wait for animation to complete
+    await new Promise(resolve => {
+      setTimeout(resolve, duration * 1000);
+    });
+    
+    console.log('✅ ANIMATION COMPLETED: All transforms applied successfully');
+  } else {
+    console.log('🔄 NO POSITION CHANGES: All elements have same positions - instant switch');
+  }
+}
+
+/**
+ * Get easing function for transition type
+ */
+function getEasingFunction(transitionType: string): string {
+  switch (transitionType) {
+    case 'EASE_IN_AND_OUT_BACK':
+      return 'cubic-bezier(0.68, -0.6, 0.32, 1.6)';
+    case 'EASE_IN_AND_OUT':
+      return 'ease-in-out';
+    case 'EASE_IN':
+      return 'ease-in';
+    case 'EASE_OUT':
+      return 'ease-out';
+    case 'LINEAR':
+      return 'linear';
+    case 'BOUNCY':
+      return 'cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+    case 'GENTLE':
+      return 'ease-in-out';
+    case 'SMART_ANIMATE':
+      return 'ease-in-out';
+    default:
+      return 'ease-out';
+  }
+}
+
+/**
+ * FIX 3: Ensure copy visibility is properly managed
+ * Make sure only the copy is visible during animation, not source or target
+ */
+export function showOnlyCopyDuringAnimation(
+  sourceCopy: HTMLElement | null, 
+  sourceElement: HTMLElement, 
+  targetElement: HTMLElement, 
+  allVariants: HTMLElement[]
+): void {
+  console.log('🎭 ANIMATION VISIBILITY: Showing only copy during animation');
+  
+  // Hide source element with safe operations
+  safeElementOperation(sourceElement, (el) => {
+    el.style.display = 'none';
+    el.classList.add('variant-hidden', 'animation-source-hidden');
+    el.classList.remove('variant-active');
+  }, 'showOnlyCopyDuringAnimation - hide source element');
+  
+  // Hide target element with safe operations
+  safeElementOperation(targetElement, (el) => {
+    el.style.display = 'none';
+    el.classList.add('variant-hidden', 'animation-target-hidden');
+    el.classList.remove('variant-active');
+  }, 'showOnlyCopyDuringAnimation - hide target element');
+  
+  // Hide all other variants
+  allVariants.forEach(variant => {
+    if (variant !== sourceElement && variant !== targetElement) {
+      safeElementOperation(variant, (el) => {
+        el.style.display = 'none';
+        el.classList.add('variant-hidden');
+        el.classList.remove('variant-active');
+      }, `showOnlyCopyDuringAnimation - hide variant ${variant.getAttribute('data-figma-id')}`);
+    }
+  });
+  
+  // Show only the copy with safe operations
+  if (sourceCopy) {
+    safeElementOperation(sourceCopy, (el) => {
+      el.style.display = 'flex';
+      el.classList.add('animation-copy');
+      // Don't add variant classes to copy - it's a temporary animation element
+    }, 'showOnlyCopyDuringAnimation - show copy');
+  }
+}
+
+/**
+ * FIX 4: Clean animation completion
+ * When animation finishes, show only target
+ */
+export function completeAnimationAndShowTarget(
+  sourceCopy: HTMLElement | null, 
+  sourceElement: HTMLElement, 
+  targetElement: HTMLElement, 
+  allVariants: HTMLElement[]
+): void {
+  console.log('✅ ANIMATION COMPLETION: Showing only target after animation');
+  
+  // Remove copy with safe operations
+  if (sourceCopy) {
+    safeElementOperation(sourceCopy, (el) => {
+      if (el.parentElement) {
+        el.remove();
+      }
+    }, 'completeAnimationAndShowTarget - remove copy');
+  }
+  
+  // Keep source hidden with safe operations
+  safeElementOperation(sourceElement, (el) => {
+    el.style.display = 'none';
+    el.classList.add('variant-hidden');
+    el.classList.remove('variant-active', 'animation-source-hidden');
+  }, 'completeAnimationAndShowTarget - keep source hidden');
+  
+  // Show only target with safe operations
+  safeElementOperation(targetElement, (el) => {
+    el.style.display = 'flex';
+    el.classList.add('variant-active');
+    el.classList.remove('variant-hidden', 'animation-target-hidden');
+  }, 'completeAnimationAndShowTarget - show target');
+  
+  // Ensure all other variants stay hidden
+  allVariants.forEach(variant => {
+    if (variant !== targetElement) {
+      safeElementOperation(variant, (el) => {
+        el.style.display = 'none';
+        el.classList.add('variant-hidden');
+        el.classList.remove('variant-active');
+      }, `completeAnimationAndShowTarget - hide variant ${variant.getAttribute('data-figma-id')}`);
+    }
+  });
+}
+
+/**
  * Create a copy of a source element for animation
  */
 export function createElementCopy(sourceElement: HTMLElement): HTMLElement {
@@ -243,19 +726,26 @@ export function hideOriginalElements(sourceElement: HTMLElement, allVariants: HT
  * Show destination variant
  */
 export function showDestinationVariant(destination: HTMLElement, allVariants: HTMLElement[]): void {
+  // Validate destination parameter
+  if (!safeElementOperation(destination, () => {}, 'showDestinationVariant - destination validation')) {
+    return;
+  }
+  
   console.log('DEBUG: Showing destination variant');
   
-  // Hide the original source element permanently
+  // Hide the original source element permanently with safe operations
   allVariants.forEach(variant => {
     if (variant !== destination) {
-      variant.style.opacity = '0';
-      variant.style.visibility = 'hidden';
-      variant.classList.add('variant-hidden');
-      variant.classList.remove('variant-active');
+      safeElementOperation(variant, (el) => {
+        el.style.opacity = '0';
+        el.style.visibility = 'hidden';
+        el.classList.add('variant-hidden');
+        el.classList.remove('variant-active');
+      }, `hideOriginalVariant - ${variant.getAttribute('data-figma-id')}`);
     }
   });
   
-  // Simply show the destination variant - don't touch its positioning
+  // Show the destination variant with explicit styles and higher specificity
   console.log('DEBUG: SHOWING DESTINATION VARIANT:', {
     destinationId: destination.getAttribute('data-figma-id'),
     destinationName: destination.getAttribute('data-figma-name'),
@@ -264,11 +754,99 @@ export function showDestinationVariant(destination: HTMLElement, allVariants: HT
     display: 'flex'
   });
   
-  destination.style.visibility = 'visible';
-  destination.style.opacity = '1';
-  destination.style.display = 'flex';
-  destination.classList.add('variant-active');
-  destination.classList.remove('variant-hidden');
+  // Apply styles with !important to ensure they override any CSS rules - with safe operations
+  safeElementOperation(destination, (el) => {
+    el.style.setProperty('visibility', 'visible', 'important');
+    el.style.setProperty('opacity', '1', 'important');
+    el.style.setProperty('display', 'flex', 'important');
+    el.classList.add('variant-active');
+    el.classList.remove('variant-hidden');
+  }, 'showDestinationVariant - apply visibility styles');
   
-  console.log('DEBUG: Destination variant shown');
+  // CRITICAL: Position the destination variant at exactly 0px top/left
+  // This ensures the destination variant is at the correct baseline position for subsequent animations
+  destination.style.setProperty('position', 'relative', 'important');
+  destination.style.setProperty('top', '0px', 'important');
+  destination.style.setProperty('left', '0px', 'important');
+  destination.style.setProperty('transform', 'none', 'important');
+  
+  // CRITICAL: Also position the parent component set container at 0px top/left
+  // This ensures the variant is positioned relative to 0px, not the original Figma position
+  const parentComponentSet = destination.closest('[data-figma-type="COMPONENT_SET"]');
+  if (parentComponentSet) {
+    const htmlParentComponentSet = parentComponentSet as HTMLElement;
+    htmlParentComponentSet.style.setProperty('position', 'relative', 'important');
+    htmlParentComponentSet.style.setProperty('top', '0px', 'important');
+    htmlParentComponentSet.style.setProperty('left', '0px', 'important');
+    htmlParentComponentSet.style.setProperty('transform', 'none', 'important');
+    console.log('DEBUG: Positioned parent component set at 0px top/left:', parentComponentSet.getAttribute('data-figma-id'));
+  }
+  
+  // CRITICAL: Also restore visibility of all nested components within the destination variant
+  const nestedComponents = destination.querySelectorAll('[data-figma-id]');
+  console.log('DEBUG: Restoring visibility for', nestedComponents.length, 'nested components');
+  
+  nestedComponents.forEach((component, index) => {
+    const componentId = component.getAttribute('data-figma-id');
+    const componentName = component.getAttribute('data-figma-name');
+    const htmlComponent = component as HTMLElement;
+    
+    // Restore original visibility and opacity for nested components
+    htmlComponent.style.setProperty('visibility', 'visible', 'important');
+    htmlComponent.style.setProperty('opacity', '1', 'important');
+    
+    // CRITICAL: Position nested components at exactly 0px top/left
+    // This ensures nested components are at the correct baseline position for subsequent animations
+    htmlComponent.style.setProperty('position', 'relative', 'important');
+    htmlComponent.style.setProperty('top', '0px', 'important');
+    htmlComponent.style.setProperty('left', '0px', 'important');
+    htmlComponent.style.setProperty('transform', 'none', 'important');
+    
+    // Don't override display property for nested components - let them keep their natural display
+    // Only set display if it was explicitly hidden
+    const computedStyle = window.getComputedStyle(component);
+    if (computedStyle.display === 'none') {
+      htmlComponent.style.setProperty('display', 'flex', 'important');
+    }
+    
+    console.log('DEBUG: Restored component', index + 1, ':', {
+      id: componentId,
+      name: componentName,
+      visibility: htmlComponent.style.visibility,
+      opacity: htmlComponent.style.opacity,
+      display: htmlComponent.style.display
+    });
+  });
+  
+  // Force a reflow to ensure styles are applied
+  destination.offsetHeight;
+  
+  // Log the final computed styles to verify they were applied
+  const computedStyle = window.getComputedStyle(destination);
+  console.log('DEBUG: Destination variant final computed styles:', {
+    destinationId: destination.getAttribute('data-figma-id'),
+    destinationName: destination.getAttribute('data-figma-name'),
+    visibility: computedStyle.visibility,
+    opacity: computedStyle.opacity,
+    display: computedStyle.display,
+    position: computedStyle.position,
+    top: computedStyle.top,
+    left: computedStyle.left,
+    transform: computedStyle.transform,
+    inlineTop: destination.style.top,
+    inlineLeft: destination.style.left
+  });
+  
+  // CRITICAL: Also log the bounding rect to see the actual position
+  const boundingRect = destination.getBoundingClientRect();
+  console.log('DEBUG: Destination variant bounding rect:', {
+    destinationId: destination.getAttribute('data-figma-id'),
+    destinationName: destination.getAttribute('data-figma-name'),
+    left: boundingRect.left,
+    top: boundingRect.top,
+    width: boundingRect.width,
+    height: boundingRect.height
+  });
+  
+  console.log('DEBUG: Destination variant and nested components shown');
 }

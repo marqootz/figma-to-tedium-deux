@@ -106,12 +106,12 @@ export function setupAnimationSession(
     }
   });
 
-  // Prepare target variant but keep it hidden
-  targetElement.classList.add('variant-active');
-  targetElement.classList.remove('variant-hidden');
+  // ✅ FIX: Prepare target variant but keep it COMPLETELY hidden
+  targetElement.classList.add('variant-hidden');     // ✅ Use hidden class
+  targetElement.classList.remove('variant-active');  // ✅ Remove active class  
+  targetElement.style.display = 'none';              // ✅ Hide with display
   targetElement.style.visibility = 'hidden';
   targetElement.style.opacity = '0';
-  targetElement.style.display = 'none';
 
   console.log('✅ SETUP PHASE: Animation session initialized');
   return session;

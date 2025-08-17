@@ -1,5 +1,66 @@
 import { FigmaNode, OverrideData } from '../types';
-import { safeToString, escapeHtmlAttribute, safeHasProperty } from '../html/utils';
+import { safeToString, escapeHtmlAttribute, safeHasProperty as utilsSafeHasProperty } from '../html/utils';
+
+// Safe property access utilities
+function safeHasProperty(obj: any, prop: string): boolean {
+  return obj && typeof obj === 'object' && prop in obj;
+}
+
+function safeGetProperty<T>(obj: any, prop: string, defaultValue: T): T {
+  if (!safeHasProperty(obj, prop)) {
+    return defaultValue;
+  }
+  
+  const value = obj[prop];
+  
+  // Type-specific validation with proper type casting
+  switch (prop) {
+    case 'reactions':
+      return (Array.isArray(value) ? value : defaultValue) as T;
+    case 'children':
+      return (Array.isArray(value) ? value : defaultValue) as T;
+    case 'componentProperties':
+      return (typeof value === 'object' && value !== null ? value : defaultValue) as T;
+    case 'fills':
+    case 'strokes':
+      return (Array.isArray(value) ? value : defaultValue) as T;
+    default:
+      return (value !== undefined && value !== null ? value : defaultValue) as T;
+  }
+}
+
+function safeCopyProperty(obj: any, prop: string): any {
+  if (!safeHasProperty(obj, prop)) {
+    return undefined;
+  }
+  
+  const value = obj[prop];
+  
+  // Skip functions and non-serializable objects
+  if (typeof value === 'function') {
+    console.warn(`Skipping function property: ${prop}`);
+    return undefined;
+  }
+  
+  // Handle arrays safely
+  if (Array.isArray(value)) {
+    return value.filter(item => item !== null && item !== undefined);
+  }
+  
+  // Handle objects safely
+  if (typeof value === 'object' && value !== null) {
+    try {
+      // Test if object is serializable
+      JSON.stringify(value);
+      return value;
+    } catch (error) {
+      console.warn(`Skipping non-serializable object property: ${prop}`, error);
+      return undefined;
+    }
+  }
+  
+  return value;
+}
 
 // Node processing functions
 export function getAllNodeIds(node: FigmaNode): string[] {
@@ -348,14 +409,14 @@ export function figmaNodeToObject(node: any): any {
   
   // Copy all properties that exist on the node
   for (const prop of commonProps) {
-    if (safeHasProperty(node, prop)) {
-      result[prop] = (node as any)[prop];
-      console.log(`Copied property ${prop}:`, (node as any)[prop]);
+    if (utilsSafeHasProperty(node, prop)) {
+      result[prop] = safeCopyProperty(node, prop);
+      console.log(`Copied property ${prop}:`, result[prop]);
     }
   }
   
   // Handle reactions separately to filter out null destinationId
-  if (safeHasProperty(node, 'reactions') && (node as any).reactions) {
+  if (utilsSafeHasProperty(node, 'reactions') && (node as any).reactions) {
     const reactions = (node as any).reactions as any[];
     const filteredReactions = reactions.filter(reaction => {
       // Check if reaction has a valid destinationId

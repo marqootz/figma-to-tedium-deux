@@ -290,7 +290,14 @@ export function createModularSmartAnimateHandler(): string {
         const computedStyle = window.getComputedStyle(element);
         
         if (computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden') {
-          const trigger = JSON.parse(element.getAttribute('data-reaction-trigger') || '{}');
+          let trigger = {};
+          try {
+            const triggerData = element.getAttribute('data-reaction-trigger') || '{}';
+            trigger = JSON.parse(triggerData);
+          } catch (error) {
+            console.error('❌ Failed to parse reaction trigger JSON:', error);
+            trigger = {}; // Safe fallback
+          }
           
           if (trigger.type === 'AFTER_TIMEOUT' && !activeTimers.has(elementId)) {
             console.log('DEBUG: Starting timeout reaction for nested component:', elementId, 'name:', elementName);
@@ -319,7 +326,14 @@ export function createModularSmartAnimateHandler(): string {
       const computedStyle = window.getComputedStyle(newlyActiveElement);
       
       if (computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden') {
-        const trigger = JSON.parse(newlyActiveElement.getAttribute('data-reaction-trigger') || '{}');
+        let trigger = {};
+        try {
+          const triggerData = newlyActiveElement.getAttribute('data-reaction-trigger') || '{}';
+          trigger = JSON.parse(triggerData);
+        } catch (error) {
+          console.error('❌ Failed to parse newly active element trigger JSON:', error);
+          trigger = {}; // Safe fallback
+        }
         const destinationId = newlyActiveElement.getAttribute('data-reaction-destination');
         const transitionType = newlyActiveElement.getAttribute('data-reaction-transition-type');
         const transitionDuration = newlyActiveElement.getAttribute('data-reaction-transition-duration');

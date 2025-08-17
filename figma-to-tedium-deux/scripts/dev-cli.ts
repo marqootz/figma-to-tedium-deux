@@ -524,8 +524,9 @@ ${eventJavaScript}
       console.warn('   Make sure to run "npm run build:refactored" first');
     }
     
-    // Launch browser with developer tools
-    await launchBrowser(outputPath);
+    // File ready for manual opening
+    console.log('📁 File ready for manual opening:');
+    console.log(`   ${outputPath}`);
     
   } catch (error) {
     console.error('❌ Export error:', error);

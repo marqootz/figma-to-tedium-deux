@@ -278,14 +278,22 @@ export function createModularSmartAnimateHandler(): string {
     // Global timer tracking
     const activeTimers = new Map();
     
-    // Import the modular functions (these will be available in the eval context)
-    const { 
-      handleAnimatedVariantSwitch, 
-      performInstantVariantSwitch, 
-      setTransitionLock, 
-      clearTransitionLock,
-      getTransitionLockStatus
-    } = window.modularAnimationSystem || {};
+    // Access the modular functions from the window object
+    // These should be available after the browser entry point exposes them
+    const handleAnimatedVariantSwitch = window.handleAnimatedVariantSwitch;
+    const performInstantVariantSwitch = window.performInstantVariantSwitch;
+    const setTransitionLock = window.setTransitionLock;
+    const clearTransitionLock = window.clearTransitionLock;
+    const getTransitionLockStatus = window.getTransitionLockStatus;
+    
+    // Debug: Log what's available in eval context
+    console.log('DEBUG: Eval context function availability:', {
+      windowHandleAnimatedVariantSwitch: typeof window.handleAnimatedVariantSwitch,
+      windowPerformInstantVariantSwitch: typeof window.performInstantVariantSwitch,
+      modularAnimationSystem: typeof window.modularAnimationSystem,
+      handleAnimatedVariantSwitch: typeof handleAnimatedVariantSwitch,
+      performInstantVariantSwitch: typeof performInstantVariantSwitch
+    });
     
     // Clear all timeout reactions function
     function clearAllTimeoutReactions() {

@@ -9,6 +9,35 @@ import { generateEventHandlingJavaScript } from './html/events';
 declare const figma: any;
 declare const __html__: string;
 
+// Error handling utilities
+interface ExportResult {
+  success: boolean;
+  html?: string;
+  error?: string;
+  nodeId?: string;
+  nodeName?: string;
+}
+
+async function safeBuildComponentSetHTML(node: any): Promise<ExportResult> {
+  try {
+    const html = await buildComponentSetHTMLAsync(node);
+    return {
+      success: true,
+      html,
+      nodeId: node.id,
+      nodeName: node.name
+    };
+  } catch (error) {
+    console.error(`❌ Failed to build HTML for node: ${node.name || node.id}`, error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      nodeId: node.id,
+      nodeName: node.name
+    };
+  }
+}
+
 // Main plugin code
 figma.showUI(__html__, { width: 400, height: 340 });
 
@@ -29,14 +58,29 @@ figma.ui.onmessage = async (msg) => {
         await loadFonts(node);
       }
       
-      // Generate HTML for each selected node
-      const htmlResults = await Promise.all(
-        selection.map(async (node) => {
-          const totalNodes = getAllNodeIds(node).length;
-          console.log('Total nodes including children:', totalNodes);
-          return await buildComponentSetHTMLAsync(node);
-        })
-      );
+      // Generate HTML for each selected node with error handling
+      const exportPromises = selection.map(async (node) => {
+        return await safeBuildComponentSetHTML(node);
+      });
+      
+      const exportResults = await Promise.all(exportPromises);
+      
+      // Separate successful and failed exports
+      const successfulExports = exportResults.filter(result => result.success);
+      const failedExports = exportResults.filter(result => !result.success);
+      
+      if (failedExports.length > 0) {
+        console.warn(`⚠️ ${failedExports.length} nodes failed to export:`, 
+          failedExports.map(f => `${f.nodeName || f.nodeId}: ${f.error}`));
+      }
+      
+      if (successfulExports.length === 0) {
+        figma.notify('❌ All selected nodes failed to export. Please check the console for details.');
+        return;
+      }
+      
+      // Use only successful exports
+      const htmlResults = successfulExports.map(result => result.html!);
       
       // Combine all HTML results with global CSS and JavaScript
       const finalHTML = `<!DOCTYPE html>
@@ -54,9 +98,13 @@ figma.ui.onmessage = async (msg) => {
     /* Variant visibility classes */
     .variant-active {
       display: flex !important;
+      opacity: 1 !important;
+      visibility: visible !important;
     }
     .variant-hidden {
       display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
     }
     /* Let JavaScript handle component visibility instead of CSS rules */
     /* This allows the variant handler to properly manage which components are visible */

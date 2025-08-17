@@ -401,6 +401,25 @@ export function detectPropertyChanges(
     const sourceStyle = window.getComputedStyle(sourceElement);
     const targetStyle = window.getComputedStyle(targetElement);
     
+    // Debug: Log the computed styles of both elements to understand their positioning
+    console.log('DEBUG: Source element computed styles:', {
+      elementName: sourceElement.getAttribute('data-figma-name'),
+      position: sourceStyle.position,
+      top: sourceStyle.top,
+      left: sourceStyle.left,
+      transform: sourceStyle.transform,
+      display: sourceStyle.display
+    });
+    
+    console.log('DEBUG: Target element computed styles:', {
+      elementName: targetElement.getAttribute('data-figma-name'),
+      position: targetStyle.position,
+      top: targetStyle.top,
+      left: targetStyle.left,
+      transform: targetStyle.transform,
+      display: targetStyle.display
+    });
+    
     // STEP 1: Check if the node has position changes using bounding rectangles (accounts for flexbox alignment)
     const targetRect = targetElement.getBoundingClientRect();
     
@@ -430,6 +449,41 @@ export function detectPropertyChanges(
     const sourceTop = sourceCenterY - originalSourceRect.height / 2;
     const targetLeft = targetCenterX - targetRect.width / 2;
     const targetTop = targetCenterY - targetRect.height / 2;
+    
+    // Debug position detection
+    console.log('DEBUG: Position detection for element:', sourceElement.getAttribute('data-figma-name'));
+    console.log('DEBUG: Original source element found:', !!originalSourceElement);
+    console.log('DEBUG: Source rect:', { 
+      left: originalSourceRect.left, 
+      top: originalSourceRect.top, 
+      width: originalSourceRect.width, 
+      height: originalSourceRect.height 
+    });
+    console.log('DEBUG: Target rect:', { 
+      left: targetRect.left, 
+      top: targetRect.top, 
+      width: targetRect.width, 
+      height: targetRect.height 
+    });
+    console.log('DEBUG: Source parent rect:', { 
+      left: originalSourceParentRect.left, 
+      top: originalSourceParentRect.top 
+    });
+    console.log('DEBUG: Target parent rect:', { 
+      left: targetParentRect.left, 
+      top: targetParentRect.top 
+    });
+    console.log('DEBUG: Calculated centers:', { 
+      sourceCenterX, 
+      sourceCenterY, 
+      targetCenterX, 
+      targetCenterY 
+    });
+    console.log('DEBUG: Final positions:', { sourceLeft, sourceTop, targetLeft, targetTop });
+    console.log('DEBUG: Position differences:', { 
+      xDiff: Math.abs(sourceLeft - targetLeft), 
+      yDiff: Math.abs(sourceTop - targetTop) 
+    });
     
     // STEP 2: Check if the node has ignore auto layout enabled
     const ignoreAutoLayout = sourceElement.getAttribute('data-layout-positioning') === 'ABSOLUTE';
