@@ -542,22 +542,58 @@ export async function handleAnimatedVariantSwitch(
         return;
       }
   
-      // ✅ STEP 1: Measure positions BEFORE hiding anything
+      // ✅ STEP 1: CRITICAL - Position variants at 0px top/left BEFORE measuring
+      console.log('📐 PRE-POSITIONING: Ensuring variants are at 0px top/left before measurement');
+      
+      // Position source variant at 0px top/left
+      sourceElement.style.setProperty('position', 'relative', 'important');
+      sourceElement.style.setProperty('top', '0px', 'important');
+      sourceElement.style.setProperty('left', '0px', 'important');
+      sourceElement.style.setProperty('transform', 'none', 'important');
+      
+      // Position target variant at 0px top/left 
+      destination.style.setProperty('position', 'relative', 'important');
+      destination.style.setProperty('top', '0px', 'important');
+      destination.style.setProperty('left', '0px', 'important');
+      destination.style.setProperty('transform', 'none', 'important');
+      
+      // ✅ CRITICAL: Also ensure target variant's parent component set is positioned
+      const targetParentComponentSet = destination.closest('[data-figma-type="COMPONENT_SET"]');
+      if (targetParentComponentSet) {
+        const htmlTargetParentComponentSet = targetParentComponentSet as HTMLElement;
+        htmlTargetParentComponentSet.style.setProperty('position', 'relative', 'important');
+        htmlTargetParentComponentSet.style.setProperty('top', '0px', 'important');
+        htmlTargetParentComponentSet.style.setProperty('left', '0px', 'important');
+        htmlTargetParentComponentSet.style.setProperty('transform', 'none', 'important');
+      }
+      
+      // Position parent component set at 0px top/left
+      const parentComponentSet = sourceElement.closest('[data-figma-type="COMPONENT_SET"]');
+      if (parentComponentSet) {
+        const htmlParentComponentSet = parentComponentSet as HTMLElement;
+        htmlParentComponentSet.style.setProperty('position', 'relative', 'important');
+        htmlParentComponentSet.style.setProperty('top', '0px', 'important');
+        htmlParentComponentSet.style.setProperty('left', '0px', 'important');
+        htmlParentComponentSet.style.setProperty('transform', 'none', 'important');
+      }
+      
+      // Force reflow to apply positioning changes
+      sourceElement.offsetHeight;
+      destination.offsetHeight;
+      
+      console.log('📐 POSITIONING COMPLETE: All variants positioned at 0px top/left');
+      
+      // ✅ STEP 2: NOW measure positions after proper positioning
       console.log('📏 PRE-MEASUREMENT: Measuring source and target positions while visible');
       
       // Try the CSS-based approach first (should work better with !important rules)
       let sourcePositions: Map<string, any>;
       let targetPositions: Map<string, any>;
       
-      try {
-        console.log('📏 ATTEMPTING CSS-based measurement (handles !important rules)');
-        sourcePositions = measureElementPositionsWithCSS(sourceElement);
-        targetPositions = measureElementPositionsWithCSS(destination);
-      } catch (error) {
-        console.warn('📏 CSS measurement failed, falling back to class removal approach:', error);
-        sourcePositions = measureElementPositions(sourceElement);
-        targetPositions = measureElementPositions(destination);
-      }
+      // ✅ CRITICAL: Use class removal method for pre-positioned variants to respect JavaScript positioning
+      console.log('📏 USING CLASS REMOVAL measurement (respects pre-positioning)');
+      sourcePositions = measureElementPositions(sourceElement);
+      targetPositions = measureElementPositions(destination);
       
       console.log('📏 Source positions measured:', sourcePositions.size, 'elements');
       console.log('📏 Target positions measured:', targetPositions.size, 'elements');

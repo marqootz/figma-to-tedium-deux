@@ -1660,7 +1660,7 @@ function handleAnimatedVariantSwitch(sourceElement, destination, allVariants, tr
                 totalVariants: allVariants.length
             });
             transitionPromise = new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                var sourcePositions, targetPositions, sourceCopy, error_1;
+                var targetParentComponentSet, htmlTargetParentComponentSet, parentComponentSet, htmlParentComponentSet, sourcePositions, targetPositions, sourceCopy, error_1;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -1670,20 +1670,46 @@ function handleAnimatedVariantSwitch(sourceElement, destination, allVariants, tr
                                 reject(new Error('Cannot start transition - another transition is in progress'));
                                 return [2 /*return*/];
                             }
-                            // ✅ STEP 1: Measure positions BEFORE hiding anything
+                            // ✅ STEP 1: CRITICAL - Position variants at 0px top/left BEFORE measuring
+                            console.log('📐 PRE-POSITIONING: Ensuring variants are at 0px top/left before measurement');
+                            // Position source variant at 0px top/left
+                            sourceElement.style.setProperty('position', 'relative', 'important');
+                            sourceElement.style.setProperty('top', '0px', 'important');
+                            sourceElement.style.setProperty('left', '0px', 'important');
+                            sourceElement.style.setProperty('transform', 'none', 'important');
+                            // Position target variant at 0px top/left 
+                            destination.style.setProperty('position', 'relative', 'important');
+                            destination.style.setProperty('top', '0px', 'important');
+                            destination.style.setProperty('left', '0px', 'important');
+                            destination.style.setProperty('transform', 'none', 'important');
+                            targetParentComponentSet = destination.closest('[data-figma-type="COMPONENT_SET"]');
+                            if (targetParentComponentSet) {
+                                htmlTargetParentComponentSet = targetParentComponentSet;
+                                htmlTargetParentComponentSet.style.setProperty('position', 'relative', 'important');
+                                htmlTargetParentComponentSet.style.setProperty('top', '0px', 'important');
+                                htmlTargetParentComponentSet.style.setProperty('left', '0px', 'important');
+                                htmlTargetParentComponentSet.style.setProperty('transform', 'none', 'important');
+                            }
+                            parentComponentSet = sourceElement.closest('[data-figma-type="COMPONENT_SET"]');
+                            if (parentComponentSet) {
+                                htmlParentComponentSet = parentComponentSet;
+                                htmlParentComponentSet.style.setProperty('position', 'relative', 'important');
+                                htmlParentComponentSet.style.setProperty('top', '0px', 'important');
+                                htmlParentComponentSet.style.setProperty('left', '0px', 'important');
+                                htmlParentComponentSet.style.setProperty('transform', 'none', 'important');
+                            }
+                            // Force reflow to apply positioning changes
+                            sourceElement.offsetHeight;
+                            destination.offsetHeight;
+                            console.log('📐 POSITIONING COMPLETE: All variants positioned at 0px top/left');
+                            // ✅ STEP 2: NOW measure positions after proper positioning
                             console.log('📏 PRE-MEASUREMENT: Measuring source and target positions while visible');
                             sourcePositions = void 0;
                             targetPositions = void 0;
-                            try {
-                                console.log('📏 ATTEMPTING CSS-based measurement (handles !important rules)');
-                                sourcePositions = (0, element_copier_1.measureElementPositionsWithCSS)(sourceElement);
-                                targetPositions = (0, element_copier_1.measureElementPositionsWithCSS)(destination);
-                            }
-                            catch (error) {
-                                console.warn('📏 CSS measurement failed, falling back to class removal approach:', error);
-                                sourcePositions = (0, element_copier_1.measureElementPositions)(sourceElement);
-                                targetPositions = (0, element_copier_1.measureElementPositions)(destination);
-                            }
+                            // ✅ CRITICAL: Use class removal method for pre-positioned variants to respect JavaScript positioning
+                            console.log('📏 USING CLASS REMOVAL measurement (respects pre-positioning)');
+                            sourcePositions = (0, element_copier_1.measureElementPositions)(sourceElement);
+                            targetPositions = (0, element_copier_1.measureElementPositions)(destination);
                             console.log('📏 Source positions measured:', sourcePositions.size, 'elements');
                             console.log('📏 Target positions measured:', targetPositions.size, 'elements');
                             sourceCopy = (0, element_copier_1.createElementCopy)(sourceElement);
@@ -1949,7 +1975,7 @@ function injectAnimationCSS() {
     }
     var style = document.createElement('style');
     style.id = styleId;
-    style.textContent = "\n    /* Animation copy visibility */\n    .animation-copy {\n      display: flex !important;\n      pointer-events: none !important;\n      z-index: 9999 !important;\n    }\n\n    /* Source element hidden during animation */\n    .animation-source-hidden {\n      display: none !important;\n    }\n\n    /* Target element hidden during animation */\n    .animation-target-hidden {\n      display: none !important;\n    }\n\n    /* Ensure variant transitions are smooth */\n    .variant-active {\n      display: flex !important;\n      visibility: visible !important;\n      opacity: 1 !important;\n    }\n\n    .variant-hidden {\n      display: none !important;\n      visibility: hidden !important;\n      opacity: 0 !important;\n    }\n\n    /* Measurement override - highest specificity to override all other rules */\n    .measuring-positions,\n    .measuring-positions.variant-hidden,\n    .measuring-positions.animation-source-hidden,\n    .measuring-positions.animation-target-hidden {\n      display: flex !important;\n      visibility: visible !important;\n      opacity: 1 !important;\n    }\n\n    /* Ensure child elements are also visible during measurement */\n    .measuring-positions * {\n      visibility: visible !important;\n    }\n  ";
+    style.textContent = "\n    /* Animation copy visibility */\n    .animation-copy {\n      display: flex !important;\n      pointer-events: none !important;\n      z-index: 9999 !important;\n    }\n\n    /* Source element hidden during animation */\n    .animation-source-hidden {\n      display: none !important;\n    }\n\n    /* Target element hidden during animation */\n    .animation-target-hidden {\n      display: none !important;\n    }\n\n    /* Ensure variant transitions are smooth */\n    .variant-active {\n      display: flex !important;\n      visibility: visible !important;\n      opacity: 1 !important;\n    }\n\n    .variant-hidden {\n      display: none !important;\n      visibility: hidden !important;\n      opacity: 0 !important;\n    }\n\n    /* Measurement override - highest specificity to override all other rules */\n    .measuring-positions,\n    .measuring-positions.variant-hidden,\n    .measuring-positions.animation-source-hidden,\n    .measuring-positions.animation-target-hidden {\n      display: flex !important;\n      visibility: visible !important;\n      opacity: 1 !important;\n      position: relative !important;\n      top: 0px !important;\n      left: 0px !important;\n      transform: none !important;\n    }\n\n    /* Ensure child elements are also visible during measurement */\n    .measuring-positions * {\n      visibility: visible !important;\n    }\n  ";
     document.head.appendChild(style);
     console.log('✅ ANIMATION CSS: Injected animation styles to prevent conflicts');
 }
@@ -1967,11 +1993,15 @@ function measureElementPositions(variantElement) {
         animationSourceHidden: variantElement.classList.contains('animation-source-hidden'),
         animationTargetHidden: variantElement.classList.contains('animation-target-hidden')
     };
-    // Store original inline styles
+    // Store original inline styles (including positioning to preserve pre-positioning)
     var originalStyles = {
         display: variantElement.style.display,
         visibility: variantElement.style.visibility,
-        opacity: variantElement.style.opacity
+        opacity: variantElement.style.opacity,
+        position: variantElement.style.position,
+        top: variantElement.style.top,
+        left: variantElement.style.left,
+        transform: variantElement.style.transform
     };
     console.log("\uD83D\uDCCF MEASUREMENT PREP: Element ".concat(variantElement.getAttribute('data-figma-name'), " - Original classes:"), originalClasses);
     // ✅ CRITICAL: Remove conflicting CSS classes temporarily
@@ -2029,10 +2059,14 @@ function measureElementPositions(variantElement) {
     if (originalClasses.animationTargetHidden) {
         variantElement.classList.add('animation-target-hidden');
     }
-    // Restore original inline styles
+    // Restore original inline styles (including positioning to preserve pre-positioning)
     variantElement.style.display = originalStyles.display;
     variantElement.style.visibility = originalStyles.visibility;
     variantElement.style.opacity = originalStyles.opacity;
+    variantElement.style.position = originalStyles.position;
+    variantElement.style.top = originalStyles.top;
+    variantElement.style.left = originalStyles.left;
+    variantElement.style.transform = originalStyles.transform;
     console.log("\uD83D\uDCCF MEASUREMENT RESTORE: Element ".concat(variantElement.getAttribute('data-figma-name'), " - Classes restored:"), originalClasses);
     console.log('📏 MEASUREMENT COMPLETE: Measured', positions.size, 'elements');
     return positions;
@@ -2119,37 +2153,47 @@ function animateWithPreMeasuredPositions(copy, sourcePositions, targetPositions,
                     elementsToAnimate = [];
                     targetPositionsByName = new Map();
                     targetPositions.forEach(function (targetData, targetElementId) {
-                        var _a;
-                        var targetElementName = (_a = targetData.element) === null || _a === void 0 ? void 0 : _a.getAttribute('data-figma-name');
-                        if (targetElementName) {
-                            targetPositionsByName.set(targetElementName, targetData);
+                        var _a, _b;
+                        // ✅ FILTER: Skip variant-level elements from lookup too
+                        var isVariantElement = ((_a = targetData.element) === null || _a === void 0 ? void 0 : _a.getAttribute('data-figma-type')) === 'COMPONENT';
+                        if (!isVariantElement) {
+                            var targetElementName = (_b = targetData.element) === null || _b === void 0 ? void 0 : _b.getAttribute('data-figma-name');
+                            if (targetElementName) {
+                                targetPositionsByName.set(targetElementName, targetData);
+                            }
                         }
                     });
                     console.log("\uD83D\uDD0D TARGET POSITIONS BY NAME: Created lookup for ".concat(targetPositionsByName.size, " named elements"));
                     // Compare source vs target positions for each element
                     sourcePositions.forEach(function (sourceData, elementId) {
-                        var _a, _b, _c, _d, _e, _f, _g;
+                        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                        // ✅ CRITICAL FILTER: Skip variant-level elements - only animate child elements
+                        var isVariantElement = ((_a = sourceData.element) === null || _a === void 0 ? void 0 : _a.getAttribute('data-figma-type')) === 'COMPONENT';
+                        if (isVariantElement) {
+                            console.log("\u23ED\uFE0F SKIPPING VARIANT-LEVEL ELEMENT: ".concat(elementId, " (").concat((_b = sourceData.element) === null || _b === void 0 ? void 0 : _b.getAttribute('data-figma-name'), ") - variant containers should not be animated"));
+                            return; // Skip variant-level elements entirely
+                        }
                         // First try to match by ID (for same-variant elements)
                         var targetData = targetPositions.get(elementId);
                         // ✅ CRITICAL FIX: If no ID match, try matching by name (for cross-variant elements)
                         if (!targetData) {
-                            var sourceElementName = (_a = sourceData.element) === null || _a === void 0 ? void 0 : _a.getAttribute('data-figma-name');
+                            var sourceElementName = (_c = sourceData.element) === null || _c === void 0 ? void 0 : _c.getAttribute('data-figma-name');
                             if (sourceElementName) {
                                 targetData = targetPositionsByName.get(sourceElementName);
                                 if (targetData) {
-                                    console.log("\uD83C\uDFAF CROSS-VARIANT MATCH: ".concat(sourceElementName, " (").concat(elementId, " -> ").concat((_b = targetData.element) === null || _b === void 0 ? void 0 : _b.getAttribute('data-figma-id'), ")"));
+                                    console.log("\uD83C\uDFAF CROSS-VARIANT MATCH: ".concat(sourceElementName, " (").concat(elementId, " -> ").concat((_d = targetData.element) === null || _d === void 0 ? void 0 : _d.getAttribute('data-figma-id'), ")"));
                                 }
                             }
                         }
                         // ✅ CRITICAL DEBUG: Special logging for Frame 1232
-                        if (elementId.includes('Frame 1232') || ((_c = sourceData.element) === null || _c === void 0 ? void 0 : _c.getAttribute('data-figma-name')) === 'Frame 1232') {
+                        if (elementId.includes('Frame 1232') || ((_e = sourceData.element) === null || _e === void 0 ? void 0 : _e.getAttribute('data-figma-name')) === 'Frame 1232') {
                             console.log("\uD83D\uDD0D FRAME 1232 DETECTED:", {
                                 elementId: elementId,
-                                elementName: (_d = sourceData.element) === null || _d === void 0 ? void 0 : _d.getAttribute('data-figma-name'),
+                                elementName: (_f = sourceData.element) === null || _f === void 0 ? void 0 : _f.getAttribute('data-figma-name'),
                                 hasTargetData: !!targetData,
                                 sourceRect: sourceData.rect,
                                 targetRect: targetData === null || targetData === void 0 ? void 0 : targetData.rect,
-                                targetElementId: (_e = targetData === null || targetData === void 0 ? void 0 : targetData.element) === null || _e === void 0 ? void 0 : _e.getAttribute('data-figma-id')
+                                targetElementId: (_g = targetData === null || targetData === void 0 ? void 0 : targetData.element) === null || _g === void 0 ? void 0 : _g.getAttribute('data-figma-id')
                             });
                         }
                         if (targetData) {
@@ -2159,7 +2203,7 @@ function animateWithPreMeasuredPositions(copy, sourcePositions, targetPositions,
                             var xDiff = targetRect.left - sourceRect.left;
                             var yDiff = targetRect.top - sourceRect.top;
                             console.log("\uD83D\uDCCF Element ".concat(elementId, " position difference:"), {
-                                name: (_f = sourceData.element) === null || _f === void 0 ? void 0 : _f.getAttribute('data-figma-name'),
+                                name: (_h = sourceData.element) === null || _h === void 0 ? void 0 : _h.getAttribute('data-figma-name'),
                                 xDiff: xDiff,
                                 yDiff: yDiff,
                                 sourceRect: { left: sourceRect.left, top: sourceRect.top, width: sourceRect.width, height: sourceRect.height },
@@ -2178,7 +2222,7 @@ function animateWithPreMeasuredPositions(copy, sourcePositions, targetPositions,
                             if (Math.abs(xDiff) > 1 || Math.abs(yDiff) > 1) {
                                 console.log("\uD83C\uDFAF PROCESSING ELEMENT FOR ANIMATION: ".concat(elementId, " with significant difference"));
                                 // ✅ CRITICAL FIX: Enhanced element matching with multiple fallback strategies
-                                var elementName = (_g = sourceData.element) === null || _g === void 0 ? void 0 : _g.getAttribute('data-figma-name');
+                                var elementName = (_j = sourceData.element) === null || _j === void 0 ? void 0 : _j.getAttribute('data-figma-name');
                                 // ✅ CRITICAL DEBUG: Special logging for Frame 1232
                                 if (elementId.includes('Frame 1232') || elementName === 'Frame 1232') {
                                     console.log("\uD83D\uDD0D FRAME 1232 ANIMATION MATCHING:", {

@@ -104,6 +104,10 @@ export function injectAnimationCSS(): void {
       display: flex !important;
       visibility: visible !important;
       opacity: 1 !important;
+      position: relative !important;
+      top: 0px !important;
+      left: 0px !important;
+      transform: none !important;
     }
 
     /* Ensure child elements are also visible during measurement */
@@ -133,11 +137,15 @@ export function measureElementPositions(variantElement: HTMLElement): Map<string
     animationTargetHidden: variantElement.classList.contains('animation-target-hidden')
   };
   
-  // Store original inline styles
+  // Store original inline styles (including positioning to preserve pre-positioning)
   const originalStyles = {
     display: variantElement.style.display,
     visibility: variantElement.style.visibility,
-    opacity: variantElement.style.opacity
+    opacity: variantElement.style.opacity,
+    position: variantElement.style.position,
+    top: variantElement.style.top,
+    left: variantElement.style.left,
+    transform: variantElement.style.transform
   };
   
   console.log(`📏 MEASUREMENT PREP: Element ${variantElement.getAttribute('data-figma-name')} - Original classes:`, originalClasses);
@@ -207,10 +215,14 @@ export function measureElementPositions(variantElement: HTMLElement): Map<string
     variantElement.classList.add('animation-target-hidden');
   }
   
-  // Restore original inline styles
+  // Restore original inline styles (including positioning to preserve pre-positioning)
   variantElement.style.display = originalStyles.display;
   variantElement.style.visibility = originalStyles.visibility;
   variantElement.style.opacity = originalStyles.opacity;
+  variantElement.style.position = originalStyles.position;
+  variantElement.style.top = originalStyles.top;
+  variantElement.style.left = originalStyles.left;
+  variantElement.style.transform = originalStyles.transform;
   
   console.log(`📏 MEASUREMENT RESTORE: Element ${variantElement.getAttribute('data-figma-name')} - Classes restored:`, originalClasses);
   console.log('📏 MEASUREMENT COMPLETE: Measured', positions.size, 'elements');
@@ -316,9 +328,13 @@ export async function animateWithPreMeasuredPositions(
   // ✅ CRITICAL FIX: Create name-based lookup for cross-variant element matching
   const targetPositionsByName = new Map();
   targetPositions.forEach((targetData, targetElementId) => {
-    const targetElementName = targetData.element?.getAttribute('data-figma-name');
-    if (targetElementName) {
-      targetPositionsByName.set(targetElementName, targetData);
+    // ✅ FILTER: Skip variant-level elements from lookup too
+    const isVariantElement = targetData.element?.getAttribute('data-figma-type') === 'COMPONENT';
+    if (!isVariantElement) {
+      const targetElementName = targetData.element?.getAttribute('data-figma-name');
+      if (targetElementName) {
+        targetPositionsByName.set(targetElementName, targetData);
+      }
     }
   });
   
@@ -326,6 +342,13 @@ export async function animateWithPreMeasuredPositions(
   
   // Compare source vs target positions for each element
   sourcePositions.forEach((sourceData, elementId) => {
+    // ✅ CRITICAL FILTER: Skip variant-level elements - only animate child elements
+    const isVariantElement = sourceData.element?.getAttribute('data-figma-type') === 'COMPONENT';
+    if (isVariantElement) {
+      console.log(`⏭️ SKIPPING VARIANT-LEVEL ELEMENT: ${elementId} (${sourceData.element?.getAttribute('data-figma-name')}) - variant containers should not be animated`);
+      return; // Skip variant-level elements entirely
+    }
+    
     // First try to match by ID (for same-variant elements)
     let targetData = targetPositions.get(elementId);
     
