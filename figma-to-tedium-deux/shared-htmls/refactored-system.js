@@ -1853,6 +1853,33 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.safeElementOperation = safeElementOperation;
 exports.safeQuerySelector = safeQuerySelector;
@@ -2080,16 +2107,51 @@ function hideAllVariantsExceptCopy(allVariants, copy) {
  */
 function animateWithPreMeasuredPositions(copy, sourcePositions, targetPositions, transitionType, transitionDuration) {
     return __awaiter(this, void 0, void 0, function () {
-        var elementsToAnimate, duration_1, easing_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var elementsToAnimate, targetPositionsByName, mainSourceData, mainTargetData, sourcePositions_1, sourcePositions_1_1, _a, elementId, sourceData, targetData, sourceRect, targetRect, xDiff, yDiff, duration_1, easing_1;
+        var e_1, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
                     console.log('🎬 ANIMATING WITH PRE-MEASURED POSITIONS');
+                    console.log('🔍 ANIMATION DEBUG: Source positions map size:', sourcePositions.size);
+                    console.log('🔍 ANIMATION DEBUG: Target positions map size:', targetPositions.size);
+                    console.log('🔍 ANIMATION DEBUG: Copy element:', copy.getAttribute('data-figma-id'), copy.getAttribute('data-figma-name'));
                     elementsToAnimate = [];
+                    targetPositionsByName = new Map();
+                    targetPositions.forEach(function (targetData, targetElementId) {
+                        var _a;
+                        var targetElementName = (_a = targetData.element) === null || _a === void 0 ? void 0 : _a.getAttribute('data-figma-name');
+                        if (targetElementName) {
+                            targetPositionsByName.set(targetElementName, targetData);
+                        }
+                    });
+                    console.log("\uD83D\uDD0D TARGET POSITIONS BY NAME: Created lookup for ".concat(targetPositionsByName.size, " named elements"));
                     // Compare source vs target positions for each element
                     sourcePositions.forEach(function (sourceData, elementId) {
-                        var _a;
+                        var _a, _b, _c, _d, _e, _f, _g;
+                        // First try to match by ID (for same-variant elements)
                         var targetData = targetPositions.get(elementId);
+                        // ✅ CRITICAL FIX: If no ID match, try matching by name (for cross-variant elements)
+                        if (!targetData) {
+                            var sourceElementName = (_a = sourceData.element) === null || _a === void 0 ? void 0 : _a.getAttribute('data-figma-name');
+                            if (sourceElementName) {
+                                targetData = targetPositionsByName.get(sourceElementName);
+                                if (targetData) {
+                                    console.log("\uD83C\uDFAF CROSS-VARIANT MATCH: ".concat(sourceElementName, " (").concat(elementId, " -> ").concat((_b = targetData.element) === null || _b === void 0 ? void 0 : _b.getAttribute('data-figma-id'), ")"));
+                                }
+                            }
+                        }
+                        // ✅ CRITICAL DEBUG: Special logging for Frame 1232
+                        if (elementId.includes('Frame 1232') || ((_c = sourceData.element) === null || _c === void 0 ? void 0 : _c.getAttribute('data-figma-name')) === 'Frame 1232') {
+                            console.log("\uD83D\uDD0D FRAME 1232 DETECTED:", {
+                                elementId: elementId,
+                                elementName: (_d = sourceData.element) === null || _d === void 0 ? void 0 : _d.getAttribute('data-figma-name'),
+                                hasTargetData: !!targetData,
+                                sourceRect: sourceData.rect,
+                                targetRect: targetData === null || targetData === void 0 ? void 0 : targetData.rect,
+                                targetElementId: (_e = targetData === null || targetData === void 0 ? void 0 : targetData.element) === null || _e === void 0 ? void 0 : _e.getAttribute('data-figma-id')
+                            });
+                        }
                         if (targetData) {
                             var sourceRect = sourceData.rect;
                             var targetRect = targetData.rect;
@@ -2097,25 +2159,172 @@ function animateWithPreMeasuredPositions(copy, sourcePositions, targetPositions,
                             var xDiff = targetRect.left - sourceRect.left;
                             var yDiff = targetRect.top - sourceRect.top;
                             console.log("\uD83D\uDCCF Element ".concat(elementId, " position difference:"), {
-                                name: (_a = sourceData.element) === null || _a === void 0 ? void 0 : _a.getAttribute('data-figma-name'),
+                                name: (_f = sourceData.element) === null || _f === void 0 ? void 0 : _f.getAttribute('data-figma-name'),
                                 xDiff: xDiff,
                                 yDiff: yDiff,
                                 sourceRect: { left: sourceRect.left, top: sourceRect.top, width: sourceRect.width, height: sourceRect.height },
                                 targetRect: { left: targetRect.left, top: targetRect.top, width: targetRect.width, height: targetRect.height }
                             });
+                            // ✅ CRITICAL DEBUG: Log whether this element has significant differences
+                            var hasSignificantDiff = Math.abs(xDiff) > 1 || Math.abs(yDiff) > 1;
+                            console.log("\uD83D\uDD0D SIGNIFICANT DIFF CHECK for ".concat(elementId, ":"), {
+                                xDiff: xDiff,
+                                yDiff: yDiff,
+                                absXDiff: Math.abs(xDiff),
+                                absYDiff: Math.abs(yDiff),
+                                hasSignificantDiff: hasSignificantDiff
+                            });
                             // Only animate if there's a significant difference
                             if (Math.abs(xDiff) > 1 || Math.abs(yDiff) > 1) {
-                                var copyElement = copy.querySelector("[data-figma-id=\"".concat(elementId, "\"]"));
+                                console.log("\uD83C\uDFAF PROCESSING ELEMENT FOR ANIMATION: ".concat(elementId, " with significant difference"));
+                                // ✅ CRITICAL FIX: Enhanced element matching with multiple fallback strategies
+                                var elementName = (_g = sourceData.element) === null || _g === void 0 ? void 0 : _g.getAttribute('data-figma-name');
+                                // ✅ CRITICAL DEBUG: Special logging for Frame 1232
+                                if (elementId.includes('Frame 1232') || elementName === 'Frame 1232') {
+                                    console.log("\uD83D\uDD0D FRAME 1232 ANIMATION MATCHING:", {
+                                        elementId: elementId,
+                                        elementName: elementName,
+                                        xDiff: xDiff,
+                                        yDiff: yDiff,
+                                        copyInnerHTML: copy.innerHTML.substring(0, 500)
+                                    });
+                                    // Log all elements in the copy to see if Frame 1232 exists
+                                    var allCopyElements = Array.from(copy.querySelectorAll('[data-figma-id]'));
+                                    console.log("\uD83D\uDD0D ALL COPY ELEMENTS:", allCopyElements.map(function (el) { return ({
+                                        id: el.getAttribute('data-figma-id'),
+                                        name: el.getAttribute('data-figma-name')
+                                    }); }));
+                                }
+                                console.log("\uD83D\uDD0D ELEMENT MATCHING START for ".concat(elementId, ":"), {
+                                    elementId: elementId,
+                                    elementName: elementName,
+                                    copyId: copy.getAttribute('data-figma-id'),
+                                    copyName: copy.getAttribute('data-figma-name')
+                                });
+                                // ✅ CRITICAL FIX: For cross-variant elements, prioritize name matching over ID matching
+                                var copyElement = null;
+                                // Try by name first (works for cross-variant elements)
+                                if (elementName) {
+                                    copyElement = copy.querySelector("[data-figma-name=\"".concat(elementName, "\"]"));
+                                    console.log("\uD83D\uDD0D MATCH ATTEMPT 1 (by name): ".concat(elementName, " -> ").concat(!!copyElement));
+                                }
+                                // Fallback: Try by ID (for same-variant elements)
+                                if (!copyElement) {
+                                    copyElement = copy.querySelector("[data-figma-id=\"".concat(elementId, "\"]"));
+                                    console.log("\uD83D\uDD0D MATCH ATTEMPT 2 (by ID): ".concat(elementId, " -> ").concat(!!copyElement));
+                                }
+                                if (!copyElement) {
+                                    // Fallback 2: Try with -copy suffix (in case createElementCopy modifies IDs)
+                                    copyElement = copy.querySelector("[data-figma-id=\"".concat(elementId, "-copy\"]"));
+                                    console.log("\uD83D\uDD0D MATCH ATTEMPT 3 (by copy ID): ".concat(elementId, "-copy -> ").concat(!!copyElement));
+                                }
+                                if (!copyElement) {
+                                    // Fallback 3: If this is the main variant, animate the copy itself
+                                    var copyMainId = copy.getAttribute('data-figma-id');
+                                    console.log("\uD83D\uDD0D MATCH ATTEMPT 4 (main variant check):", {
+                                        copyMainId: copyMainId,
+                                        elementId: elementId,
+                                        isMainVariant: copyMainId && (elementId === copyMainId.replace('-copy', '') || elementId + '-copy' === copyMainId)
+                                    });
+                                    if (copyMainId && (elementId === copyMainId.replace('-copy', '') || elementId + '-copy' === copyMainId)) {
+                                        copyElement = copy;
+                                        console.log("\uD83C\uDFAF MAIN ELEMENT MATCH: Using copy itself for main variant ".concat(elementId));
+                                    }
+                                }
+                                if (!copyElement) {
+                                    // Fallback 4: Try to find by index/position if IDs don't match
+                                    var allSourceElements = Array.from(sourcePositions.keys());
+                                    var sourceIndex = allSourceElements.indexOf(elementId);
+                                    if (sourceIndex >= 0) {
+                                        var allCopyElements = Array.from(copy.querySelectorAll('[data-figma-id]'));
+                                        if (allCopyElements[sourceIndex]) {
+                                            copyElement = allCopyElements[sourceIndex];
+                                            console.log("\uD83C\uDFAF INDEX MATCH: Found element by position ".concat(sourceIndex, " for ").concat(elementId));
+                                        }
+                                    }
+                                }
+                                // 🔍 DEBUG: Log element matching results
+                                console.log("\uD83D\uDD0D ELEMENT MATCHING DEBUG for ".concat(elementId, ":"), {
+                                    elementId: elementId,
+                                    elementName: elementName,
+                                    foundById: !!copy.querySelector("[data-figma-id=\"".concat(elementId, "\"]")),
+                                    foundByName: !!copy.querySelector("[data-figma-name=\"".concat(elementName, "\"]")),
+                                    foundByCopyId: !!copy.querySelector("[data-figma-id=\"".concat(elementId, "-copy\"]")),
+                                    finalMatch: !!copyElement,
+                                    copyMainId: copy.getAttribute('data-figma-id'),
+                                    allCopyIds: Array.from(copy.querySelectorAll('[data-figma-id]')).map(function (el) { return el.getAttribute('data-figma-id'); }).slice(0, 5)
+                                });
+                                console.log("\uD83D\uDD0D FINAL MATCH RESULT for ".concat(elementId, ":"), {
+                                    copyElement: !!copyElement,
+                                    copyElementId: copyElement === null || copyElement === void 0 ? void 0 : copyElement.getAttribute('data-figma-id'),
+                                    copyElementName: copyElement === null || copyElement === void 0 ? void 0 : copyElement.getAttribute('data-figma-name')
+                                });
                                 if (copyElement) {
                                     elementsToAnimate.push({
                                         element: copyElement,
                                         xDiff: xDiff,
                                         yDiff: yDiff
                                     });
+                                    console.log("\u2705 ELEMENT MATCHED: ".concat(elementName || elementId, " will be animated with transform(").concat(xDiff, "px, ").concat(yDiff, "px)"));
+                                }
+                                else {
+                                    console.warn("\u274C ELEMENT MATCHING FAILED: Could not find copy element for ".concat(elementId, " (").concat(elementName, ")"));
+                                    // 🔍 EMERGENCY DEBUG: Log copy structure for analysis
+                                    console.log('🔍 COPY STRUCTURE DEBUG:', {
+                                        copyHTML: copy.innerHTML.substring(0, 300),
+                                        copyOuterHTML: copy.outerHTML.substring(0, 200)
+                                    });
+                                }
+                            }
+                            else {
+                                console.log("\u23ED\uFE0F SKIPPING ELEMENT: ".concat(elementId, " - no significant position difference (xDiff: ").concat(xDiff, ", yDiff: ").concat(yDiff, ")"));
+                            }
+                        }
+                        else {
+                            console.log("\u23ED\uFE0F SKIPPING ELEMENT: ".concat(elementId, " - no target data found"));
+                        }
+                    });
+                    console.log("\uD83D\uDD0D ANIMATION SUMMARY: Found ".concat(elementsToAnimate.length, " elements to animate"));
+                    // ✅ BACKUP STRATEGY: If no child elements were matched, try animating the copy itself based on variant-level differences
+                    if (elementsToAnimate.length === 0) {
+                        console.log('🔄 NO CHILD ELEMENTS MATCHED: Checking if main variant has position changes');
+                        mainSourceData = null;
+                        mainTargetData = null;
+                        try {
+                            // Use for...of loop instead of forEach to allow break
+                            for (sourcePositions_1 = __values(sourcePositions), sourcePositions_1_1 = sourcePositions_1.next(); !sourcePositions_1_1.done; sourcePositions_1_1 = sourcePositions_1.next()) {
+                                _a = __read(sourcePositions_1_1.value, 2), elementId = _a[0], sourceData = _a[1];
+                                targetData = targetPositions.get(elementId);
+                                if (targetData && sourceData.element && targetData.element) {
+                                    sourceRect = sourceData.rect;
+                                    targetRect = targetData.rect;
+                                    xDiff = targetRect.left - sourceRect.left;
+                                    yDiff = targetRect.top - sourceRect.top;
+                                    // If this is a significant position change and we haven't found the main variant yet
+                                    if (Math.abs(xDiff) > 1 || Math.abs(yDiff) > 1) {
+                                        if (!mainSourceData || sourceData.element.tagName === copy.tagName) {
+                                            mainSourceData = sourceData;
+                                            mainTargetData = targetData;
+                                            console.log("\uD83C\uDFAF MAIN VARIANT ANIMATION: Found position change ".concat(xDiff, "px, ").concat(yDiff, "px for main variant"));
+                                            elementsToAnimate.push({
+                                                element: copy,
+                                                xDiff: xDiff,
+                                                yDiff: yDiff
+                                            });
+                                            break; // Only animate the main element once
+                                        }
+                                    }
                                 }
                             }
                         }
-                    });
+                        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                        finally {
+                            try {
+                                if (sourcePositions_1_1 && !sourcePositions_1_1.done && (_b = sourcePositions_1.return)) _b.call(sourcePositions_1);
+                            }
+                            finally { if (e_1) throw e_1.error; }
+                        }
+                    }
                     if (!(elementsToAnimate.length > 0)) return [3 /*break*/, 2];
                     console.log("\uD83C\uDFAC ANIMATING ".concat(elementsToAnimate.length, " elements with actual position changes"));
                     duration_1 = transitionDuration || 0.5;
@@ -2132,12 +2341,12 @@ function animateWithPreMeasuredPositions(copy, sourcePositions, targetPositions,
                         })];
                 case 1:
                     // Wait for animation to complete
-                    _a.sent();
+                    _c.sent();
                     console.log('✅ ANIMATION COMPLETED: All transforms applied successfully');
                     return [3 /*break*/, 3];
                 case 2:
                     console.log('🔄 NO POSITION CHANGES: All elements have same positions - instant switch');
-                    _a.label = 3;
+                    _c.label = 3;
                 case 3: return [2 /*return*/];
             }
         });

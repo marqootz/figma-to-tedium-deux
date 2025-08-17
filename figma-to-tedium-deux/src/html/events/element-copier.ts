@@ -307,12 +307,50 @@ export async function animateWithPreMeasuredPositions(
   transitionDuration: number
 ): Promise<void> {
   console.log('🎬 ANIMATING WITH PRE-MEASURED POSITIONS');
+  console.log('🔍 ANIMATION DEBUG: Source positions map size:', sourcePositions.size);
+  console.log('🔍 ANIMATION DEBUG: Target positions map size:', targetPositions.size);
+  console.log('🔍 ANIMATION DEBUG: Copy element:', copy.getAttribute('data-figma-id'), copy.getAttribute('data-figma-name'));
   
   const elementsToAnimate: Array<{element: HTMLElement, xDiff: number, yDiff: number}> = [];
   
+  // ✅ CRITICAL FIX: Create name-based lookup for cross-variant element matching
+  const targetPositionsByName = new Map();
+  targetPositions.forEach((targetData, targetElementId) => {
+    const targetElementName = targetData.element?.getAttribute('data-figma-name');
+    if (targetElementName) {
+      targetPositionsByName.set(targetElementName, targetData);
+    }
+  });
+  
+  console.log(`🔍 TARGET POSITIONS BY NAME: Created lookup for ${targetPositionsByName.size} named elements`);
+  
   // Compare source vs target positions for each element
   sourcePositions.forEach((sourceData, elementId) => {
-    const targetData = targetPositions.get(elementId);
+    // First try to match by ID (for same-variant elements)
+    let targetData = targetPositions.get(elementId);
+    
+    // ✅ CRITICAL FIX: If no ID match, try matching by name (for cross-variant elements)
+    if (!targetData) {
+      const sourceElementName = sourceData.element?.getAttribute('data-figma-name');
+      if (sourceElementName) {
+        targetData = targetPositionsByName.get(sourceElementName);
+        if (targetData) {
+          console.log(`🎯 CROSS-VARIANT MATCH: ${sourceElementName} (${elementId} -> ${targetData.element?.getAttribute('data-figma-id')})`);
+        }
+      }
+    }
+    
+    // ✅ CRITICAL DEBUG: Special logging for Frame 1232
+    if (elementId.includes('Frame 1232') || sourceData.element?.getAttribute('data-figma-name') === 'Frame 1232') {
+      console.log(`🔍 FRAME 1232 DETECTED:`, {
+        elementId,
+        elementName: sourceData.element?.getAttribute('data-figma-name'),
+        hasTargetData: !!targetData,
+        sourceRect: sourceData.rect,
+        targetRect: targetData?.rect,
+        targetElementId: targetData?.element?.getAttribute('data-figma-id')
+      });
+    }
     
     if (targetData) {
       const sourceRect = sourceData.rect;
@@ -330,20 +368,178 @@ export async function animateWithPreMeasuredPositions(
         targetRect: { left: targetRect.left, top: targetRect.top, width: targetRect.width, height: targetRect.height }
       });
       
+      // ✅ CRITICAL DEBUG: Log whether this element has significant differences
+      const hasSignificantDiff = Math.abs(xDiff) > 1 || Math.abs(yDiff) > 1;
+      console.log(`🔍 SIGNIFICANT DIFF CHECK for ${elementId}:`, {
+        xDiff,
+        yDiff,
+        absXDiff: Math.abs(xDiff),
+        absYDiff: Math.abs(yDiff),
+        hasSignificantDiff
+      });
+      
       // Only animate if there's a significant difference
       if (Math.abs(xDiff) > 1 || Math.abs(yDiff) > 1) {
-        const copyElement = copy.querySelector(`[data-figma-id="${elementId}"]`) as HTMLElement;
+        console.log(`🎯 PROCESSING ELEMENT FOR ANIMATION: ${elementId} with significant difference`);
+        
+        // ✅ CRITICAL FIX: Enhanced element matching with multiple fallback strategies
+        const elementName = sourceData.element?.getAttribute('data-figma-name');
+        
+        // ✅ CRITICAL DEBUG: Special logging for Frame 1232
+        if (elementId.includes('Frame 1232') || elementName === 'Frame 1232') {
+          console.log(`🔍 FRAME 1232 ANIMATION MATCHING:`, {
+            elementId,
+            elementName,
+            xDiff,
+            yDiff,
+            copyInnerHTML: copy.innerHTML.substring(0, 500)
+          });
+          
+          // Log all elements in the copy to see if Frame 1232 exists
+          const allCopyElements = Array.from(copy.querySelectorAll('[data-figma-id]'));
+          console.log(`🔍 ALL COPY ELEMENTS:`, allCopyElements.map(el => ({
+            id: el.getAttribute('data-figma-id'),
+            name: el.getAttribute('data-figma-name')
+          })));
+        }
+        
+        console.log(`🔍 ELEMENT MATCHING START for ${elementId}:`, {
+          elementId,
+          elementName,
+          copyId: copy.getAttribute('data-figma-id'),
+          copyName: copy.getAttribute('data-figma-name')
+        });
+        
+        // ✅ CRITICAL FIX: For cross-variant elements, prioritize name matching over ID matching
+        let copyElement: HTMLElement | null = null;
+        
+        // Try by name first (works for cross-variant elements)
+        if (elementName) {
+          copyElement = copy.querySelector(`[data-figma-name="${elementName}"]`) as HTMLElement;
+          console.log(`🔍 MATCH ATTEMPT 1 (by name): ${elementName} -> ${!!copyElement}`);
+        }
+        
+        // Fallback: Try by ID (for same-variant elements)
+        if (!copyElement) {
+          copyElement = copy.querySelector(`[data-figma-id="${elementId}"]`) as HTMLElement;
+          console.log(`🔍 MATCH ATTEMPT 2 (by ID): ${elementId} -> ${!!copyElement}`);
+        }
+        
+        if (!copyElement) {
+          // Fallback 2: Try with -copy suffix (in case createElementCopy modifies IDs)
+          copyElement = copy.querySelector(`[data-figma-id="${elementId}-copy"]`) as HTMLElement;
+          console.log(`🔍 MATCH ATTEMPT 3 (by copy ID): ${elementId}-copy -> ${!!copyElement}`);
+        }
+        
+        if (!copyElement) {
+          // Fallback 3: If this is the main variant, animate the copy itself
+          const copyMainId = copy.getAttribute('data-figma-id');
+          console.log(`🔍 MATCH ATTEMPT 4 (main variant check):`, {
+            copyMainId,
+            elementId,
+            isMainVariant: copyMainId && (elementId === copyMainId.replace('-copy', '') || elementId + '-copy' === copyMainId)
+          });
+          if (copyMainId && (elementId === copyMainId.replace('-copy', '') || elementId + '-copy' === copyMainId)) {
+            copyElement = copy;
+            console.log(`🎯 MAIN ELEMENT MATCH: Using copy itself for main variant ${elementId}`);
+          }
+        }
+        
+        if (!copyElement) {
+          // Fallback 4: Try to find by index/position if IDs don't match
+          const allSourceElements = Array.from(sourcePositions.keys());
+          const sourceIndex = allSourceElements.indexOf(elementId);
+          
+          if (sourceIndex >= 0) {
+            const allCopyElements = Array.from(copy.querySelectorAll('[data-figma-id]'));
+            if (allCopyElements[sourceIndex]) {
+              copyElement = allCopyElements[sourceIndex] as HTMLElement;
+              console.log(`🎯 INDEX MATCH: Found element by position ${sourceIndex} for ${elementId}`);
+            }
+          }
+        }
+        
+        // 🔍 DEBUG: Log element matching results
+        console.log(`🔍 ELEMENT MATCHING DEBUG for ${elementId}:`, {
+          elementId,
+          elementName,
+          foundById: !!copy.querySelector(`[data-figma-id="${elementId}"]`),
+          foundByName: !!copy.querySelector(`[data-figma-name="${elementName}"]`),
+          foundByCopyId: !!copy.querySelector(`[data-figma-id="${elementId}-copy"]`),
+          finalMatch: !!copyElement,
+          copyMainId: copy.getAttribute('data-figma-id'),
+          allCopyIds: Array.from(copy.querySelectorAll('[data-figma-id]')).map(el => el.getAttribute('data-figma-id')).slice(0, 5)
+        });
+        
+        console.log(`🔍 FINAL MATCH RESULT for ${elementId}:`, {
+          copyElement: !!copyElement,
+          copyElementId: copyElement?.getAttribute('data-figma-id'),
+          copyElementName: copyElement?.getAttribute('data-figma-name')
+        });
+        
         if (copyElement) {
           elementsToAnimate.push({
             element: copyElement,
             xDiff,
             yDiff
           });
+          
+          console.log(`✅ ELEMENT MATCHED: ${elementName || elementId} will be animated with transform(${xDiff}px, ${yDiff}px)`);
+        } else {
+          console.warn(`❌ ELEMENT MATCHING FAILED: Could not find copy element for ${elementId} (${elementName})`);
+          
+          // 🔍 EMERGENCY DEBUG: Log copy structure for analysis
+          console.log('🔍 COPY STRUCTURE DEBUG:', {
+            copyHTML: copy.innerHTML.substring(0, 300),
+            copyOuterHTML: copy.outerHTML.substring(0, 200)
+          });
         }
+      } else {
+        console.log(`⏭️ SKIPPING ELEMENT: ${elementId} - no significant position difference (xDiff: ${xDiff}, yDiff: ${yDiff})`);
       }
+    } else {
+      console.log(`⏭️ SKIPPING ELEMENT: ${elementId} - no target data found`);
     }
   });
   
+  console.log(`🔍 ANIMATION SUMMARY: Found ${elementsToAnimate.length} elements to animate`);
+  
+  // ✅ BACKUP STRATEGY: If no child elements were matched, try animating the copy itself based on variant-level differences
+  if (elementsToAnimate.length === 0) {
+    console.log('🔄 NO CHILD ELEMENTS MATCHED: Checking if main variant has position changes');
+    
+    // Look for the main variant positions
+    let mainSourceData = null;
+    let mainTargetData = null;
+    
+    // Use for...of loop instead of forEach to allow break
+    for (const [elementId, sourceData] of sourcePositions) {
+      const targetData = targetPositions.get(elementId);
+      if (targetData && sourceData.element && targetData.element) {
+        const sourceRect = sourceData.rect;
+        const targetRect = targetData.rect;
+        const xDiff = targetRect.left - sourceRect.left;
+        const yDiff = targetRect.top - sourceRect.top;
+        
+        // If this is a significant position change and we haven't found the main variant yet
+        if (Math.abs(xDiff) > 1 || Math.abs(yDiff) > 1) {
+          if (!mainSourceData || sourceData.element.tagName === copy.tagName) {
+            mainSourceData = sourceData;
+            mainTargetData = targetData;
+            console.log(`🎯 MAIN VARIANT ANIMATION: Found position change ${xDiff}px, ${yDiff}px for main variant`);
+            
+            elementsToAnimate.push({
+              element: copy,
+              xDiff,
+              yDiff
+            });
+            break; // Only animate the main element once
+          }
+        }
+      }
+    }
+  }
+
   if (elementsToAnimate.length > 0) {
     console.log(`🎬 ANIMATING ${elementsToAnimate.length} elements with actual position changes`);
     
